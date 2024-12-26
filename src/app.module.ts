@@ -5,6 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './users/entities/user.entity';
 import { TaskEntity } from './tasks/entities/task.entity';
 import { StatsModule } from './stats/stats.module';
+import { WalletModule } from './wallet/wallet.module';
+import { KeyModule } from './key/key.module';
+import { WalletEntity } from './wallet/entities/wallet.entity';
+import { KeyEntity } from './key/entities/key.entity';
 
 @Module({
   imports: [
@@ -15,12 +19,14 @@ import { StatsModule } from './stats/stats.module';
       username: 'root',
       password: '',
       database: 'true-dapp',
-      entities: [UserEntity, TaskEntity],
+      entities: [UserEntity, TaskEntity, WalletEntity, KeyEntity],
       synchronize: true,
     }),
     UsersModule,
     TasksModule,
     StatsModule,
+    WalletModule,
+    KeyModule,
   ],
   controllers: [],
   providers: [],

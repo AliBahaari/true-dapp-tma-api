@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -79,6 +79,8 @@ export class UsersService {
         return await this.userRepo.save(userFindOne);
       }
     }
+
+    throw new HttpException('Task ID Not Found', HttpStatus.NOT_FOUND);
   }
 
   async findStats(initData: string) {
