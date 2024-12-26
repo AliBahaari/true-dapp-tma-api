@@ -18,7 +18,7 @@ import { KeyEntity } from './key/entities/key.entity';
       port: 3306,
       username: 'root',
       password: '',
-      database: 'true-dapp',
+      database: 'trueDapp',
       entities: [UserEntity, TaskEntity, WalletEntity, KeyEntity],
       synchronize: true,
     }),
