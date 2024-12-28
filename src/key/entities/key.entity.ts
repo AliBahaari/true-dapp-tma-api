@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'keys',
+  name: 'api_keys',
 })
 export class KeyEntity {
   @PrimaryGeneratedColumn()
