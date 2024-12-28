@@ -38,6 +38,17 @@ export class UserEntity {
   @Column()
   lastOnline: string;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  hasEstimatedTgmPrice: boolean;
+
+  @Column({
+    default: 0,
+  })
+  estimatedTgmPrice: number;
+
   @CreateDateColumn()
   createdAt: string;
 }

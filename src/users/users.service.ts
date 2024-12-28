@@ -39,15 +39,25 @@ export class UsersService {
       },
     });
     if (userFindOne) {
+      const usersFindAll = await this.userRepo.find();
+      let allEstimatedTgmPrices = 0;
+      usersFindAll.map((i) => {
+        allEstimatedTgmPrices += Number(i.estimatedTgmPrice);
+      });
+
       userFindOne.lastOnline = new Date().toLocaleDateString();
       this.userRepo.save(userFindOne);
-      return userFindOne;
+      return {
+        ...userFindOne,
+        allEstimatedTgmPrices:
+          allEstimatedTgmPrices / (await this.userRepo.count()),
+      };
     }
 
     return await this.create(initData);
   }
 
-  async update(referralCode: string) {
+  async updateReferralCode(referralCode: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         referralCode,
@@ -121,5 +131,21 @@ export class UsersService {
       allUsers: await this.userRepo.count(),
       todayUsers: todayUsers.length,
     };
+  }
+
+  async updateEstimatedTgmPrice(initData: string, estimatedPrice: number) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (userFindOne) {
+      userFindOne.estimatedTgmPrice = estimatedPrice;
+      userFindOne.hasEstimatedTgmPrice = true;
+      this.userRepo.save(userFindOne);
+      return userFindOne;
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
   }
 }

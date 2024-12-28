@@ -39,9 +39,9 @@ export class UsersController {
     return this.usersService.findAllUsersCount();
   }
 
-  @Patch('update/:referralCode')
+  @Patch('updateReferralCode/:referralCode')
   update(@Param('referralCode') referralCode: string) {
-    return this.usersService.update(referralCode);
+    return this.usersService.updateReferralCode(referralCode);
   }
 
   @Patch('updateUserTask/:initData/:taskId')
@@ -50,5 +50,13 @@ export class UsersController {
     @Param('taskId', ParseIntPipe) taskId: number,
   ) {
     return this.usersService.updateUserTask(initData, taskId);
+  }
+
+  @Patch('updateEstimatedTgmPrice/:initData/:estimatedPrice')
+  updateEstimatedTgmPrice(
+    @Param('initData') initData: string,
+    @Param('estimatedPrice', ParseIntPipe) estimatedPrice: number,
+  ) {
+    return this.usersService.updateEstimatedTgmPrice(initData, estimatedPrice);
   }
 }
