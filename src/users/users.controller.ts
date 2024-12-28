@@ -15,48 +15,51 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('create')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.usersService.create(createUserDto);
   }
 
   @Get('findAll')
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
   @Get('findOne/:initData')
-  findOne(@Param('initData') initData: string) {
-    return this.usersService.findOne(initData);
+  async findOne(@Param('initData') initData: string) {
+    return await this.usersService.findOne(initData);
   }
 
   @Get('findStats/:initData')
-  findStats(@Param('initData') initData: string) {
-    return this.usersService.findStats(initData);
+  async findStats(@Param('initData') initData: string) {
+    return await this.usersService.findStats(initData);
   }
 
   @Get('findAllUsersCount')
-  findAllUsersCount() {
-    return this.usersService.findAllUsersCount();
+  async findAllUsersCount() {
+    return await this.usersService.findAllUsersCount();
   }
 
   @Patch('updateReferralCode/:referralCode')
-  update(@Param('referralCode') referralCode: string) {
-    return this.usersService.updateReferralCode(referralCode);
+  async updateReferralCode(@Param('referralCode') referralCode: string) {
+    return await this.usersService.updateReferralCode(referralCode);
   }
 
   @Patch('updateUserTask/:initData/:taskId')
-  updateUserTask(
+  async updateUserTask(
     @Param('initData') initData: string,
     @Param('taskId', ParseIntPipe) taskId: number,
   ) {
-    return this.usersService.updateUserTask(initData, taskId);
+    return await this.usersService.updateUserTask(initData, taskId);
   }
 
   @Patch('updateEstimatedTgmPrice/:initData/:estimatedPrice')
-  updateEstimatedTgmPrice(
+  async updateEstimatedTgmPrice(
     @Param('initData') initData: string,
     @Param('estimatedPrice', ParseIntPipe) estimatedPrice: number,
   ) {
-    return this.usersService.updateEstimatedTgmPrice(initData, estimatedPrice);
+    return await this.usersService.updateEstimatedTgmPrice(
+      initData,
+      estimatedPrice,
+    );
   }
 }

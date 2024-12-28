@@ -13,7 +13,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto | string) {
-    return this.userRepo.save({
+    return await this.userRepo.save({
       initData:
         typeof createUserDto === 'string'
           ? createUserDto
@@ -29,7 +29,7 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.userRepo.find();
+    return await this.userRepo.find();
   }
 
   async findOne(initData: string) {
@@ -46,7 +46,7 @@ export class UsersService {
       });
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
-      this.userRepo.save(userFindOne);
+      await this.userRepo.save(userFindOne);
       return {
         ...userFindOne,
         allEstimatedTgmPrices:
@@ -72,7 +72,7 @@ export class UsersService {
     userFindOne.tgmCount += 100;
     userFindOne.level = Math.ceil(userFindOne.referralCount / 6.18);
 
-    return this.userRepo.save(userFindOne);
+    return await this.userRepo.save(userFindOne);
   }
 
   async updateUserTask(initData: string, taskId: number) {
@@ -142,10 +142,10 @@ export class UsersService {
     if (userFindOne) {
       userFindOne.estimatedTgmPrice = estimatedPrice;
       userFindOne.hasEstimatedTgmPrice = true;
-      this.userRepo.save(userFindOne);
+      await this.userRepo.save(userFindOne);
       return userFindOne;
-    } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
+
+    throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
   }
 }

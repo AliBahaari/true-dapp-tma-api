@@ -15,7 +15,9 @@ export class WalletEntity {
   @Column()
   fullName: string;
 
-  @Column()
+  @Column({
+    type: 'json',
+  })
   walletsInfo: string;
 
   @CreateDateColumn()

@@ -7,17 +7,17 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post('create')
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  async create(@Body() createTaskDto: CreateTaskDto) {
+    return await this.tasksService.create(createTaskDto);
   }
 
   @Get('findAll')
-  findAll() {
-    return this.tasksService.findAll();
+  async findAll() {
+    return await this.tasksService.findAll();
   }
 
   @Get('findOne/:id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.tasksService.findOne(+id);
   }
 }

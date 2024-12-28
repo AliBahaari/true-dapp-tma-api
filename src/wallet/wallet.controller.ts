@@ -8,6 +8,6 @@ export class WalletController {
 
   @Post('create')
   async handleCreate(@Body() createWalletDto: CreateWalletDto) {
-    return this.walletService.create(createWalletDto);
+    return await this.walletService.create(createWalletDto);
   }
 }
