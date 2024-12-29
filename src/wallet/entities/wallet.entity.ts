@@ -9,10 +9,12 @@ import {
   name: 'wallets',
 })
 export class WalletEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   fullName: string;
 
   @Column({

@@ -9,8 +9,8 @@ import {
   name: 'users',
 })
 export class UserEntity {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   initData: string;
@@ -18,7 +18,9 @@ export class UserEntity {
   @Column({ default: 1 })
   level: number;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   referralCode: string;
 
   @Column()
@@ -33,7 +35,7 @@ export class UserEntity {
   @Column({
     type: 'simple-array',
   })
-  completedTasks: number[];
+  completedTasks: string[];
 
   @Column()
   lastOnline: string;
@@ -48,6 +50,11 @@ export class UserEntity {
     default: 0,
   })
   estimatedTgmPrice: number;
+
+  @Column({
+    unique: true,
+  })
+  secretCode: string;
 
   @CreateDateColumn()
   createdAt: string;

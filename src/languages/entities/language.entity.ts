@@ -6,22 +6,22 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'api_keys',
+  name: 'languages',
 })
-export class KeyEntity {
+export class LanguageEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
     unique: true,
   })
-  title: string;
+  language: string;
 
   @Column({
     unique: true,
   })
-  key: string;
+  languageCode: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: string;
 }

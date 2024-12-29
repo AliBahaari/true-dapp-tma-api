@@ -18,6 +18,6 @@ export class TasksController {
 
   @Get('findOne/:id')
   async findOne(@Param('id') id: string) {
-    return await this.tasksService.findOne(+id);
+    return await this.tasksService.findOne(id);
   }
 }

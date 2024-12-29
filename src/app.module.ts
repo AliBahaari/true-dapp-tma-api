@@ -9,6 +9,8 @@ import { WalletModule } from './wallet/wallet.module';
 import { KeyModule } from './key/key.module';
 import { WalletEntity } from './wallet/entities/wallet.entity';
 import { KeyEntity } from './key/entities/key.entity';
+import { LanguagesModule } from './languages/languages.module';
+import { LanguageEntity } from './languages/entities/language.entity';
 
 @Module({
   imports: [
@@ -19,7 +21,13 @@ import { KeyEntity } from './key/entities/key.entity';
       username: 'root',
       password: '',
       database: 'true_dapp',
-      entities: [UserEntity, TaskEntity, WalletEntity, KeyEntity],
+      entities: [
+        UserEntity,
+        TaskEntity,
+        LanguageEntity,
+        WalletEntity,
+        KeyEntity,
+      ],
       synchronize: true,
     }),
     UsersModule,
@@ -27,6 +35,7 @@ import { KeyEntity } from './key/entities/key.entity';
     StatsModule,
     WalletModule,
     KeyModule,
+    LanguagesModule,
   ],
   controllers: [],
   providers: [],

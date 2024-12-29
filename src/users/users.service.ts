@@ -13,18 +13,21 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto | string) {
+    const referralCode = Math.random().toString(36).substring(2, 7);
+    const initData =
+      typeof createUserDto === 'string'
+        ? createUserDto
+        : createUserDto.initData;
     return await this.userRepo.save({
-      initData:
-        typeof createUserDto === 'string'
-          ? createUserDto
-          : createUserDto.initData,
+      initData,
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
       referralCount: 0,
-      referralCode: Math.random().toString(36).substring(2, 7),
+      referralCode,
       tasks: [],
       lastOnline: '',
+      secretCode: initData + referralCode.toString(),
     });
   }
 
@@ -32,7 +35,15 @@ export class UsersService {
     return await this.userRepo.find();
   }
 
-  async findOne(initData: string) {
+  async compareBySecretCode(secretCode: string) {
+    return await this.userRepo.findOne({
+      where: {
+        secretCode,
+      },
+    });
+  }
+
+  async findOrCreate(initData: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
@@ -46,9 +57,10 @@ export class UsersService {
       });
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
+      const { secretCode, ...restProps } = userFindOne;
       await this.userRepo.save(userFindOne);
       return {
-        ...userFindOne,
+        ...restProps,
         allEstimatedTgmPrices:
           allEstimatedTgmPrices / (await this.userRepo.count()),
       };
@@ -63,19 +75,19 @@ export class UsersService {
         referralCode,
       },
     });
-    if (!userFindOne) {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-      };
+    if (userFindOne) {
+      userFindOne.referralCount += 1;
+      userFindOne.tgmCount += 100;
+      userFindOne.level = Math.ceil(userFindOne.referralCount / 6.18);
+      const { secretCode, ...restProps } = userFindOne;
+      await this.userRepo.save(userFindOne);
+      return restProps;
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-    userFindOne.referralCount += 1;
-    userFindOne.tgmCount += 100;
-    userFindOne.level = Math.ceil(userFindOne.referralCount / 6.18);
-
-    return await this.userRepo.save(userFindOne);
   }
 
-  async updateUserTask(initData: string, taskId: number) {
+  async updateUserTask(initData: string, taskId: string) {
     const taskFindOne = await this.taskService.findOne(taskId);
     if (taskFindOne) {
       const userFindOne = await this.userRepo.findOne({
@@ -86,11 +98,15 @@ export class UsersService {
       if (userFindOne) {
         userFindOne.tapCoinCount += taskFindOne.reward;
         userFindOne.completedTasks.push(taskId);
-        return await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        await this.userRepo.save(userFindOne);
+        return restProps;
+      } else {
+        throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
       }
+    } else {
+      throw new HttpException('Task ID Not Found', HttpStatus.NOT_FOUND);
     }
-
-    throw new HttpException('Task ID Not Found', HttpStatus.NOT_FOUND);
   }
 
   async findStats(initData: string) {
@@ -133,19 +149,20 @@ export class UsersService {
     };
   }
 
-  async updateEstimatedTgmPrice(initData: string, estimatedPrice: number) {
+  async updateEstimatedTgmPrice(initData: string, estimatedPrice: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
     if (userFindOne) {
-      userFindOne.estimatedTgmPrice = estimatedPrice;
+      userFindOne.estimatedTgmPrice = Number(estimatedPrice);
       userFindOne.hasEstimatedTgmPrice = true;
+      const { secretCode, ...restProps } = userFindOne;
       await this.userRepo.save(userFindOne);
-      return userFindOne;
+      return restProps;
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-
-    throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
   }
 }

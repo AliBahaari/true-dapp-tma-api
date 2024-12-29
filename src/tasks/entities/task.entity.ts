@@ -9,10 +9,12 @@ import {
   name: 'tasks',
 })
 export class TaskEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   title: string;
 
   @Column()

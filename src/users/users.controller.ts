@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -24,9 +16,9 @@ export class UsersController {
     return await this.usersService.findAll();
   }
 
-  @Get('findOne/:initData')
-  async findOne(@Param('initData') initData: string) {
-    return await this.usersService.findOne(initData);
+  @Get('findOrCreate/:initData')
+  async findOrCreate(@Param('initData') initData: string) {
+    return await this.usersService.findOrCreate(initData);
   }
 
   @Get('findStats/:initData')
@@ -47,7 +39,7 @@ export class UsersController {
   @Patch('updateUserTask/:initData/:taskId')
   async updateUserTask(
     @Param('initData') initData: string,
-    @Param('taskId', ParseIntPipe) taskId: number,
+    @Param('taskId') taskId: string,
   ) {
     return await this.usersService.updateUserTask(initData, taskId);
   }
@@ -55,7 +47,7 @@ export class UsersController {
   @Patch('updateEstimatedTgmPrice/:initData/:estimatedPrice')
   async updateEstimatedTgmPrice(
     @Param('initData') initData: string,
-    @Param('estimatedPrice', ParseIntPipe) estimatedPrice: number,
+    @Param('estimatedPrice') estimatedPrice: string,
   ) {
     return await this.usersService.updateEstimatedTgmPrice(
       initData,
