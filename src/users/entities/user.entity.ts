@@ -47,14 +47,24 @@ export class UserEntity {
   hasEstimatedTgmPrice: boolean;
 
   @Column({
-    default: 0,
+    default: '0',
   })
-  estimatedTgmPrice: number;
+  estimatedTgmPrice: string;
 
   @Column({
     unique: true,
   })
   secretCode: string;
+
+  @Column({
+    unique: true,
+  })
+  privateCode: string;
+
+  @Column({
+    nullable: true,
+  })
+  invitedBy: string | null;
 
   @CreateDateColumn()
   createdAt: string;

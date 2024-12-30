@@ -21,6 +21,10 @@ export class UsersModule {
           method: RequestMethod.POST,
         },
         {
+          path: 'users/find/:initData',
+          method: RequestMethod.GET,
+        },
+        {
           path: 'tasks/create',
           method: RequestMethod.POST,
         },

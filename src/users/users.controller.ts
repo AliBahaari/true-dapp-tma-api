@@ -16,14 +16,19 @@ export class UsersController {
     return await this.usersService.findAll();
   }
 
-  @Get('findOrCreate/:initData')
-  async findOrCreate(@Param('initData') initData: string) {
-    return await this.usersService.findOrCreate(initData);
+  @Get('find/:initData')
+  async find(@Param('initData') initData: string) {
+    return await this.usersService.find(initData);
   }
 
-  @Get('findStats/:initData')
-  async findStats(@Param('initData') initData: string) {
-    return await this.usersService.findStats(initData);
+  @Get('findInvitedBy/:referralCode')
+  async findInvitedBy(@Param('referralCode') referralCode: string) {
+    return await this.usersService.findInvitedBy(referralCode);
+  }
+
+  @Get('findRanking/:initData')
+  async findRanking(@Param('initData') initData: string) {
+    return await this.usersService.findRanking(initData);
   }
 
   @Get('findAllUsersCount')

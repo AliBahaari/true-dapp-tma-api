@@ -4,6 +4,8 @@ import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { TasksService } from 'src/tasks/tasks.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as CryptoJS from 'crypto-js';
+import Decimal from 'decimal.js';
 
 @Injectable()
 export class UsersService {
@@ -12,23 +14,44 @@ export class UsersService {
     private taskService: TasksService,
   ) {}
 
-  async create(createUserDto: CreateUserDto | string) {
+  async create(createUserDto: CreateUserDto) {
     const referralCode = Math.random().toString(36).substring(2, 7);
-    const initData =
-      typeof createUserDto === 'string'
-        ? createUserDto
-        : createUserDto.initData;
-    return await this.userRepo.save({
+    const privateCode = Math.random().toString(36).substring(2, 7);
+    const initData = createUserDto.initData;
+    const secretCodeHash = CryptoJS.SHA256(
+      initData + privateCode.toString(),
+    ).toString();
+
+    await this.userRepo.save({
       initData,
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
       referralCount: 0,
       referralCode,
-      tasks: [],
+      completedTasks: [],
       lastOnline: '',
-      secretCode: initData + referralCode.toString(),
+      secretCode: secretCodeHash,
+      privateCode,
+      hasEstimatedTgmPrice: false,
+      estimatedTgmPrice: '0',
+      invitedBy: createUserDto.invitedBy || null,
     });
+
+    return {
+      initData,
+      tgmCount: 0,
+      tapCoinCount: 0,
+      level: 1,
+      referralCount: 0,
+      referralCode,
+      completedTasks: [],
+      lastOnline: '',
+      privateCode,
+      hasEstimatedTgmPrice: false,
+      estimatedTgmPrice: '0',
+      invitedBy: createUserDto.invitedBy || null,
+    };
   }
 
   async findAll() {
@@ -43,7 +66,7 @@ export class UsersService {
     });
   }
 
-  async findOrCreate(initData: string) {
+  async find(initData: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
@@ -51,22 +74,30 @@ export class UsersService {
     });
     if (userFindOne) {
       const usersFindAll = await this.userRepo.find();
-      let allEstimatedTgmPrices = 0;
+      let allEstimatedTgmPrices = '0';
       usersFindAll.map((i) => {
-        allEstimatedTgmPrices += Number(i.estimatedTgmPrice);
+        const previousValue = new Decimal(allEstimatedTgmPrices);
+        const currentValue = new Decimal(i.estimatedTgmPrice);
+        allEstimatedTgmPrices = Decimal.sum(
+          previousValue,
+          currentValue,
+        ).toString();
       });
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
-      const { secretCode, ...restProps } = userFindOne;
       await this.userRepo.save(userFindOne);
+      const { secretCode, ...restProps } = userFindOne;
+      const rowsCount = await this.userRepo.count();
       return {
         ...restProps,
-        allEstimatedTgmPrices:
-          allEstimatedTgmPrices / (await this.userRepo.count()),
+        allEstimatedTgmPrices: Decimal.div(
+          allEstimatedTgmPrices,
+          rowsCount,
+        ).toFixed(8),
       };
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-
-    return await this.create(initData);
   }
 
   async updateReferralCode(referralCode: string) {
@@ -79,8 +110,8 @@ export class UsersService {
       userFindOne.referralCount += 1;
       userFindOne.tgmCount += 100;
       userFindOne.level = Math.ceil(userFindOne.referralCount / 6.18);
-      const { secretCode, ...restProps } = userFindOne;
       await this.userRepo.save(userFindOne);
+      const { secretCode, ...restProps } = userFindOne;
       return restProps;
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
@@ -98,8 +129,8 @@ export class UsersService {
       if (userFindOne) {
         userFindOne.tapCoinCount += taskFindOne.reward;
         userFindOne.completedTasks.push(taskId);
-        const { secretCode, ...restProps } = userFindOne;
         await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
         return restProps;
       } else {
         throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
@@ -109,7 +140,15 @@ export class UsersService {
     }
   }
 
-  async findStats(initData: string) {
+  async findInvitedBy(referralCode: string) {
+    return await this.userRepo.find({
+      where: {
+        invitedBy: referralCode,
+      },
+    });
+  }
+
+  async findRanking(initData: string) {
     const usersFindAll = await this.userRepo.find({
       order: {
         tapCoinCount: 'DESC',
@@ -156,10 +195,10 @@ export class UsersService {
       },
     });
     if (userFindOne) {
-      userFindOne.estimatedTgmPrice = Number(estimatedPrice);
+      userFindOne.estimatedTgmPrice = estimatedPrice;
       userFindOne.hasEstimatedTgmPrice = true;
-      const { secretCode, ...restProps } = userFindOne;
       await this.userRepo.save(userFindOne);
+      const { secretCode, ...restProps } = userFindOne;
       return restProps;
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
