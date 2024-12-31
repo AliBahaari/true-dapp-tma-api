@@ -204,4 +204,10 @@ export class UsersService {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
   }
+
+  async deleteUser(initData: string) {
+    return await this.userRepo.delete({
+      initData,
+    });
+  }
 }

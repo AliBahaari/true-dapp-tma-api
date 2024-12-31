@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { TasksModule } from 'src/tasks/tasks.module';
 import { AuthMiddleware } from './middlewares/auth.middleware';
+import { TasksController } from 'src/tasks/tasks.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), TasksModule],
@@ -29,6 +30,6 @@ export class UsersModule {
           method: RequestMethod.POST,
         },
       )
-      .forRoutes('*');
+      .forRoutes(UsersController, TasksController);
   }
 }
