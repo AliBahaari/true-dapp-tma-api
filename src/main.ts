@@ -6,7 +6,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    allowedHeaders: ['content-type'],
     origin: 'http://40.172.49.49:3000',
   });
   app.setGlobalPrefix('api/v1');
