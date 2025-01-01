@@ -44,9 +44,12 @@ export class UsersController {
     return await this.usersService.findAllUsersCount();
   }
 
-  @Patch('updateReferralCode/:referralCode')
-  async updateReferralCode(@Param('referralCode') referralCode: string) {
-    return await this.usersService.updateReferralCode(referralCode);
+  @Patch('updateReferralCode/:initData/:referralCode')
+  async updateReferralCode(
+    @Param('initData') initData: string,
+    @Param('referralCode') referralCode: string,
+  ) {
+    return await this.usersService.updateReferralCode(initData, referralCode);
   }
 
   @Patch('updateUserTask/:initData/:taskId')

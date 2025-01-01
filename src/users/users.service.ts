@@ -100,21 +100,35 @@ export class UsersService {
     }
   }
 
-  async updateReferralCode(referralCode: string) {
-    const userFindOne = await this.userRepo.findOne({
+  async updateReferralCode(initData: string, referralCode: string) {
+    const initDataUserFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (initDataUserFindOne) {
+      initDataUserFindOne.invitedBy = referralCode;
+      this.userRepo.save(initDataUserFindOne);
+    } else {
+      throw new HttpException('Init Data Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    const referralCodeUserFindOne = await this.userRepo.findOne({
       where: {
         referralCode,
       },
     });
-    if (userFindOne) {
-      userFindOne.referralCount += 1;
-      userFindOne.tgmCount += 100;
-      userFindOne.level = Math.ceil(userFindOne.referralCount / 6.18);
-      await this.userRepo.save(userFindOne);
-      const { secretCode, ...restProps } = userFindOne;
+    if (referralCodeUserFindOne) {
+      referralCodeUserFindOne.referralCount += 1;
+      referralCodeUserFindOne.tgmCount += 100;
+      referralCodeUserFindOne.level = Math.ceil(
+        referralCodeUserFindOne.referralCount / 6.18,
+      );
+      await this.userRepo.save(referralCodeUserFindOne);
+      const { secretCode, ...restProps } = referralCodeUserFindOne;
       return restProps;
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Referral Code Not Found', HttpStatus.NOT_FOUND);
     }
   }
 
