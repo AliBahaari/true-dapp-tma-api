@@ -15,6 +15,9 @@ export class UserEntity {
   @Column({ unique: true })
   initData: string;
 
+  @Column()
+  fullName: string;
+
   @Column({ default: 1 })
   level: number;
 

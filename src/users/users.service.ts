@@ -24,6 +24,7 @@ export class UsersService {
 
     await this.userRepo.save({
       initData,
+      fullName: createUserDto.fullName,
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
@@ -155,10 +156,14 @@ export class UsersService {
   }
 
   async findInvitedBy(referralCode: string) {
-    return await this.userRepo.find({
+    const allInvitedByUser = await this.userRepo.find({
       where: {
         invitedBy: referralCode,
       },
+    });
+    return allInvitedByUser.map((i) => {
+      const { secretCode, ...restProps } = i;
+      return restProps;
     });
   }
 
