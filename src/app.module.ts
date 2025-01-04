@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +11,9 @@ import { WalletEntity } from './wallet/entities/wallet.entity';
 import { KeyEntity } from './key/entities/key.entity';
 import { LanguagesModule } from './languages/languages.module';
 import { LanguageEntity } from './languages/entities/language.entity';
+import { AuthMiddleware } from './middlewares/auth.middleware';
+import { UsersController } from './users/users.controller';
+import { TasksController } from './tasks/tasks.controller';
 
 @Module({
   imports: [
@@ -40,4 +43,24 @@ import { LanguageEntity } from './languages/entities/language.entity';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude(
+        {
+          path: 'users/create',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'users/find/:initData',
+          method: RequestMethod.GET,
+        },
+        {
+          path: 'tasks/create',
+          method: RequestMethod.POST,
+        },
+      )
+      .forRoutes(UsersController, TasksController);
+  }
+}

@@ -32,15 +32,16 @@ export class UsersService {
       referralCode,
       completedTasks: [],
       lastOnline: '',
-      secretCode: secretCodeHash,
       privateCode,
       hasEstimatedTgmPrice: false,
       estimatedTgmPrice: '0',
       invitedBy: createUserDto.invitedBy || null,
+      secretCode: secretCodeHash,
     });
 
     return {
       initData,
+      fullName: createUserDto.fullName,
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
@@ -89,6 +90,7 @@ export class UsersService {
       await this.userRepo.save(userFindOne);
       const { secretCode, ...restProps } = userFindOne;
       const rowsCount = await this.userRepo.count();
+
       return {
         ...restProps,
         allEstimatedTgmPrices: Decimal.div(
@@ -108,8 +110,18 @@ export class UsersService {
       },
     });
     if (initDataUserFindOne) {
-      initDataUserFindOne.invitedBy = referralCode;
-      this.userRepo.save(initDataUserFindOne);
+      if (
+        initDataUserFindOne.invitedBy &&
+        initDataUserFindOne.invitedBy.length > 0
+      ) {
+        throw new HttpException(
+          'User Has Been Invited Previously',
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        initDataUserFindOne.invitedBy = referralCode;
+        this.userRepo.save(initDataUserFindOne);
+      }
     } else {
       throw new HttpException('Init Data Not Found', HttpStatus.NOT_FOUND);
     }
@@ -179,17 +191,50 @@ export class UsersService {
     return {
       highestRank: usersFindAll[0],
       sequenceRanks: [
-        usersFindAll[foundIndex - 5],
-        usersFindAll[foundIndex - 4],
-        usersFindAll[foundIndex - 3],
-        usersFindAll[foundIndex - 2],
-        usersFindAll[foundIndex - 1],
-        usersFindAll[foundIndex],
-        usersFindAll[foundIndex + 1],
-        usersFindAll[foundIndex + 2],
-        usersFindAll[foundIndex + 3],
-        usersFindAll[foundIndex + 4],
-        usersFindAll[foundIndex + 5],
+        {
+          rank: foundIndex - 5 + 1,
+          value: usersFindAll[foundIndex - 5],
+        },
+        {
+          rank: foundIndex - 4 + 1,
+          value: usersFindAll[foundIndex - 4],
+        },
+        {
+          rank: foundIndex - 3 + 1,
+          value: usersFindAll[foundIndex - 3],
+        },
+        {
+          rank: foundIndex - 2 + 1,
+          value: usersFindAll[foundIndex - 2],
+        },
+        {
+          rank: foundIndex - 1 + 1,
+          value: usersFindAll[foundIndex - 1],
+        },
+        {
+          rank: foundIndex + 1,
+          value: usersFindAll[foundIndex],
+        },
+        {
+          rank: foundIndex + 1 + 1,
+          value: usersFindAll[foundIndex + 1],
+        },
+        {
+          rank: foundIndex + 2 + 1,
+          value: usersFindAll[foundIndex + 2],
+        },
+        {
+          rank: foundIndex + 3 + 1,
+          value: usersFindAll[foundIndex + 3],
+        },
+        {
+          rank: foundIndex + 4 + 1,
+          value: usersFindAll[foundIndex + 4],
+        },
+        {
+          rank: foundIndex + 5 + 1,
+          value: usersFindAll[foundIndex + 5],
+        },
       ],
     };
   }

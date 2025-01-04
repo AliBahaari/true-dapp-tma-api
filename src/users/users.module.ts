@@ -1,35 +1,14 @@
-import { Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { TasksModule } from 'src/tasks/tasks.module';
-import { AuthMiddleware } from './middlewares/auth.middleware';
-import { TasksController } from 'src/tasks/tasks.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), TasksModule],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
-export class UsersModule {
-  configure(consumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .exclude(
-        {
-          path: 'users/create',
-          method: RequestMethod.POST,
-        },
-        {
-          path: 'users/find/:initData',
-          method: RequestMethod.GET,
-        },
-        {
-          path: 'tasks/create',
-          method: RequestMethod.POST,
-        },
-      )
-      .forRoutes(UsersController, TasksController);
-  }
-}
+export class UsersModule {}
