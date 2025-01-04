@@ -240,6 +240,13 @@ export class UsersService {
   }
 
   async findAllUsersCount() {
+    const findAllUsers = await this.userRepo.find();
+    let tapCount = 0;
+    let tgmCount = 0;
+    findAllUsers.forEach((i) => {
+      tapCount += i.tapCoinCount;
+      tgmCount += i.tgmCount;
+    });
     const todayUsers = await this.userRepo.find({
       where: {
         lastOnline: new Date().toLocaleDateString(),
@@ -249,6 +256,8 @@ export class UsersService {
     return {
       allUsers: await this.userRepo.count(),
       todayUsers: todayUsers.length,
+      tapCount,
+      tgmCount,
     };
   }
 
