@@ -42,14 +42,13 @@ export class UserEntity {
   })
   completedTasks: string[];
 
+  @Column({
+    type: 'simple-array',
+  })
+  claimedRewards: string[];
+
   @Column()
   lastOnline: string;
-
-  @Column({
-    type: 'boolean',
-    default: false,
-  })
-  hasEstimatedTgmPrice: boolean;
 
   @Column({
     default: '0',
@@ -70,6 +69,12 @@ export class UserEntity {
     nullable: true,
   })
   invitedBy: string | null;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isVip: boolean;
 
   @CreateDateColumn()
   createdAt: string;

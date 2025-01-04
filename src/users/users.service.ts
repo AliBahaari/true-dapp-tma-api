@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { TasksService } from 'src/tasks/tasks.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
@@ -11,7 +10,6 @@ import Decimal from 'decimal.js';
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-    private taskService: TasksService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -31,9 +29,9 @@ export class UsersService {
       referralCount: 0,
       referralCode,
       completedTasks: [],
+      claimedRewards: [],
       lastOnline: '',
       privateCode,
-      hasEstimatedTgmPrice: false,
       estimatedTgmPrice: '0',
       invitedBy: createUserDto.invitedBy || null,
       secretCode: secretCodeHash,
@@ -48,9 +46,9 @@ export class UsersService {
       referralCount: 0,
       referralCode,
       completedTasks: [],
+      claimedRewards: [],
       lastOnline: '',
       privateCode,
-      hasEstimatedTgmPrice: false,
       estimatedTgmPrice: '0',
       invitedBy: createUserDto.invitedBy || null,
     };
@@ -145,28 +143,6 @@ export class UsersService {
     }
   }
 
-  async updateUserTask(initData: string, taskId: string) {
-    const taskFindOne = await this.taskService.findOne(taskId);
-    if (taskFindOne) {
-      const userFindOne = await this.userRepo.findOne({
-        where: {
-          initData,
-        },
-      });
-      if (userFindOne) {
-        userFindOne.tapCoinCount += taskFindOne.reward;
-        userFindOne.completedTasks.push(taskId);
-        await this.userRepo.save(userFindOne);
-        const { secretCode, ...restProps } = userFindOne;
-        return restProps;
-      } else {
-        throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
-      }
-    } else {
-      throw new HttpException('Task ID Not Found', HttpStatus.NOT_FOUND);
-    }
-  }
-
   async findInvitedBy(referralCode: string) {
     const allInvitedByUser = await this.userRepo.find({
       where: {
@@ -182,7 +158,7 @@ export class UsersService {
   async findRanking(initData: string) {
     const usersFindAll = await this.userRepo.find({
       order: {
-        tapCoinCount: 'DESC',
+        tgmCount: 'DESC',
       },
     });
 
@@ -241,12 +217,12 @@ export class UsersService {
 
   async findAllUsersCount() {
     const findAllUsers = await this.userRepo.find();
-    let tapCount = 0;
+
     let tgmCount = 0;
     findAllUsers.forEach((i) => {
-      tapCount += i.tapCoinCount;
       tgmCount += i.tgmCount;
     });
+
     const todayUsers = await this.userRepo.find({
       where: {
         lastOnline: new Date().toLocaleDateString(),
@@ -256,9 +232,43 @@ export class UsersService {
     return {
       allUsers: await this.userRepo.count(),
       todayUsers: todayUsers.length,
-      tapCount,
+      tapCount: 0,
       tgmCount,
     };
+  }
+
+  async deleteUser(initData: string) {
+    return await this.userRepo.delete({
+      initData,
+    });
+  }
+
+  async updateTaskReward(
+    initData: string,
+    taskName: string,
+    taskReward: string,
+  ) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (userFindOne) {
+      if (userFindOne.claimedRewards.includes(taskName)) {
+        throw new HttpException(
+          'The Task Has Been Claimed Before',
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        userFindOne.tgmCount += Number(taskReward);
+        userFindOne.claimedRewards.push(taskName);
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      }
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
   }
 
   async updateEstimatedTgmPrice(initData: string, estimatedPrice: string) {
@@ -268,19 +278,20 @@ export class UsersService {
       },
     });
     if (userFindOne) {
-      userFindOne.estimatedTgmPrice = estimatedPrice;
-      userFindOne.hasEstimatedTgmPrice = true;
-      await this.userRepo.save(userFindOne);
-      const { secretCode, ...restProps } = userFindOne;
-      return restProps;
+      if (userFindOne.completedTasks.includes('TGMPriceEstimation')) {
+        throw new HttpException(
+          'The Task Has Been Completed Before',
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        userFindOne.estimatedTgmPrice = estimatedPrice;
+        userFindOne.completedTasks.push('TGMPriceEstimation');
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      }
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-  }
-
-  async deleteUser(initData: string) {
-    return await this.userRepo.delete({
-      initData,
-    });
   }
 }

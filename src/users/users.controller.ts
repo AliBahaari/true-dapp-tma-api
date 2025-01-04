@@ -52,12 +52,22 @@ export class UsersController {
     return await this.usersService.updateReferralCode(initData, referralCode);
   }
 
-  @Patch('updateUserTask/:initData/:taskId')
-  async updateUserTask(
+  @Delete('deleteUser/:initData')
+  async deleteUser(@Param('initData') initData: string) {
+    return await this.usersService.deleteUser(initData);
+  }
+
+  @Patch('updateTaskReward/:initData/:taskName/:taskReward')
+  async updateTaskReward(
     @Param('initData') initData: string,
-    @Param('taskId') taskId: string,
+    @Param('taskName') taskName: string,
+    @Param('taskReward') taskReward: string,
   ) {
-    return await this.usersService.updateUserTask(initData, taskId);
+    return await this.usersService.updateTaskReward(
+      initData,
+      taskName,
+      taskReward,
+    );
   }
 
   @Patch('updateEstimatedTgmPrice/:initData/:estimatedPrice')
@@ -69,10 +79,5 @@ export class UsersController {
       initData,
       estimatedPrice,
     );
-  }
-
-  @Delete('deleteUser/:initData')
-  async deleteUser(@Param('initData') initData: string) {
-    return await this.usersService.deleteUser(initData);
   }
 }

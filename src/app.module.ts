@@ -1,9 +1,7 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
-import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './users/entities/user.entity';
-import { TaskEntity } from './tasks/entities/task.entity';
 import { StatsModule } from './stats/stats.module';
 import { WalletModule } from './wallet/wallet.module';
 import { KeyModule } from './key/key.module';
@@ -13,7 +11,6 @@ import { LanguagesModule } from './languages/languages.module';
 import { LanguageEntity } from './languages/entities/language.entity';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { UsersController } from './users/users.controller';
-import { TasksController } from './tasks/tasks.controller';
 
 @Module({
   imports: [
@@ -24,17 +21,10 @@ import { TasksController } from './tasks/tasks.controller';
       username: 'root',
       password: '',
       database: 'true_dapp',
-      entities: [
-        UserEntity,
-        TaskEntity,
-        LanguageEntity,
-        WalletEntity,
-        KeyEntity,
-      ],
+      entities: [UserEntity, LanguageEntity, WalletEntity, KeyEntity],
       synchronize: true,
     }),
     UsersModule,
-    TasksModule,
     StatsModule,
     WalletModule,
     KeyModule,
@@ -56,11 +46,7 @@ export class AppModule {
           path: 'users/find/:initData',
           method: RequestMethod.GET,
         },
-        {
-          path: 'tasks/create',
-          method: RequestMethod.POST,
-        },
       )
-      .forRoutes(UsersController, TasksController);
+      .forRoutes(UsersController);
   }
 }

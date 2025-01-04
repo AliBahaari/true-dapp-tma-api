@@ -6,9 +6,9 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
-@WebSocketGateway(3002, {
+@WebSocketGateway(3001, {
   cors: {
-    origin: '*',
+    origin: 'http://40.172.49.49:3001',
   },
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
