@@ -165,7 +165,7 @@ export class UsersService {
     const foundIndex = usersFindAll.findIndex((i) => i.initData === initData);
 
     return {
-      highestRank: usersFindAll[0],
+      highestRanks: usersFindAll.slice(0, 10),
       sequenceRanks: [
         {
           rank: foundIndex - 5 + 1,
