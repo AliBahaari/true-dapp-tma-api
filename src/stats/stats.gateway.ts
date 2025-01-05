@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
   cors: {
     origin: 'http://40.172.49.49:3001',
   },
+  transports: ['websocket', 'polling'],
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
