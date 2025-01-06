@@ -52,6 +52,11 @@ export class UsersController {
     return await this.usersService.updateReferralCode(initData, referralCode);
   }
 
+  @Patch('updateClaimReferralReward/:initData')
+  async updateClaimReferralReward(initData: string) {
+    return await this.usersService.updateClaimReferralReward(initData);
+  }
+
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);
