@@ -35,7 +35,7 @@ export class UsersService {
       estimatedTgmPrice: '0',
       invitedBy: createUserDto.invitedBy || null,
       isVip: false,
-      canClaimReferralReward: false,
+      referralRewardsCount: 0,
       secretCode: secretCodeHash,
     });
 
@@ -54,7 +54,7 @@ export class UsersService {
       estimatedTgmPrice: '0',
       invitedBy: createUserDto.invitedBy || null,
       isVip: false,
-      canClaimReferralReward: false,
+      referralRewardsCount: 0,
     };
   }
 
@@ -135,7 +135,7 @@ export class UsersService {
     });
     if (referralCodeUserFindOne) {
       referralCodeUserFindOne.referralCount += 1;
-      referralCodeUserFindOne.canClaimReferralReward = true;
+      referralCodeUserFindOne.referralRewardsCount += 100;
       referralCodeUserFindOne.level = Math.ceil(
         referralCodeUserFindOne.referralCount / 6.18,
       );
@@ -155,11 +155,15 @@ export class UsersService {
     });
 
     if (userFindOne) {
-      userFindOne.tgmCount += 100;
-      userFindOne.canClaimReferralReward = false;
-      await this.userRepo.save(userFindOne);
-      const { secretCode, ...restProps } = userFindOne;
-      return restProps;
+      if (userFindOne.referralRewardsCount > 0) {
+        userFindOne.tgmCount += userFindOne.referralRewardsCount;
+        userFindOne.referralRewardsCount = 0;
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      } else {
+        throw new HttpException('No Rewards Remained', HttpStatus.NOT_FOUND);
+      }
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }

@@ -76,11 +76,8 @@ export class UserEntity {
   })
   isVip: boolean;
 
-  @Column({
-    type: 'boolean',
-    default: false,
-  })
-  canClaimReferralReward: boolean;
+  @Column()
+  referralRewardsCount: number;
 
   @CreateDateColumn()
   createdAt: string;
