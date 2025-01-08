@@ -155,15 +155,11 @@ export class UsersService {
     });
 
     if (userFindOne) {
-      if (userFindOne.referralRewardsCount > 0) {
-        userFindOne.tgmCount += userFindOne.referralRewardsCount;
-        userFindOne.referralRewardsCount = 0;
-        await this.userRepo.save(userFindOne);
-        const { secretCode, ...restProps } = userFindOne;
-        return restProps;
-      } else {
-        throw new HttpException('No Rewards Remained', HttpStatus.NOT_FOUND);
-      }
+      userFindOne.tgmCount += userFindOne.referralRewardsCount;
+      userFindOne.referralRewardsCount = 0;
+      await this.userRepo.save(userFindOne);
+      const { secretCode, ...restProps } = userFindOne;
+      return restProps;
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
