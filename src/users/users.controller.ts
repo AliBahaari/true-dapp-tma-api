@@ -53,7 +53,7 @@ export class UsersController {
   }
 
   @Patch('updateClaimReferralReward/:initData')
-  async updateClaimReferralReward(initData: string) {
+  async updateClaimReferralReward(@Param('initData') initData: string) {
     return await this.usersService.updateClaimReferralReward(initData);
   }
 
