@@ -11,6 +11,8 @@ import { LanguagesModule } from './languages/languages.module';
 import { LanguageEntity } from './languages/entities/language.entity';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { UsersController } from './users/users.controller';
+import { CashAvalancheModule } from './cash-avalanche/cash-avalanche.module';
+import { CashAvalancheEntity } from './cash-avalanche/entities/cash-avalanche.entity';
 
 @Module({
   imports: [
@@ -21,7 +23,13 @@ import { UsersController } from './users/users.controller';
       username: 'root',
       password: '',
       database: 'true_dapp',
-      entities: [UserEntity, LanguageEntity, WalletEntity, KeyEntity],
+      entities: [
+        UserEntity,
+        LanguageEntity,
+        CashAvalancheEntity,
+        WalletEntity,
+        KeyEntity,
+      ],
       synchronize: true,
     }),
     UsersModule,
@@ -29,6 +37,7 @@ import { UsersController } from './users/users.controller';
     WalletModule,
     KeyModule,
     LanguagesModule,
+    CashAvalancheModule,
   ],
   controllers: [],
   providers: [],
