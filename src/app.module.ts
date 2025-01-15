@@ -13,6 +13,10 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
 import { UsersController } from './users/users.controller';
 import { CashAvalancheModule } from './cash-avalanche/cash-avalanche.module';
 import { CashAvalancheEntity } from './cash-avalanche/entities/cash-avalanche.entity';
+import { LongShotModule } from './long-shot/long-shot.module';
+import { LongShotLeaguesWeeklyEntity } from './long-shot/entities/long-shot-leagues-weekly.entity';
+import { LongShotMatchesEntity } from './long-shot/entities/long-shot-matches.entity';
+import { LongShotParticipantsEntity } from './long-shot/entities/long-shot-participants.entity';
 
 @Module({
   imports: [
@@ -27,6 +31,9 @@ import { CashAvalancheEntity } from './cash-avalanche/entities/cash-avalanche.en
         UserEntity,
         LanguageEntity,
         CashAvalancheEntity,
+        LongShotLeaguesWeeklyEntity,
+        LongShotMatchesEntity,
+        LongShotParticipantsEntity,
         WalletEntity,
         KeyEntity,
       ],
@@ -38,6 +45,7 @@ import { CashAvalancheEntity } from './cash-avalanche/entities/cash-avalanche.en
     KeyModule,
     LanguagesModule,
     CashAvalancheModule,
+    LongShotModule,
   ],
   controllers: [],
   providers: [],
