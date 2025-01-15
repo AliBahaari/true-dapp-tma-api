@@ -67,7 +67,7 @@ export class CashAvalancheService {
         return {
           winner:
             findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
-          totalReward: findOneGame.totalReward,
+          totalReward: (findOneGame.totalReward * 90) / 100,
         };
       } else {
         throw new HttpException(
@@ -84,5 +84,13 @@ export class CashAvalancheService {
     return (await this.cashAvalancheRepo.find()).filter(
       (i) => Date.now() < Number(i.remainingTime),
     );
+  }
+
+  async findOneActive(gameId: string) {
+    return await this.cashAvalancheRepo.findOne({
+      where: {
+        gameId,
+      },
+    });
   }
 }
