@@ -80,10 +80,11 @@ export class CashAvalancheService {
     }
   }
 
-  async findAllActive() {
-    return (await this.cashAvalancheRepo.find()).filter(
-      (i) => Date.now() < Number(i.remainingTime),
-    );
+  async findAll() {
+    return (await this.cashAvalancheRepo.find()).map((i) => ({
+      ...i,
+      active: Date.now() < Number(i.remainingTime) ? true : false,
+    }));
   }
 
   async findOneActive(gameId: string) {
