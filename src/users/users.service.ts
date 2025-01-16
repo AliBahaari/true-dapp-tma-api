@@ -36,6 +36,9 @@ export class UsersService {
       invitedBy: createUserDto.invitedBy || null,
       isVip: false,
       referralRewardsCount: 0,
+      boughtTgmCount: 0,
+      ticketLevel: 0,
+      longShotGameTgmCount: 0,
       secretCode: secretCodeHash,
     });
 
@@ -55,6 +58,9 @@ export class UsersService {
       invitedBy: createUserDto.invitedBy || null,
       isVip: false,
       referralRewardsCount: 0,
+      boughtTgmCount: 0,
+      ticketLevel: 0,
+      longShotGameTgmCount: 0,
     };
   }
 
@@ -324,7 +330,7 @@ export class UsersService {
   async updateUserTgmCount(
     initData: string,
     tgmCount: number,
-    type: 'ADD' | 'EQUAL' = 'EQUAL',
+    type: 'ADD' | 'EQUAL' | 'SUBTRACT' = 'EQUAL',
   ) {
     const userFindOne = await this.userRepo.findOne({
       where: {
@@ -337,8 +343,56 @@ export class UsersService {
         userFindOne.tgmCount = tgmCount;
       } else if (type === 'ADD') {
         userFindOne.tgmCount += tgmCount;
+      } else if (type === 'SUBTRACT') {
+        userFindOne.tgmCount -= tgmCount;
       }
       await this.userRepo.save(userFindOne);
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async updateLongShotGameInfo(
+    initData: string,
+    longShotGameTgmCount: number,
+    ticketLevel: 1 | 2 | 3,
+    allowanceLeagueCount: number,
+  ) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+
+    if (userFindOne) {
+      userFindOne.longShotGameTgmCount = longShotGameTgmCount;
+      userFindOne.ticketLevel = ticketLevel;
+      userFindOne.allowanceLeagueCount = allowanceLeagueCount;
+
+      await this.userRepo.save(userFindOne);
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async updateLongShotGameAllowanceLeagueCount(initData: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+
+    if (userFindOne) {
+      if (userFindOne.allowanceLeagueCount !== 0) {
+        userFindOne.allowanceLeagueCount = userFindOne.allowanceLeagueCount - 1;
+
+        await this.userRepo.save(userFindOne);
+      } else {
+        throw new HttpException(
+          "You Can't Participate In More Leagues.",
+          HttpStatus.FORBIDDEN,
+        );
+      }
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }

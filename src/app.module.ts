@@ -17,6 +17,7 @@ import { LongShotModule } from './long-shot/long-shot.module';
 import { LongShotLeaguesWeeklyEntity } from './long-shot/entities/long-shot-leagues-weekly.entity';
 import { LongShotMatchesEntity } from './long-shot/entities/long-shot-matches.entity';
 import { LongShotParticipantsEntity } from './long-shot/entities/long-shot-participants.entity';
+import { LongShotPacksEntity } from './long-shot/entities/long-shot-packs.entity';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { LongShotParticipantsEntity } from './long-shot/entities/long-shot-parti
         UserEntity,
         LanguageEntity,
         CashAvalancheEntity,
+        LongShotPacksEntity,
         LongShotLeaguesWeeklyEntity,
         LongShotMatchesEntity,
         LongShotParticipantsEntity,

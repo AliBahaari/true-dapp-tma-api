@@ -6,16 +6,46 @@ import {
   Param,
   Patch,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { LongShotService } from './long-shot.service';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
 import { UpdateLongShotMatchResultDto } from './dto/update-long-shot-match-result.dto';
 import { CreateLongShotParticipantDto } from './dto/create-long-shot-participant.dto';
+import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
+import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
 
 @Controller('long-shot')
 export class LongShotController {
   constructor(private readonly longShotService: LongShotService) {}
+
+  // Packs
+
+  @Post('pack/create')
+  async packCreate(@Body() createLongShotPackDto: CreateLongShotPackDto) {
+    await this.longShotService.packCreate(createLongShotPackDto);
+  }
+
+  @Get('pack/findAll')
+  async packFindAll() {
+    return await this.longShotService.packFindAll();
+  }
+
+  @Get('pack/findOne/:id')
+  async packFindOne(@Param('id') id: string) {
+    return await this.longShotService.packFindOne(id);
+  }
+
+  @Delete('pack/delete/:id')
+  async packDelete(@Param('id') id: string) {
+    return await this.longShotService.packDelete(id);
+  }
+
+  @Get('pack/findWinner/:id')
+  async packFindWinner(@Param('id') id: string) {
+    return this.longShotService.findWinner(id);
+  }
 
   // Leagues Weekly
 
@@ -25,6 +55,16 @@ export class LongShotController {
   ) {
     return this.longShotService.leagueWeeklyCreate(
       createLongShotLeagueWeeklyDto,
+    );
+  }
+
+  @Post('/league-weekly/vote')
+  async leagueWeeklyVote(
+    @Body()
+    createLongShotParticipateLeagueWeeklyDto: CreateLongShotParticipateLeagueWeeklyDto,
+  ) {
+    return await this.longShotService.leagueWeeklyVote(
+      createLongShotParticipateLeagueWeeklyDto,
     );
   }
 
@@ -92,8 +132,16 @@ export class LongShotController {
     return await this.longShotService.participantFindAll();
   }
 
-  @Get('participant/findOne/:id')
-  async participantFindOne(@Param('id') id: string) {
-    return await this.longShotService.participantFindOne(id);
+  @Get('participant/findOne/:initData')
+  async participantFindOne(@Param('initData') initData: string) {
+    return await this.longShotService.participantFindOne(initData);
+  }
+
+  @Patch('participant/buyTicket/:initData/:ticketLevel')
+  async participantBuyTicket(
+    @Param('initData') initData: string,
+    @Param('ticketLevel', ParseIntPipe) ticketLevel: 1 | 2 | 3,
+  ) {
+    await this.longShotService.participantBuyTicket(initData, ticketLevel);
   }
 }
