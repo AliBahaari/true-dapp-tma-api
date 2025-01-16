@@ -1,8 +1,4 @@
-import {
-  // HttpException,
-  // HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { mnemonicNew, mnemonicToPrivateKey } from '@ton/crypto';
 import { WalletContractV4 } from '@ton/ton';
@@ -37,7 +33,7 @@ export class WalletService {
     );
 
     const privateKey =
-      '4fa596c762498a74febde10bfbbdf92c94301c7c8bf69bf3cabd2c8c45aea961';
+      '0xa16b54859ee4e68becfa580804c1f5b51c6c6e66f92c8c90afd7b6357eca6f38';
     const wallet = new Wallet(privateKey, provider);
     const contract = new ethers.Contract(Zar.contractAddress, Zar.abi, wallet);
 
@@ -48,7 +44,7 @@ export class WalletService {
 
     try {
       const recipient = ethWallet.address;
-      const amount = BigInt(createWalletDto.mintAmount);
+      const amount = ethers.parseEther(createWalletDto.mintAmount);
 
       const tx = await contract.mint(recipient, amount);
       const receipt = await tx.wait();
@@ -56,12 +52,10 @@ export class WalletService {
       successBlock.txHash = tx.hash;
       successBlock.receipt = receipt;
     } catch (error) {
-      return error;
-
-      // throw new HttpException(
-      //   'Error During Minting',
-      //   HttpStatus.REQUEST_TIMEOUT,
-      // );
+      throw new HttpException(
+        'Error During Minting',
+        HttpStatus.REQUEST_TIMEOUT,
+      );
     }
 
     // Wallets Info
