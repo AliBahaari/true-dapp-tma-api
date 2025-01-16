@@ -43,7 +43,7 @@ export class CashAvalancheService {
 
     if (findOneGame) {
       if (Date.now() < Number(findOneGame.remainingTime)) {
-        if (findOneUser.tgmCount < findOneGame.nextBid) {
+        if (findOneUser.tgmCount >= findOneGame.nextBid) {
           findOneGame.allParticipants.push(bidDto.initData);
           findOneGame.allParticipantsCount += 1;
           findOneGame.totalReward =
