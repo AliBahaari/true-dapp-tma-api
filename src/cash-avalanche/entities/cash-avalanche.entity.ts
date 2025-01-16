@@ -45,4 +45,10 @@ export class CashAvalancheEntity {
     type: 'bigint',
   })
   remainingTime: number;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  hasClaimedReward: boolean;
 }

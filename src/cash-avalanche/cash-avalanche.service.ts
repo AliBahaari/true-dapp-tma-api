@@ -77,11 +77,15 @@ export class CashAvalancheService {
 
     if (findOneGame) {
       if (Date.now() > Number(findOneGame.remainingTime)) {
-        await this.usersService.updateUserTgmCount(
-          findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
-          (findOneGame.totalReward * 90) / 100,
-          'ADD',
-        );
+        if (!findOneGame.hasClaimedReward) {
+          await this.usersService.updateUserTgmCount(
+            findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
+            (findOneGame.totalReward * 90) / 100,
+            'ADD',
+          );
+          findOneGame.hasClaimedReward = true;
+        }
+
         return {
           winner:
             findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
@@ -105,7 +109,7 @@ export class CashAvalancheService {
     }));
   }
 
-  async findOneActive(gameId: string) {
+  async findOne(gameId: string) {
     return await this.cashAvalancheRepo.findOne({
       where: {
         gameId,

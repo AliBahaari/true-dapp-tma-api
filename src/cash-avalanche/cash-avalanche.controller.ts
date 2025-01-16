@@ -27,8 +27,8 @@ export class CashAvalancheController {
     return await this.cashAvalancheService.findAll();
   }
 
-  @Get('findOneActive/:gameId')
-  async findOneActive(@Param('gameId') gameId: string) {
-    return await this.cashAvalancheService.findOneActive(gameId);
+  @Get('findOne/:gameId')
+  async findOne(@Param('gameId') gameId: string) {
+    return await this.cashAvalancheService.findOne(gameId);
   }
 }
