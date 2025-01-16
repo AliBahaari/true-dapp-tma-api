@@ -4,12 +4,14 @@ import { BidDto } from './dto/bid.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
 import { Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class CashAvalancheService {
   constructor(
     @InjectRepository(CashAvalancheEntity)
     private readonly cashAvalancheRepo: Repository<CashAvalancheEntity>,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
@@ -37,16 +39,27 @@ export class CashAvalancheService {
       },
     });
 
+    const findOneUser = await this.usersService.find(bidDto.initData);
+
     if (findOneGame) {
       if (Date.now() < Number(findOneGame.remainingTime)) {
-        findOneGame.allParticipants.push(bidDto.initData);
-        findOneGame.allParticipantsCount += 1;
-        findOneGame.totalReward = findOneGame.totalReward + findOneGame.nextBid;
-        findOneGame.nextBid = findOneGame.nextBid + findOneGame.bidStep;
-        findOneGame.remainingTime =
-          Date.now() + Number(findOneGame.intervalTime);
+        if (findOneUser.tgmCount < findOneGame.nextBid) {
+          findOneGame.allParticipants.push(bidDto.initData);
+          findOneGame.allParticipantsCount += 1;
+          findOneGame.totalReward =
+            findOneGame.totalReward + findOneGame.nextBid;
+          findOneGame.nextBid = findOneGame.nextBid + findOneGame.bidStep;
+          findOneGame.remainingTime =
+            Date.now() + Number(findOneGame.intervalTime);
 
-        return await this.cashAvalancheRepo.save(findOneGame);
+          await this.usersService.updateUserTgmCount(
+            bidDto.initData,
+            findOneUser.tgmCount - findOneGame.nextBid,
+          );
+          return await this.cashAvalancheRepo.save(findOneGame);
+        } else {
+          throw new HttpException('TGM Is Not Enough', HttpStatus.FORBIDDEN);
+        }
       } else {
         throw new HttpException('Time Has Been Passed', HttpStatus.FORBIDDEN);
       }
@@ -64,6 +77,11 @@ export class CashAvalancheService {
 
     if (findOneGame) {
       if (Date.now() > Number(findOneGame.remainingTime)) {
+        await this.usersService.updateUserTgmCount(
+          findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
+          (findOneGame.totalReward * 90) / 100,
+          'ADD',
+        );
         return {
           winner:
             findOneGame.allParticipants[findOneGame.allParticipants.length - 1],

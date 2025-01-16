@@ -320,4 +320,27 @@ export class UsersService {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
   }
+
+  async updateUserTgmCount(
+    initData: string,
+    tgmCount: number,
+    type: 'ADD' | 'EQUAL' = 'EQUAL',
+  ) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+
+    if (userFindOne) {
+      if (type === 'EQUAL') {
+        userFindOne.tgmCount = tgmCount;
+      } else if (type === 'ADD') {
+        userFindOne.tgmCount += tgmCount;
+      }
+      await this.userRepo.save(userFindOne);
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
 }
