@@ -42,9 +42,12 @@ export class LongShotController {
     return await this.longShotService.packDelete(id);
   }
 
-  @Get('pack/findWinner/:id')
-  async packFindWinner(@Param('id') id: string) {
-    return this.longShotService.findWinner(id);
+  @Get('pack/findWinner/:id/:initData')
+  async packFindWinner(
+    @Param('id') id: string,
+    @Param('initData') initData: string,
+  ) {
+    return this.longShotService.findWinner(id, initData);
   }
 
   // Leagues Weekly

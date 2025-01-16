@@ -58,7 +58,7 @@ export class LongShotService {
     });
   }
 
-  async findWinner(id: string) {
+  async findWinner(id: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
       where: {
         id,
@@ -71,13 +71,22 @@ export class LongShotService {
     if (packFindOne) {
       if (new Date(packFindOne.endDate) > new Date(packFindOne.createdAt)) {
         // ------------------------- Check For Users Result -------------------------
-        const allParticipants = await this.participantsRepo.find();
         const allMatches = await this.matchesRepo.find();
-        const refactoredAllMatches = allMatches.map((i) => ({
-          id: i.id,
-          result: i.result,
-        }));
-        // To Be Continued
+        let checkWinner = true;
+        allMatches.forEach(async (element) => {
+          const choiceOfUser = await this.participantsRepo.findOne({
+            where: {
+              matchId: element.id,
+              initData,
+            },
+          });
+          if (element.result !== choiceOfUser.choice) {
+            checkWinner = false;
+          }
+        });
+        if (checkWinner) {
+          // Give The Use Awards
+        }
       } else {
         throw new HttpException(
           'Pack Has Not Been Terminated',
