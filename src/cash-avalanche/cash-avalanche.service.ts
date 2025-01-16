@@ -84,6 +84,7 @@ export class CashAvalancheService {
             'ADD',
           );
           findOneGame.hasClaimedReward = true;
+          this.cashAvalancheRepo.save(findOneGame);
         }
 
         return {
