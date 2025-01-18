@@ -42,12 +42,20 @@ export class LongShotController {
     return await this.longShotService.packDelete(id);
   }
 
-  @Get('pack/findWinner/:id/:initData')
+  @Get('pack/findWinner/:packId/:initData')
   async packFindWinner(
-    @Param('id') id: string,
+    @Param('packId') packId: string,
     @Param('initData') initData: string,
   ) {
-    return this.longShotService.findWinner(id, initData);
+    return this.longShotService.findWinner(packId, initData);
+  }
+
+  @Get('pack/claimReward/:packId/:initData')
+  async packClaimReward(
+    @Param('packId') packId: string,
+    @Param('initData') initData: string,
+  ) {
+    return this.longShotService.claimReward(packId, initData);
   }
 
   // Leagues Weekly
@@ -66,7 +74,7 @@ export class LongShotController {
     @Body()
     createLongShotParticipateLeagueWeeklyDto: CreateLongShotParticipateLeagueWeeklyDto,
   ) {
-    return await this.longShotService.leagueWeeklyVote(
+    return await this.longShotService.vote(
       createLongShotParticipateLeagueWeeklyDto,
     );
   }
@@ -140,11 +148,24 @@ export class LongShotController {
     return await this.longShotService.participantFindOne(initData);
   }
 
-  @Patch('participant/buyTicket/:initData/:ticketLevel')
-  async participantBuyTicket(
+  // Tickets
+
+  @Get('ticket/findAll')
+  async ticketFindAll() {
+    return await this.longShotService.ticketFindAll();
+  }
+
+  @Get('ticket/findOne/:initData')
+  async ticketFindOne(@Param('initData') initData: string) {
+    return await this.longShotService.ticketFindOne(initData);
+  }
+
+  @Patch('ticket/buy/:initData/:packId/:ticketLevel')
+  async ticketBuy(
     @Param('initData') initData: string,
+    @Param('packId') packId: string,
     @Param('ticketLevel', ParseIntPipe) ticketLevel: 1 | 2 | 3,
   ) {
-    await this.longShotService.participantBuyTicket(initData, ticketLevel);
+    await this.longShotService.ticketBuy(initData, packId, ticketLevel);
   }
 }

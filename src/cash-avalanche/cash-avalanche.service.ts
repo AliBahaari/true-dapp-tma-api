@@ -15,7 +15,7 @@ export class CashAvalancheService {
   ) {}
 
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
-    const gameId = Math.random().toString(36).substring(2, 10);
+    const gameId = Math.ceil(Math.random() * 100000000000000).toString();
 
     return await this.cashAvalancheRepo.save({
       gameId,
@@ -27,8 +27,7 @@ export class CashAvalancheService {
       totalReward: createCashAvalancheDto.startReward,
       allParticipants: [],
       allParticipantsCount: 0,
-      nextBid:
-        createCashAvalancheDto.startReward + createCashAvalancheDto.bidStep,
+      nextBid: createCashAvalancheDto.bidStart + createCashAvalancheDto.bidStep,
     });
   }
 
@@ -115,6 +114,12 @@ export class CashAvalancheService {
       where: {
         gameId,
       },
+    });
+  }
+
+  async delete(gameId: string) {
+    return await this.cashAvalancheRepo.delete({
+      gameId,
     });
   }
 }

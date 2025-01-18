@@ -8,5 +8,8 @@ export class CreateCashAvalancheDto {
   bidStep: number;
 
   @IsNumber()
+  bidStart: number;
+
+  @IsNumber()
   intervalTime: number;
 }

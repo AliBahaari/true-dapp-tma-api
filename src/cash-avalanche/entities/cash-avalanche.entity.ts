@@ -16,6 +16,9 @@ export class CashAvalancheEntity {
   startReward: number;
 
   @Column()
+  bidStart: number;
+
+  @Column()
   bidStep: number;
 
   @Column({

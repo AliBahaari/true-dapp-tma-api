@@ -9,4 +9,10 @@ export class CreateLongShotParticipateLeagueWeeklyDto {
   @IsArray()
   @ValidateNested({ each: true })
   votes: Vote[];
+
+  @IsString()
+  packId: string;
+
+  @IsString()
+  leagueWeeklyId: string;
 }

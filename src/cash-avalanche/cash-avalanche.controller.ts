@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { CashAvalancheService } from './cash-avalanche.service';
 import { CreateCashAvalancheDto } from './dto/create-cash-avalanche.dto';
 import { BidDto } from './dto/bid.dto';
@@ -30,5 +30,10 @@ export class CashAvalancheController {
   @Get('findOne/:gameId')
   async findOne(@Param('gameId') gameId: string) {
     return await this.cashAvalancheService.findOne(gameId);
+  }
+
+  @Delete('delete/:gameId')
+  async delete(@Param('gameId') gameId: string) {
+    return await this.cashAvalancheService.delete(gameId);
   }
 }

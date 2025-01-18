@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LongShotLeaguesWeeklyEntity } from './long-shot-leagues-weekly.entity';
+import { LongShotTicketEntity } from './long-shot-tickets.entity';
 
 @Entity({
   name: 'long-shot-packs',
@@ -18,6 +19,20 @@ export class LongShotPacksEntity {
   title: string;
 
   @Column()
+  reward: number;
+
+  @Column({
+    default: '',
+  })
+  winner: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  hasWinnerClaimedReward: boolean;
+
+  @Column()
   endDate: string;
 
   @CreateDateColumn()
@@ -28,4 +43,10 @@ export class LongShotPacksEntity {
     (longShotLeaguesWeeklyEntity) => longShotLeaguesWeeklyEntity.pack,
   )
   leaguesWeekly: LongShotLeaguesWeeklyEntity[];
+
+  @OneToMany(
+    () => LongShotTicketEntity,
+    (longShotTicketEntity) => longShotTicketEntity.pack,
+  )
+  tickets: LongShotTicketEntity[];
 }

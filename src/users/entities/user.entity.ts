@@ -84,21 +84,6 @@ export class UserEntity {
   })
   boughtTgmCount: number;
 
-  @Column({
-    default: 0,
-  })
-  ticketLevel: 0 | 1 | 2 | 3;
-
-  @Column({
-    default: 0,
-  })
-  longShotGameTgmCount: number;
-
-  @Column({
-    default: 0,
-  })
-  allowanceLeagueCount: number;
-
   @CreateDateColumn()
   createdAt: string;
 }
