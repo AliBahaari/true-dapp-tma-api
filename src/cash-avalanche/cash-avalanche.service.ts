@@ -3,7 +3,7 @@ import { CreateCashAvalancheDto } from './dto/create-cash-avalanche.dto';
 import { BidDto } from './dto/bid.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
-import { Repository } from 'typeorm';
+import { ArrayContains, LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -103,16 +103,34 @@ export class CashAvalancheService {
   }
 
   async findAll() {
-    return (await this.cashAvalancheRepo.find()).map((i) => ({
-      ...i,
-      active: Date.now() < Number(i.remainingTime) ? true : false,
-    }));
+    const allGames = await this.cashAvalancheRepo.find();
+    allGames.map(async (i) => {
+      const highestBidParticipant = await this.usersService.find(
+        i.allParticipants[i.allParticipants.length - 1],
+      );
+
+      return {
+        ...i,
+        active: Date.now() < Number(i.remainingTime) ? true : false,
+        highestBidParticipant,
+      };
+    });
   }
 
   async findOne(gameId: string) {
     return await this.cashAvalancheRepo.findOne({
       where: {
         gameId,
+      },
+    });
+  }
+
+  async findUserGames(initData: string, type: 'active' | 'history') {
+    return await this.cashAvalancheRepo.find({
+      where: {
+        allParticipants: ArrayContains([initData]),
+        remainingTime:
+          type === 'active' ? MoreThan(Date.now()) : LessThan(Date.now()),
       },
     });
   }

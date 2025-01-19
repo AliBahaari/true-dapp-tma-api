@@ -32,6 +32,14 @@ export class CashAvalancheController {
     return await this.cashAvalancheService.findOne(gameId);
   }
 
+  @Get('findUserGames/:initData/:type')
+  async findUserGames(
+    @Param('initData') initData: string,
+    @Param('type') type: 'active' | 'history',
+  ) {
+    return await this.cashAvalancheService.findUserGames(initData, type);
+  }
+
   @Delete('delete/:gameId')
   async delete(@Param('gameId') gameId: string) {
     return await this.cashAvalancheService.delete(gameId);

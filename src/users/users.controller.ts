@@ -57,6 +57,11 @@ export class UsersController {
     return await this.usersService.updateClaimReferralReward(initData);
   }
 
+  @Patch('updateClaimLevelUpReward/:initData')
+  async updateClaimLevelUpReward(@Param('initData') initData: string) {
+    return await this.usersService.updateClaimLevelUpReward(initData);
+  }
+
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);

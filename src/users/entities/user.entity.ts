@@ -5,6 +5,12 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+export enum UserRoles {
+  ADMIN = 1,
+  DEVELOPER = 2,
+  NORMAL = 3,
+}
+
 @Entity({
   name: 'users',
 })
@@ -19,6 +25,11 @@ export class UserEntity {
     default: '',
   })
   fullName: string;
+
+  @Column({
+    default: '',
+  })
+  image: string;
 
   @Column({ default: 1 })
   level: number;
@@ -79,10 +90,18 @@ export class UserEntity {
   @Column()
   referralRewardsCount: number;
 
+  @Column()
+  levelUpRewardsCount: number;
+
   @Column({
     default: 0,
   })
   boughtTgmCount: number;
+
+  @Column({
+    type: 'simple-array',
+  })
+  roles: UserRoles[];
 
   @CreateDateColumn()
   createdAt: string;

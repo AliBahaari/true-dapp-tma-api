@@ -20,9 +20,10 @@ export class UsersService {
       initData + privateCode.toString(),
     ).toString();
 
-    await this.userRepo.save({
+    const userObject = {
       initData,
       fullName: createUserDto.fullName,
+      image: createUserDto.image,
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
@@ -36,28 +37,14 @@ export class UsersService {
       invitedBy: createUserDto.invitedBy || null,
       isVip: false,
       referralRewardsCount: 0,
+      levelUpRewardsCount: 0,
       boughtTgmCount: 0,
-      secretCode: secretCodeHash,
-    });
-
-    return {
-      initData,
-      fullName: createUserDto.fullName,
-      tgmCount: 0,
-      tapCoinCount: 0,
-      level: 1,
-      referralCount: 0,
-      referralCode,
-      completedTasks: [],
-      claimedRewards: [],
-      lastOnline: '',
-      privateCode,
-      estimatedTgmPrice: '0',
-      invitedBy: createUserDto.invitedBy || null,
-      isVip: false,
-      referralRewardsCount: 0,
-      boughtTgmCount: 0,
+      roles: createUserDto.roles,
     };
+
+    await this.userRepo.save({ userObject, ...{ secretCode: secretCodeHash } });
+
+    return userObject;
   }
 
   async findAll() {
@@ -136,8 +123,13 @@ export class UsersService {
       },
     });
     if (referralCodeUserFindOne) {
+      if (referralCodeUserFindOne.isVip) {
+        referralCodeUserFindOne.referralRewardsCount += 200000;
+      } else {
+        referralCodeUserFindOne.referralRewardsCount += 100000;
+      }
+      referralCodeUserFindOne.levelUpRewardsCount += 250;
       referralCodeUserFindOne.referralCount += 1;
-      referralCodeUserFindOne.referralRewardsCount += 100;
       referralCodeUserFindOne.level = Math.ceil(
         referralCodeUserFindOne.referralCount / 6.18,
       );
@@ -164,7 +156,35 @@ export class UsersService {
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
       } else {
-        throw new HttpException('No Rewards Remained', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'No Referral Rewards Remained',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async updateClaimLevelUpReward(initData: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+
+    if (userFindOne) {
+      if (userFindOne.levelUpRewardsCount > 0) {
+        userFindOne.tgmCount += userFindOne.levelUpRewardsCount;
+        userFindOne.levelUpRewardsCount = 0;
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      } else {
+        throw new HttpException(
+          'No Level Up Rewards Remained',
+          HttpStatus.NOT_FOUND,
+        );
       }
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);

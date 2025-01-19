@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserRoles } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsString()
@@ -8,6 +9,13 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   fullName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  image: string;
+
+  @IsArray()
+  roles: UserRoles[];
 
   @IsString()
   @IsOptional()
