@@ -52,19 +52,20 @@ export class UsersController {
     return await this.usersService.updateReferralCode(initData, referralCode);
   }
 
-  @Patch('updateClaimReferralReward/:initData')
-  async updateClaimReferralReward(@Param('initData') initData: string) {
-    return await this.usersService.updateClaimReferralReward(initData);
+  @Patch('updateClaimReferralReward/:invitedUserId/:initData')
+  async updateClaimReferralReward(
+    @Param('invitedUserId') invitedUserId: string,
+    @Param('initData') initData: string,
+  ) {
+    return await this.usersService.updateClaimReferralReward(
+      invitedUserId,
+      initData,
+    );
   }
 
   @Patch('updateClaimLevelUpReward/:initData')
   async updateClaimLevelUpReward(@Param('initData') initData: string) {
     return await this.usersService.updateClaimLevelUpReward(initData);
-  }
-
-  @Delete('deleteUser/:initData')
-  async deleteUser(@Param('initData') initData: string) {
-    return await this.usersService.deleteUser(initData);
   }
 
   @Patch('updateTaskReward/:initData/:taskName/:taskReward')
@@ -89,5 +90,21 @@ export class UsersController {
       initData,
       estimatedPrice,
     );
+  }
+
+  @Patch('updateUserWalletAddress/:initData/:walletAddress')
+  async updateUserWalletAddress(
+    @Param('initData') initData: string,
+    @Param('walletAddress') walletAddress: string,
+  ) {
+    return await this.usersService.updateUserWalletAddress(
+      initData,
+      walletAddress,
+    );
+  }
+
+  @Delete('deleteUser/:initData')
+  async deleteUser(@Param('initData') initData: string) {
+    return await this.usersService.deleteUser(initData);
   }
 }

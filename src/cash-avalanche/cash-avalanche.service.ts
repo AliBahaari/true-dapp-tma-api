@@ -22,8 +22,10 @@ export class CashAvalancheService {
       startReward: createCashAvalancheDto.startReward,
       bidStep: createCashAvalancheDto.bidStep,
       intervalTime: createCashAvalancheDto.intervalTime * 60 * 1000,
+      startAt: createCashAvalancheDto.startAt,
       remainingTime:
-        Date.now() + createCashAvalancheDto.intervalTime * 60 * 1000,
+        createCashAvalancheDto.startAt +
+        createCashAvalancheDto.intervalTime * 60 * 1000,
       totalReward: createCashAvalancheDto.startReward,
       allParticipants: [],
       allParticipantsCount: 0,
@@ -41,7 +43,10 @@ export class CashAvalancheService {
     const findOneUser = await this.usersService.find(bidDto.initData);
 
     if (findOneGame) {
-      if (Date.now() < Number(findOneGame.remainingTime)) {
+      if (
+        Date.now() < Number(findOneGame.remainingTime) &&
+        Date.now() > Number(findOneGame.startAt)
+      ) {
         if (findOneUser.tgmCount >= findOneGame.nextBid) {
           findOneGame.allParticipants.push(bidDto.initData);
           findOneGame.allParticipantsCount += 1;
@@ -111,7 +116,10 @@ export class CashAvalancheService {
 
       return {
         ...i,
-        active: Date.now() < Number(i.remainingTime) ? true : false,
+        active:
+          Date.now() < Number(i.remainingTime) && Date.now() > Number(i.startAt)
+            ? true
+            : false,
         highestBidParticipant,
       };
     });

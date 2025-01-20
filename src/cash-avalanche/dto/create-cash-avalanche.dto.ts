@@ -11,5 +11,8 @@ export class CreateCashAvalancheDto {
   bidStart: number;
 
   @IsNumber()
+  startAt: number;
+
+  @IsNumber()
   intervalTime: number;
 }

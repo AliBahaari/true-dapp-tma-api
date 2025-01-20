@@ -24,6 +24,11 @@ export class UserEntity {
   @Column({
     default: '',
   })
+  walletAddress: string;
+
+  @Column({
+    default: '',
+  })
   fullName: string;
 
   @Column({

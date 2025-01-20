@@ -24,6 +24,11 @@ export class CashAvalancheEntity {
   @Column({
     type: 'bigint',
   })
+  startAt: number;
+
+  @Column({
+    type: 'bigint',
+  })
   intervalTime: number;
 
   // Bid
