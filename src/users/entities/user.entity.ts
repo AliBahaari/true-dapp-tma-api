@@ -61,16 +61,20 @@ export class UserEntity {
   tgmCount: number;
 
   @Column({
+    default: [],
     type: 'simple-array',
   })
   completedTasks: string[];
 
   @Column({
+    default: [],
     type: 'simple-array',
   })
   claimedRewards: string[];
 
-  @Column()
+  @Column({
+    default: '',
+  })
   lastOnline: string;
 
   @Column({
