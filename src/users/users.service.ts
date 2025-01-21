@@ -20,10 +20,35 @@ export class UsersService {
       initData + privateCode.toString(),
     ).toString();
 
-    const userObject = {
+    await this.userRepo.save({
       initData,
       fullName: createUserDto.fullName,
       image: createUserDto.image,
+      walletAddress: '',
+      tgmCount: 0,
+      tapCoinCount: 0,
+      level: 1,
+      referralCount: 0,
+      referralCode,
+      completedTasks: [],
+      claimedRewards: [],
+      lastOnline: '',
+      privateCode,
+      estimatedTgmPrice: '0',
+      invitedBy: createUserDto.invitedBy || null,
+      isVip: false,
+      referralRewardsCount: 0,
+      levelUpRewardsCount: 0,
+      boughtTgmCount: 0,
+      roles: createUserDto.roles,
+      secretCode: secretCodeHash,
+    });
+
+    return {
+      initData,
+      fullName: createUserDto.fullName,
+      image: createUserDto.image,
+      walletAddress: '',
       tgmCount: 0,
       tapCoinCount: 0,
       level: 1,
@@ -41,10 +66,6 @@ export class UsersService {
       boughtTgmCount: 0,
       roles: createUserDto.roles,
     };
-
-    await this.userRepo.save({ userObject, ...{ secretCode: secretCodeHash } });
-
-    return userObject;
   }
 
   async findAll() {

@@ -18,7 +18,7 @@ export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: '', unique: true })
+  @Column({ unique: true })
   initData: string;
 
   @Column({
@@ -40,41 +40,30 @@ export class UserEntity {
   level: number;
 
   @Column({
-    default: '',
     unique: true,
   })
   referralCode: string;
 
-  @Column({
-    default: 0,
-  })
+  @Column()
   referralCount: number;
 
-  @Column({
-    default: 0,
-  })
+  @Column()
   tapCoinCount: number;
 
-  @Column({
-    default: 0,
-  })
+  @Column()
   tgmCount: number;
 
   @Column({
-    default: [],
     type: 'simple-array',
   })
   completedTasks: string[];
 
   @Column({
-    default: [],
     type: 'simple-array',
   })
   claimedRewards: string[];
 
-  @Column({
-    default: '',
-  })
+  @Column()
   lastOnline: string;
 
   @Column({
