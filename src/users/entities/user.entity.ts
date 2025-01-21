@@ -45,13 +45,19 @@ export class UserEntity {
   })
   referralCode: string;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   referralCount: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   tapCoinCount: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   tgmCount: number;
 
   @Column({
