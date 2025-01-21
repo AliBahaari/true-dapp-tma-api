@@ -8,7 +8,7 @@ import { Server } from 'socket.io';
 
 @WebSocketGateway(3001, {
   cors: {
-    origin: 'https://truedapp.agency',
+    origin: '*',
   },
   transports: ['websocket', 'polling'],
 })
