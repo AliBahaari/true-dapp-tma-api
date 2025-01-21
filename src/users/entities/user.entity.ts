@@ -40,6 +40,7 @@ export class UserEntity {
   level: number;
 
   @Column({
+    default: '',
     unique: true,
   })
   referralCode: string;
