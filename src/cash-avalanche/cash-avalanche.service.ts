@@ -109,10 +109,13 @@ export class CashAvalancheService {
 
   async findAll() {
     const allGames = await this.cashAvalancheRepo.find();
-    allGames.map(async (i) => {
-      const highestBidParticipant = await this.usersService.find(
-        i.allParticipants[i.allParticipants.length - 1],
-      );
+    return allGames.map(async (i) => {
+      let highestBidParticipant = null;
+      if (i.allParticipants.length > 0) {
+        highestBidParticipant = await this.usersService.find(
+          i.allParticipants[i.allParticipants.length - 1],
+        );
+      }
 
       return {
         ...i,
