@@ -3,10 +3,6 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './users/entities/user.entity';
 import { StatsModule } from './stats/stats.module';
-import { WalletModule } from './wallet/wallet.module';
-import { KeyModule } from './key/key.module';
-import { WalletEntity } from './wallet/entities/wallet.entity';
-import { KeyEntity } from './key/entities/key.entity';
 import { LanguagesModule } from './languages/languages.module';
 import { LanguageEntity } from './languages/entities/language.entity';
 import { AuthMiddleware } from './middlewares/auth.middleware';
@@ -18,6 +14,7 @@ import { LongShotLeaguesWeeklyEntity } from './long-shot/entities/long-shot-leag
 import { LongShotMatchesEntity } from './long-shot/entities/long-shot-matches.entity';
 import { LongShotParticipantsEntity } from './long-shot/entities/long-shot-participants.entity';
 import { LongShotPacksEntity } from './long-shot/entities/long-shot-packs.entity';
+import { LongShotTicketEntity } from './long-shot/entities/long-shot-tickets.entity';
 
 @Module({
   imports: [
@@ -36,15 +33,12 @@ import { LongShotPacksEntity } from './long-shot/entities/long-shot-packs.entity
         LongShotLeaguesWeeklyEntity,
         LongShotMatchesEntity,
         LongShotParticipantsEntity,
-        WalletEntity,
-        KeyEntity,
+        LongShotTicketEntity,
       ],
       synchronize: true,
     }),
     UsersModule,
     StatsModule,
-    WalletModule,
-    KeyModule,
     LanguagesModule,
     CashAvalancheModule,
     LongShotModule,
