@@ -15,10 +15,15 @@ export class CashAvalancheService {
   ) {}
 
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
-    const latestCashAvalancheGame = await this.cashAvalancheRepo.findOne({});
+    const latestCashAvalancheGame = await this.cashAvalancheRepo.find({
+      order: {
+        gameId: 'DESC',
+      },
+      take: 1,
+    });
     let gameId = 0;
-    if (latestCashAvalancheGame) {
-      gameId = latestCashAvalancheGame.gameId + 1;
+    if (latestCashAvalancheGame[0]) {
+      gameId = latestCashAvalancheGame[0].gameId + 1;
     }
 
     return await this.cashAvalancheRepo.save({
