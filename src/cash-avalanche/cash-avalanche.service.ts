@@ -110,7 +110,8 @@ export class CashAvalancheService {
 
   async findAll() {
     const allGames = await this.cashAvalancheRepo.find();
-    return allGames.map(async (i) => {
+    const refactoredGames = [];
+    for (const i of allGames) {
       let highestBidParticipant = null;
       if (i.allParticipants.length > 0) {
         highestBidParticipant = await this.usersService.find(
@@ -118,15 +119,16 @@ export class CashAvalancheService {
         );
       }
 
-      return {
+      refactoredGames.push({
         ...i,
         active:
           Date.now() < Number(i.remainingTime) && Date.now() > Number(i.startAt)
             ? true
             : false,
         highestBidParticipant,
-      };
-    });
+      });
+    }
+    return refactoredGames;
   }
 
   async findOne(gameId: string) {
