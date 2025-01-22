@@ -58,7 +58,10 @@ export class CashAvalancheService {
         Date.now() > Number(findOneGame.startAt)
       ) {
         if (findOneUser.tgmCount >= findOneGame.nextBid) {
-          findOneGame.allParticipants.push(bidDto.initData);
+          findOneGame.allParticipants.push({
+            initData: bidDto.initData,
+            bid: findOneGame.nextBid,
+          });
           findOneGame.allParticipantsCount += 1;
           findOneGame.totalReward =
             findOneGame.totalReward + findOneGame.nextBid;
@@ -93,7 +96,8 @@ export class CashAvalancheService {
       if (Date.now() > Number(findOneGame.remainingTime)) {
         if (!findOneGame.hasClaimedReward) {
           await this.usersService.updateUserTgmCount(
-            findOneGame.allParticipants[findOneGame.allParticipants.length - 1],
+            findOneGame.allParticipants[findOneGame.allParticipants.length - 1]
+              .initData,
             (findOneGame.totalReward * 90) / 100,
             'ADD',
           );
@@ -124,7 +128,7 @@ export class CashAvalancheService {
       let highestBidParticipant = null;
       if (i.allParticipants.length > 0) {
         highestBidParticipant = await this.usersService.find(
-          i.allParticipants[i.allParticipants.length - 1],
+          i.allParticipants[i.allParticipants.length - 1].initData,
         );
       }
 
@@ -157,7 +161,7 @@ export class CashAvalancheService {
     });
     const participatedCashAvalancheGames = [];
     for (const i of cashAvalancheGamesFind) {
-      if (i.allParticipants.includes(initData)) {
+      if (i.allParticipants.find((i) => i.initData === initData)) {
         participatedCashAvalancheGames.push(i);
       }
     }

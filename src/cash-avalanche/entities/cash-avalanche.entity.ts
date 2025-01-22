@@ -39,7 +39,7 @@ export class CashAvalancheEntity {
   @Column({
     type: 'simple-array',
   })
-  allParticipants: string[];
+  allParticipants: { initData: string; bid: number }[];
 
   @Column({
     default: 0,
