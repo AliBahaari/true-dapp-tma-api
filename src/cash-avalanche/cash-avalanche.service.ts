@@ -3,7 +3,7 @@ import { CreateCashAvalancheDto } from './dto/create-cash-avalanche.dto';
 import { BidDto } from './dto/bid.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
-import { ArrayContains, LessThan, MoreThan, Repository } from 'typeorm';
+import { ArrayContainedBy, LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -151,7 +151,7 @@ export class CashAvalancheService {
   async findUserGames(initData: string, type: 'active' | 'history') {
     return await this.cashAvalancheRepo.find({
       where: {
-        allParticipants: ArrayContains([initData]),
+        allParticipants: ArrayContainedBy([initData]),
         remainingTime:
           type === 'active' ? MoreThan(Date.now()) : LessThan(Date.now()),
       },
