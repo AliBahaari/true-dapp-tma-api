@@ -3,7 +3,7 @@ import { CreateCashAvalancheDto } from './dto/create-cash-avalanche.dto';
 import { BidDto } from './dto/bid.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
-import { ArrayContainedBy, LessThan, MoreThan, Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -160,9 +160,11 @@ export class CashAvalancheService {
       },
     });
     const participatedCashAvalancheGames = [];
-    for (const i of cashAvalancheGamesFind) {
-      if (i.allParticipants.find((i) => i.initData === initData)) {
-        participatedCashAvalancheGames.push(i);
+    if (cashAvalancheGamesFind.length > 0) {
+      for (const i of cashAvalancheGamesFind) {
+        if (i.allParticipants.find((i) => i.initData === initData)) {
+          participatedCashAvalancheGames.push(i);
+        }
       }
     }
 

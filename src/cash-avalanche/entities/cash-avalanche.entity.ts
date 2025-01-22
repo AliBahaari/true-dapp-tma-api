@@ -37,7 +37,7 @@ export class CashAvalancheEntity {
   totalReward: number;
 
   @Column({
-    type: 'simple-array',
+    type: 'json',
   })
   allParticipants: { initData: string; bid: number }[];
 
