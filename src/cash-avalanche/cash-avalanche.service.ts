@@ -15,11 +15,7 @@ export class CashAvalancheService {
   ) {}
 
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
-    const latestCashAvalancheGame = await this.cashAvalancheRepo.findOne({
-      order: {
-        gameId: 'DESC',
-      },
-    });
+    const latestCashAvalancheGame = await this.cashAvalancheRepo.findOne({});
     let gameId = 0;
     if (latestCashAvalancheGame) {
       gameId = latestCashAvalancheGame.gameId + 1;
