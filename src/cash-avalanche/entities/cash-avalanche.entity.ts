@@ -10,7 +10,7 @@ export class CashAvalancheEntity {
   // Init
 
   @Column()
-  gameId: string;
+  gameId: number;
 
   @Column()
   startReward: number;

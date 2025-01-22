@@ -2,7 +2,7 @@ import { IsString } from 'class-validator';
 
 export class BidDto {
   @IsString()
-  gameId: string;
+  gameId: number;
 
   @IsString()
   initData: string;

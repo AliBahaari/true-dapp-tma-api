@@ -22,11 +22,11 @@ export class CashAvalancheService {
     });
     let gameId = 0;
     if (latestCashAvalancheGame) {
-      gameId = Number(latestCashAvalancheGame.gameId) + 1;
+      gameId = latestCashAvalancheGame.gameId + 1;
     }
 
     return await this.cashAvalancheRepo.save({
-      gameId: gameId.toString(),
+      gameId,
       startReward: createCashAvalancheDto.startReward,
       bidStep: createCashAvalancheDto.bidStep,
       intervalTime: createCashAvalancheDto.intervalTime * 60 * 1000,
@@ -84,7 +84,7 @@ export class CashAvalancheService {
   async findWinner(gameId: string) {
     const findOneGame = await this.cashAvalancheRepo.findOne({
       where: {
-        gameId,
+        gameId: Number(gameId),
       },
     });
 
@@ -142,7 +142,7 @@ export class CashAvalancheService {
   async findOne(gameId: string) {
     return await this.cashAvalancheRepo.findOne({
       where: {
-        gameId,
+        gameId: Number(gameId),
       },
     });
   }
@@ -159,7 +159,7 @@ export class CashAvalancheService {
 
   async delete(gameId: string) {
     return await this.cashAvalancheRepo.delete({
-      gameId,
+      gameId: Number(gameId),
     });
   }
 }
