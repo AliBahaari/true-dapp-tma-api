@@ -15,10 +15,18 @@ export class CashAvalancheService {
   ) {}
 
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
-    const gameId = Math.ceil(Math.random() * 100000000000000).toString();
+    const latestCashAvalancheGame = await this.cashAvalancheRepo.findOne({
+      order: {
+        gameId: 'DESC',
+      },
+    });
+    let gameId = 0;
+    if (latestCashAvalancheGame) {
+      gameId = Number(latestCashAvalancheGame.gameId) + 1;
+    }
 
     return await this.cashAvalancheRepo.save({
-      gameId,
+      gameId: gameId.toString(),
       startReward: createCashAvalancheDto.startReward,
       bidStep: createCashAvalancheDto.bidStep,
       intervalTime: createCashAvalancheDto.intervalTime * 60 * 1000,
