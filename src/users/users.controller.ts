@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { BuyTgmDto } from './dto/buy-tgm.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 @Controller('users')
 export class UsersController {
@@ -17,6 +19,11 @@ export class UsersController {
   @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.usersService.create(createUserDto);
+  }
+
+  @Post('buyTgm')
+  async buyTgm(@Body() buyTgmDto: BuyTgmDto) {
+    return await this.usersService.buyTgm(buyTgmDto);
   }
 
   @Get('findAll')
@@ -101,6 +108,11 @@ export class UsersController {
       initData,
       walletAddress,
     );
+  }
+
+  @Patch('updateUserRoles')
+  async updateUserRoles(@Body() updateUserRolesDto: UpdateUserRolesDto) {
+    return await this.usersService.updateUserRoles(updateUserRolesDto);
   }
 
   @Delete('deleteUser/:initData')

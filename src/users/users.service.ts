@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
+import { BuyTgmDto } from './dto/buy-tgm.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 @Injectable()
 export class UsersService {
@@ -66,6 +68,40 @@ export class UsersService {
       boughtTgmCount: 0,
       roles: createUserDto.roles,
     };
+  }
+
+  async buyTgm(buyTgmDto: BuyTgmDto) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData: buyTgmDto.initData,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    if (userFindOne.invitedBy) {
+      const invitedByFindOne = await this.userRepo.findOne({
+        where: {
+          invitedBy: userFindOne.invitedBy,
+        },
+      });
+      if (!invitedByFindOne) {
+        throw new HttpException(
+          'Invited By User Not Found',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      invitedByFindOne.tgmCount += Math.floor(buyTgmDto.amount * (5 / 100));
+      userFindOne.tgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
+
+      await this.userRepo.save(invitedByFindOne);
+    } else {
+      userFindOne.tgmCount += buyTgmDto.amount;
+    }
+
+    return await this.userRepo.save(userFindOne);
   }
 
   async findAll() {
@@ -403,6 +439,21 @@ export class UsersService {
 
     const { secretCode, ...restProps } = userFindOne;
     return restProps;
+  }
+
+  async updateUserRoles(updateUserRolesDto: UpdateUserRolesDto) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData: updateUserRolesDto.initData,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    userFindOne.roles = updateUserRolesDto.roles;
+
+    return await this.userRepo.save(userFindOne);
   }
 
   async deleteUser(initData: string) {
