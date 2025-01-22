@@ -29,6 +29,7 @@ export class CashAvalancheService {
       totalReward: createCashAvalancheDto.startReward,
       allParticipants: [],
       allParticipantsCount: 0,
+      bidStart: createCashAvalancheDto.bidStart,
       nextBid: createCashAvalancheDto.bidStart + createCashAvalancheDto.bidStep,
     });
   }
