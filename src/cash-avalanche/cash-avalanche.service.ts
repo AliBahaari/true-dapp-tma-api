@@ -149,13 +149,20 @@ export class CashAvalancheService {
   }
 
   async findUserGames(initData: string, type: 'active' | 'history') {
-    return await this.cashAvalancheRepo.find({
+    const cashAvalancheGamesFind = await this.cashAvalancheRepo.find({
       where: {
-        allParticipants: ArrayContainedBy([initData]),
         remainingTime:
           type === 'active' ? MoreThan(Date.now()) : LessThan(Date.now()),
       },
     });
+    const participatedCashAvalancheGames = [];
+    for (const i of cashAvalancheGamesFind) {
+      if (i.allParticipants.includes(initData)) {
+        participatedCashAvalancheGames.push(i);
+      }
+    }
+
+    return participatedCashAvalancheGames;
   }
 
   async delete(gameId: string) {
