@@ -126,19 +126,36 @@ export class UsersService {
       throw new HttpException('Previously Has Bought', HttpStatus.FORBIDDEN);
     }
 
-    if (userFindOne.invitedBy) {
-      userFindOne.invitedUserBuyTgmCommission += Math.floor(
-        buyTgmDto.amount * (5 / 100),
-      );
-      userFindOne.boughtTgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
-      userFindOne.tgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
+    let packageReward = 0;
+    if (buyTgmDto.type === 1) {
+      packageReward = 100000;
+    } else if (buyTgmDto.type === 2) {
+      packageReward = 1000000;
+    } else if (buyTgmDto.type === 3) {
+      packageReward = 10000000;
+    } else if (buyTgmDto.type === 4) {
+      packageReward = 1000000;
+      userFindOne.isVip = true;
     } else {
-      userFindOne.boughtTgmCount += buyTgmDto.amount;
-      userFindOne.tgmCount += buyTgmDto.amount;
+      throw new HttpException(
+        'Package Type Does Not Exist',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
-    userFindOne.isVip = buyTgmDto.beVip;
-    // userFindOne.hasBoughtTgm = true;
+    if (userFindOne.invitedBy) {
+      userFindOne.invitedUserBuyTgmCommission += Math.floor(
+        packageReward * (5 / 100),
+      );
+      userFindOne.boughtTgmCount += Math.floor(packageReward * (95 / 100));
+      userFindOne.tgmCount += Math.floor(packageReward * (95 / 100));
+    } else {
+      userFindOne.boughtTgmCount += packageReward;
+      userFindOne.tgmCount += packageReward;
+    }
+
+    userFindOne.packageId = buyTgmDto.type;
+    userFindOne.hasBoughtTgm = true;
 
     return await this.userRepo.save(userFindOne);
   }

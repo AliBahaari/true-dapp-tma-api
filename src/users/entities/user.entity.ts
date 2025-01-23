@@ -117,6 +117,11 @@ export class UserEntity {
   invitedUserBuyTgmCommission: number;
 
   @Column({
+    default: 0,
+  })
+  packageId: 0 | 1 | 2 | 3 | 4;
+
+  @Column({
     type: 'simple-array',
   })
   roles: UserRoles[];

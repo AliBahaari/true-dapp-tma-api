@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class BuyTgmDto {
   @IsString()
@@ -12,9 +6,5 @@ export class BuyTgmDto {
   initData: string;
 
   @IsNumber()
-  @Min(1)
-  amount: number;
-
-  @IsBoolean()
-  beVip: boolean;
+  type: 1 | 2 | 3 | 4;
 }
