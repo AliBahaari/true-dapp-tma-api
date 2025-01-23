@@ -106,20 +106,14 @@ export class UserEntity {
   boughtTgmCount: number;
 
   @Column({
-    type: 'boolean',
-    default: false,
-  })
-  hasBoughtTgm: boolean;
-
-  @Column({
     default: 0,
   })
   invitedUserBuyTgmCommission: number;
 
   @Column({
-    default: 0,
+    type: 'simple-array',
   })
-  packageId: 0 | 1 | 2 | 3 | 4;
+  packageIds: (1 | 2 | 3 | 4)[];
 
   @Column({
     type: 'simple-array',

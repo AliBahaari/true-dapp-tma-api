@@ -114,6 +114,14 @@ export class UsersService {
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
+    if (
+      buyTgmDto.type !== 1 &&
+      buyTgmDto.type !== 2 &&
+      buyTgmDto.type !== 3 &&
+      buyTgmDto.type !== 4
+    ) {
+      throw new HttpException('Package ID Is Wrong', HttpStatus.FORBIDDEN);
+    }
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData: buyTgmDto.initData,
@@ -122,8 +130,11 @@ export class UsersService {
     if (!userFindOne) {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-    if (userFindOne.hasBoughtTgm) {
-      throw new HttpException('Previously Has Bought', HttpStatus.FORBIDDEN);
+    if (userFindOne.packageIds.includes(buyTgmDto.type)) {
+      throw new HttpException(
+        'The Package ID Has Been Bought Previously',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     let packageReward = 0;
@@ -136,12 +147,8 @@ export class UsersService {
     } else if (buyTgmDto.type === 4) {
       packageReward = 1000000;
       userFindOne.isVip = true;
-    } else {
-      throw new HttpException(
-        'Package Type Does Not Exist',
-        HttpStatus.FORBIDDEN,
-      );
     }
+    userFindOne.packageIds.push(buyTgmDto.type);
 
     if (userFindOne.invitedBy) {
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
@@ -153,9 +160,6 @@ export class UsersService {
       userFindOne.boughtTgmCount += packageReward;
       userFindOne.tgmCount += packageReward;
     }
-
-    userFindOne.packageId = buyTgmDto.type;
-    userFindOne.hasBoughtTgm = true;
 
     return await this.userRepo.save(userFindOne);
   }
