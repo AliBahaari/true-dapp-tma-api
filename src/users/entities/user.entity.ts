@@ -50,7 +50,9 @@ export class UserEntity {
   @Column()
   tapCoinCount: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   tgmCount: number;
 
   @Column({
@@ -102,6 +104,12 @@ export class UserEntity {
     default: 0,
   })
   boughtTgmCount: number;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  hasBoughtTgm: boolean;
 
   @Column({
     default: 0,

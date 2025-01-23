@@ -122,6 +122,9 @@ export class UsersService {
     if (!userFindOne) {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
+    if (userFindOne.hasBoughtTgm) {
+      throw new HttpException('Previously Has Bought', HttpStatus.FORBIDDEN);
+    }
 
     if (userFindOne.invitedBy) {
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
@@ -133,6 +136,9 @@ export class UsersService {
       userFindOne.boughtTgmCount += buyTgmDto.amount;
       userFindOne.tgmCount += buyTgmDto.amount;
     }
+
+    userFindOne.isVip = buyTgmDto.beVip;
+    userFindOne.hasBoughtTgm = true;
 
     return await this.userRepo.save(userFindOne);
   }
