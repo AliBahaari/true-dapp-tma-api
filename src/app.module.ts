@@ -15,6 +15,8 @@ import { LongShotMatchesEntity } from './long-shot/entities/long-shot-matches.en
 import { LongShotParticipantsEntity } from './long-shot/entities/long-shot-participants.entity';
 import { LongShotPacksEntity } from './long-shot/entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from './long-shot/entities/long-shot-tickets.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -36,6 +38,10 @@ import { LongShotTicketEntity } from './long-shot/entities/long-shot-tickets.ent
         LongShotTicketEntity,
       ],
       synchronize: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/static',
     }),
     UsersModule,
     StatsModule,

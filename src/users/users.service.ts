@@ -7,14 +7,57 @@ import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import * as fs from 'fs';
+import * as path from 'path';
+import axios from 'axios';
 
 @Injectable()
 export class UsersService {
+  private readonly imageFolder = path.join(
+    __dirname,
+    '..',
+    '..',
+    'public',
+    'images',
+  );
+
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    if (!fs.existsSync(this.imageFolder)) {
+      fs.mkdirSync(this.imageFolder, { recursive: true });
+    }
+
+    let downloadedImage = '';
+    try {
+      const response = await axios({
+        url: createUserDto.image,
+        method: 'GET',
+        responseType: 'stream',
+      });
+
+      const extension = path.extname(createUserDto.image) || '.jpg'; // Default to .jpg if no extension
+      const filename = `${crypto.randomUUID()}${extension}`;
+      const filePath = path.join(this.imageFolder, filename);
+
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+
+      downloadedImage = `/static/images/${filename}`;
+    } catch (error) {
+      throw new HttpException(
+        `Failed To Download The Image: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
     const referralCode = Math.random().toString(36).substring(2, 7);
     const privateCode = Math.random().toString(36).substring(2, 7);
     const initData = createUserDto.initData;
@@ -25,7 +68,7 @@ export class UsersService {
     await this.userRepo.save({
       initData,
       fullName: createUserDto.fullName,
-      image: createUserDto.image,
+      image: downloadedImage,
       walletAddress: '',
       tgmCount: 0,
       tapCoinCount: 0,
@@ -49,7 +92,7 @@ export class UsersService {
     return {
       initData,
       fullName: createUserDto.fullName,
-      image: createUserDto.image,
+      image: downloadedImage,
       walletAddress: '',
       tgmCount: 0,
       tapCoinCount: 0,
