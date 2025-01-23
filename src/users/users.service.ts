@@ -94,10 +94,12 @@ export class UsersService {
       }
 
       invitedByFindOne.tgmCount += Math.floor(buyTgmDto.amount * (5 / 100));
+      userFindOne.boughtTgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
       userFindOne.tgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
 
       await this.userRepo.save(invitedByFindOne);
     } else {
+      userFindOne.boughtTgmCount += buyTgmDto.amount;
       userFindOne.tgmCount += buyTgmDto.amount;
     }
 
