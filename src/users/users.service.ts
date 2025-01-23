@@ -138,7 +138,7 @@ export class UsersService {
     }
 
     userFindOne.isVip = buyTgmDto.beVip;
-    userFindOne.hasBoughtTgm = true;
+    // userFindOne.hasBoughtTgm = true;
 
     return await this.userRepo.save(userFindOne);
   }
