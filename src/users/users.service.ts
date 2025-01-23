@@ -124,23 +124,11 @@ export class UsersService {
     }
 
     if (userFindOne.invitedBy) {
-      const invitedByFindOne = await this.userRepo.findOne({
-        where: {
-          invitedBy: userFindOne.invitedBy,
-        },
-      });
-      if (!invitedByFindOne) {
-        throw new HttpException(
-          'Invited By User Not Found',
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      invitedByFindOne.tgmCount += Math.floor(buyTgmDto.amount * (5 / 100));
+      userFindOne.invitedUserBuyTgmCommission += Math.floor(
+        buyTgmDto.amount * (5 / 100),
+      );
       userFindOne.boughtTgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
       userFindOne.tgmCount += Math.floor(buyTgmDto.amount * (95 / 100));
-
-      await this.userRepo.save(invitedByFindOne);
     } else {
       userFindOne.boughtTgmCount += buyTgmDto.amount;
       userFindOne.tgmCount += buyTgmDto.amount;
@@ -499,6 +487,42 @@ export class UsersService {
     userFindOne.roles = updateUserRolesDto.roles;
 
     return await this.userRepo.save(userFindOne);
+  }
+
+  async updateInvitedUserBuyTgmCommission(invitedUserId: string) {
+    const invitedUserFindOne = await this.userRepo.findOne({
+      where: {
+        id: invitedUserId,
+      },
+    });
+    if (!invitedUserFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+    if (!invitedUserFindOne.invitedBy) {
+      throw new HttpException(
+        'User Has Not Been Invited By Anyone',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    if (invitedUserFindOne.invitedUserBuyTgmCommission === 0) {
+      throw new HttpException('No Commission Remained', HttpStatus.FORBIDDEN);
+    }
+
+    const initDataUserFindOne = await this.userRepo.findOne({
+      where: {
+        referralCode: invitedUserFindOne.invitedBy,
+      },
+    });
+    if (!initDataUserFindOne) {
+      throw new HttpException('Init Data User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    initDataUserFindOne.tgmCount +=
+      invitedUserFindOne.invitedUserBuyTgmCommission;
+    invitedUserFindOne.invitedUserBuyTgmCommission = 0;
+
+    await this.userRepo.save(invitedUserFindOne);
+    await this.userRepo.save(initDataUserFindOne);
   }
 
   async deleteUser(initData: string) {

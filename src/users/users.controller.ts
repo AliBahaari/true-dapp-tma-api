@@ -115,6 +115,15 @@ export class UsersController {
     return await this.usersService.updateUserRoles(updateUserRolesDto);
   }
 
+  @Patch('updateInvitedUserBuyTgmCommission/:invitedUserId')
+  async updateInvitedUserBuyTgmCommission(
+    @Param('invitedUserId') invitedUserId: string,
+  ) {
+    return await this.usersService.updateInvitedUserBuyTgmCommission(
+      invitedUserId,
+    );
+  }
+
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);

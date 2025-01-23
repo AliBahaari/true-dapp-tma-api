@@ -104,6 +104,11 @@ export class UserEntity {
   boughtTgmCount: number;
 
   @Column({
+    default: 0,
+  })
+  invitedUserBuyTgmCommission: number;
+
+  @Column({
     type: 'simple-array',
   })
   roles: UserRoles[];
