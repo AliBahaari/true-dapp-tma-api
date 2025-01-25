@@ -182,6 +182,16 @@ export class UsersService {
         initData,
       },
     });
+
+    let whoInvitedUser = null;
+    if (userFindOne.invitedBy) {
+      whoInvitedUser = await this.userRepo.findOne({
+        where: {
+          referralCode: userFindOne.invitedBy,
+        },
+      });
+    }
+
     if (userFindOne) {
       const usersFindAll = await this.userRepo.find();
       let allEstimatedTgmPrices = '0';
@@ -205,6 +215,10 @@ export class UsersService {
           allEstimatedTgmPrices,
           rowsCount,
         ).toFixed(8),
+        whoInvitedUser: {
+          walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
+          isVip: whoInvitedUser && whoInvitedUser.walletAddress,
+        },
       };
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
