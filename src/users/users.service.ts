@@ -124,14 +124,6 @@ export class UsersService {
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
-    if (
-      buyTgmDto.type !== 1 &&
-      buyTgmDto.type !== 2 &&
-      buyTgmDto.type !== 3 &&
-      buyTgmDto.type !== 4
-    ) {
-      throw new HttpException('Package ID Is Wrong', HttpStatus.FORBIDDEN);
-    }
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData: buyTgmDto.initData,
@@ -140,7 +132,16 @@ export class UsersService {
     if (!userFindOne) {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
     }
-    if (userFindOne.packageIds.includes(buyTgmDto.type)) {
+    if (
+      buyTgmDto.type &&
+      buyTgmDto.type !== 1 &&
+      buyTgmDto.type !== 2 &&
+      buyTgmDto.type !== 3 &&
+      buyTgmDto.type !== 4
+    ) {
+      throw new HttpException('Package ID Is Wrong', HttpStatus.FORBIDDEN);
+    }
+    if (buyTgmDto.type && userFindOne.packageIds.includes(buyTgmDto.type)) {
       throw new HttpException(
         'The Package ID Has Been Bought Previously',
         HttpStatus.FORBIDDEN,
@@ -148,27 +149,35 @@ export class UsersService {
     }
 
     let packageReward = 0;
-    if (buyTgmDto.type === 1) {
-      packageReward = 100000;
-    } else if (buyTgmDto.type === 2) {
-      packageReward = 1000000;
-    } else if (buyTgmDto.type === 3) {
-      packageReward = 10000000;
-    } else if (buyTgmDto.type === 4) {
-      packageReward = 1000000;
-      userFindOne.isVip = true;
+    if (buyTgmDto.type) {
+      if (buyTgmDto.type === 1) {
+        packageReward = 100000;
+      } else if (buyTgmDto.type === 2) {
+        packageReward = 1000000;
+      } else if (buyTgmDto.type === 3) {
+        packageReward = 10000000;
+      } else if (buyTgmDto.type === 4) {
+        packageReward = 1000000;
+        userFindOne.isVip = true;
+      }
+      userFindOne.packageIds.push(buyTgmDto.type);
     }
-    userFindOne.packageIds.push(buyTgmDto.type);
 
     if (userFindOne.invitedBy) {
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
-        packageReward * (5 / 100),
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
       );
-      userFindOne.boughtTgmCount += packageReward;
-      userFindOne.tgmCount += Math.floor(packageReward * (95 / 100));
+      userFindOne.boughtTgmCount += buyTgmDto.type
+        ? packageReward
+        : buyTgmDto.amount;
+      userFindOne.tgmCount += Math.floor(
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (95 / 100),
+      );
     } else {
-      userFindOne.boughtTgmCount += packageReward;
-      userFindOne.tgmCount += packageReward;
+      userFindOne.boughtTgmCount += buyTgmDto.type
+        ? packageReward
+        : buyTgmDto.amount;
+      userFindOne.tgmCount += buyTgmDto.type ? packageReward : buyTgmDto.amount;
     }
 
     return await this.userRepo.save(userFindOne);

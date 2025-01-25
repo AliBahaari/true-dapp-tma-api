@@ -6,5 +6,8 @@ export class BuyTgmDto {
   initData: string;
 
   @IsNumber()
-  type: 1 | 2 | 3 | 4;
+  type?: 1 | 2 | 3 | 4;
+
+  @IsNumber()
+  amount?: number;
 }
