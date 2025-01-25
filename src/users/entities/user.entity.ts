@@ -120,6 +120,11 @@ export class UserEntity {
   })
   roles: UserRoles[];
 
+  @Column({
+    type: 'bigint',
+  })
+  hourlyRewardTime: number;
+
   @CreateDateColumn()
   createdAt: string;
 }

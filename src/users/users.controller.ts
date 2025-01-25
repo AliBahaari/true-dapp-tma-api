@@ -124,6 +124,11 @@ export class UsersController {
     );
   }
 
+  @Patch('updateUserHourlyReward/:initData')
+  async updateUserHourlyReward(@Param('initData') initData: string) {
+    return await this.usersService.updateUserHourlyReward(initData);
+  }
+
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);

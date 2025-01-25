@@ -64,6 +64,7 @@ export class UsersService {
     const secretCodeHash = CryptoJS.SHA256(
       initData + privateCode.toString(),
     ).toString();
+    const hourlyRewardTime = Date.now() + 3600000;
 
     await this.userRepo.save({
       initData,
@@ -86,6 +87,7 @@ export class UsersService {
       levelUpRewardsCount: 0,
       boughtTgmCount: 0,
       roles: createUserDto.roles,
+      hourlyRewardTime,
       secretCode: secretCodeHash,
     });
 
@@ -110,6 +112,7 @@ export class UsersService {
       levelUpRewardsCount: 0,
       boughtTgmCount: 0,
       roles: createUserDto.roles,
+      hourlyRewardTime,
     };
   }
 
@@ -564,6 +567,28 @@ export class UsersService {
 
     await this.userRepo.save(invitedUserFindOne);
     await this.userRepo.save(initDataUserFindOne);
+  }
+
+  async updateUserHourlyReward(initData: string) {
+    const hourlyRewardTime = Date.now() + 3600000;
+    const hourlyRewardCount = 100;
+
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    if (Date.now() > userFindOne.hourlyRewardTime) {
+      userFindOne.hourlyRewardTime = hourlyRewardTime;
+      await this.userRepo.save(userFindOne);
+      return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
+    } else {
+      throw new HttpException('Time Has Not Been Passed', HttpStatus.FORBIDDEN);
+    }
   }
 
   async deleteUser(initData: string) {
