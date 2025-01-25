@@ -10,6 +10,7 @@ import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 
 @Injectable()
 export class UsersService {
@@ -88,6 +89,9 @@ export class UsersService {
       boughtTgmCount: 0,
       roles: createUserDto.roles,
       hourlyRewardTime,
+      invitedUserBuyTgmCommission: 0,
+      packageIds: [],
+      redEnvelopeCount: 0,
       secretCode: secretCodeHash,
     });
 
@@ -113,6 +117,9 @@ export class UsersService {
       boughtTgmCount: 0,
       roles: createUserDto.roles,
       hourlyRewardTime,
+      invitedUserBuyTgmCommission: 0,
+      packageIds: [],
+      redEnvelopeCount: 0,
     };
   }
 
@@ -165,6 +172,20 @@ export class UsersService {
     }
 
     return await this.userRepo.save(userFindOne);
+  }
+
+  async createRedEnvelope(createRedEnvelopeDto: CreateRedEnvelopeDto) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        id: createRedEnvelopeDto.id,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
+    await this.userRepo.save(userFindOne);
   }
 
   async findAll() {
@@ -220,7 +241,7 @@ export class UsersService {
         ).toFixed(8),
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
-          isVip: whoInvitedUser && whoInvitedUser.walletAddress,
+          isVip: whoInvitedUser && whoInvitedUser.isVip,
         },
       };
     } else {
@@ -589,6 +610,22 @@ export class UsersService {
     } else {
       throw new HttpException('Time Has Not Been Passed', HttpStatus.FORBIDDEN);
     }
+  }
+
+  async updateClaimUserRedEnvelope(initData: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    userFindOne.tgmCount += userFindOne.redEnvelopeCount;
+    userFindOne.redEnvelopeCount = 0;
+
+    await this.userRepo.save(userFindOne);
   }
 
   async deleteUser(initData: string) {

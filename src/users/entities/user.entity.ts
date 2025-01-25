@@ -125,6 +125,11 @@ export class UserEntity {
   })
   hourlyRewardTime: number;
 
+  @Column({
+    default: 0,
+  })
+  redEnvelopeCount: number;
+
   @CreateDateColumn()
   createdAt: string;
 }

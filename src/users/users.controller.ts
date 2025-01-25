@@ -11,6 +11,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 
 @Controller('users')
 export class UsersController {
@@ -24,6 +25,11 @@ export class UsersController {
   @Post('buyTgm')
   async buyTgm(@Body() buyTgmDto: BuyTgmDto) {
     return await this.usersService.buyTgm(buyTgmDto);
+  }
+
+  @Post('createRedEnvelope')
+  async createRedEnvelope(@Body() createRedEnvelopeDto: CreateRedEnvelopeDto) {
+    return await this.usersService.createRedEnvelope(createRedEnvelopeDto);
   }
 
   @Get('findAll')
@@ -127,6 +133,11 @@ export class UsersController {
   @Patch('updateUserHourlyReward/:initData')
   async updateUserHourlyReward(@Param('initData') initData: string) {
     return await this.usersService.updateUserHourlyReward(initData);
+  }
+
+  @Patch('updateClaimUserRedEnvelope/:initData')
+  async updateClaimUserRedEnvelope(@Param('initData') initData: string) {
+    return await this.usersService.updateClaimUserRedEnvelope(initData);
   }
 
   @Delete('deleteUser/:initData')
