@@ -154,7 +154,7 @@ export class UsersService {
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
         packageReward * (5 / 100),
       );
-      userFindOne.boughtTgmCount += Math.floor(packageReward * (95 / 100));
+      userFindOne.boughtTgmCount += packageReward;
       userFindOne.tgmCount += Math.floor(packageReward * (95 / 100));
     } else {
       userFindOne.boughtTgmCount += packageReward;
