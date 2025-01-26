@@ -186,7 +186,7 @@ export class UsersService {
   async createRedEnvelope(createRedEnvelopeDto: CreateRedEnvelopeDto) {
     const userFindOne = await this.userRepo.findOne({
       where: {
-        id: createRedEnvelopeDto.id,
+        referralCode: createRedEnvelopeDto.referralCode,
       },
     });
     if (!userFindOne) {
