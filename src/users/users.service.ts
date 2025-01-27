@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
+import { fibonacciPosition } from './utils/fibonacciPosition';
 
 @Injectable()
 export class UsersService {
@@ -382,8 +383,8 @@ export class UsersService {
 
     referralCodeUserFindOne.levelUpRewardsCount += 250;
     referralCodeUserFindOne.referralCount += 1;
-    referralCodeUserFindOne.level = Math.ceil(
-      referralCodeUserFindOne.referralCount / 6.18,
+    referralCodeUserFindOne.level = fibonacciPosition(
+      referralCodeUserFindOne.referralCount,
     );
     if (referralCodeUserFindOne.isVip) {
       initDataUserFindOne.referralRewardsCount += 200000;
