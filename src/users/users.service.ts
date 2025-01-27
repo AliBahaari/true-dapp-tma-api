@@ -472,7 +472,7 @@ export class UsersService {
           'The Task Has Been Claimed Before',
           HttpStatus.NOT_FOUND,
         );
-      } else {
+      } else if (userFindOne.completedTasks.includes(taskName)) {
         userFindOne.tgmCount += Number(taskReward);
         userFindOne.claimedRewards.push(taskName);
         await this.userRepo.save(userFindOne);
