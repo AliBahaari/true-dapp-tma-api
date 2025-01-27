@@ -105,6 +105,11 @@ export class UsersController {
     );
   }
 
+  @Patch('updateJoinedTelegramChannel/:initData')
+  async updateJoinedTelegramChannel(@Param('initData') initData: string) {
+    return await this.usersService.updateJoinedTelegramChannel(initData);
+  }
+
   @Patch('updateUserWalletAddress/:initData/:walletAddress')
   async updateUserWalletAddress(
     @Param('initData') initData: string,

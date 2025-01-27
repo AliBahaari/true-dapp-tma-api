@@ -508,6 +508,29 @@ export class UsersService {
     }
   }
 
+  async updateJoinedTelegramChannel(initData: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (userFindOne) {
+      if (userFindOne.completedTasks.includes('JoinedTelegramChannel')) {
+        throw new HttpException(
+          'The Task Has Been Completed Before',
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        userFindOne.completedTasks.push('JoinedTelegramChannel');
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      }
+    } else {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
   async updateUserTgmCount(
     initData: string,
     tgmCount: number,
