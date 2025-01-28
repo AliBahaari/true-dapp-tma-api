@@ -381,6 +381,9 @@ export class UsersService {
       );
     }
 
+    if (referralCodeUserFindOne.referralCount === 0) {
+      referralCodeUserFindOne.completedTasks.push('ReferralCode');
+    }
     referralCodeUserFindOne.levelUpRewardsCount += 250;
     referralCodeUserFindOne.referralCount += 1;
     referralCodeUserFindOne.level = fibonacciPosition(
