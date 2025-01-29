@@ -150,6 +150,11 @@ export class UsersController {
     return await this.usersService.updateClaimUserRedEnvelope(initData);
   }
 
+  @Patch('updateIsBannedUser/:referralCode')
+  async updateIsBannedUser(@Param('referralCode') referralCode: string) {
+    return await this.usersService.updateIsBannedUser(referralCode);
+  }
+
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);

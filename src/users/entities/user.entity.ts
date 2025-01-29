@@ -9,6 +9,9 @@ export enum UserRoles {
   ADMIN = 1,
   DEVELOPER = 2,
   NORMAL = 3,
+  HEAD_OF_MARKETING = 4,
+  MARKETER = 5,
+  OWNER = 6,
 }
 
 @Entity({
@@ -129,6 +132,12 @@ export class UserEntity {
     default: 0,
   })
   redEnvelopeCount: number;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isBanned: boolean;
 
   @CreateDateColumn()
   createdAt: string;

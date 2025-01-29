@@ -93,6 +93,7 @@ export class UsersService {
       invitedUserBuyTgmCommission: 0,
       packageIds: [],
       redEnvelopeCount: 0,
+      isBanned: false,
       secretCode: secretCodeHash,
     });
 
@@ -121,6 +122,7 @@ export class UsersService {
       invitedUserBuyTgmCommission: 0,
       packageIds: [],
       redEnvelopeCount: 0,
+      isBanned: false,
     };
   }
 
@@ -697,6 +699,22 @@ export class UsersService {
     userFindOne.redEnvelopeCount = 0;
 
     await this.userRepo.save(userFindOne);
+  }
+
+  async updateIsBannedUser(referralCode: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        referralCode,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    userFindOne.isBanned = !userFindOne.isBanned;
+    await this.userRepo.save(userFindOne);
+    const { secretCode, ...restProps } = userFindOne;
+    return restProps;
   }
 
   async deleteUser(initData: string) {
