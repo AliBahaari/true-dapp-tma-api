@@ -487,6 +487,8 @@ export class UsersService {
       userFindOne.referralRewardsCount = 0;
       userFindOne.levelUpRewardsCount = 0;
       await this.userRepo.save(userFindOne);
+      const { secretCode, ...restProps } = userFindOne;
+      return restProps;
     } else {
       throw new HttpException('No Rewards Remained', HttpStatus.FORBIDDEN);
     }
