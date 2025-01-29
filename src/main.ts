@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { BannedUserGuard } from './common/guards/banned-user.guard';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { UsersService } from './users/users.service';
 
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 
@@ -16,7 +17,8 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api/v1');
 
-  app.useGlobalGuards(new BannedUserGuard())
+  const userService=app.get<UsersService>(UsersService)
+  app.useGlobalGuards(new BannedUserGuard(userService))
 
   const config = new DocumentBuilder()
     .setTitle(process.env.SWAGGER_TITLE)
