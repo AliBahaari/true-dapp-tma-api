@@ -387,15 +387,21 @@ export class UsersService {
     if (referralCodeUserFindOne.referralCount === 0) {
       referralCodeUserFindOne.completedTasks.push('ReferralCode');
     }
-    referralCodeUserFindOne.levelUpRewardsCount += 250;
-    referralCodeUserFindOne.referralCount += 1;
+    if (
+      referralCodeUserFindOne.level !==
+      fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
+    ) {
+      referralCodeUserFindOne.levelUpRewardsCount += 10000;
+    }
     referralCodeUserFindOne.level = fibonacciPosition(
-      referralCodeUserFindOne.referralCount,
+      referralCodeUserFindOne.referralCount + 1,
     );
+    referralCodeUserFindOne.referralCount += 1;
+
     if (referralCodeUserFindOne.isVip) {
-      initDataUserFindOne.referralRewardsCount += 200000;
+      referralCodeUserFindOne.referralRewardsCount += 20000;
     } else {
-      initDataUserFindOne.referralRewardsCount += 100000;
+      referralCodeUserFindOne.referralRewardsCount += 10000;
     }
     initDataUserFindOne.invitedBy = referralCode;
 
@@ -459,6 +465,30 @@ export class UsersService {
       }
     } else {
       throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async updateClaimAll(initData: string) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (!userFindOne) {
+      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+    }
+
+    if (
+      userFindOne.referralRewardsCount > 0 ||
+      userFindOne.levelUpRewardsCount > 0
+    ) {
+      userFindOne.tgmCount += userFindOne.referralRewardsCount;
+      userFindOne.tgmCount += userFindOne.levelUpRewardsCount;
+      userFindOne.referralRewardsCount = 0;
+      userFindOne.levelUpRewardsCount = 0;
+      await this.userRepo.save(userFindOne);
+    } else {
+      throw new HttpException('No Rewards Remained', HttpStatus.FORBIDDEN);
     }
   }
 

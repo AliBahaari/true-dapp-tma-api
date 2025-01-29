@@ -81,6 +81,11 @@ export class UsersController {
     return await this.usersService.updateClaimLevelUpReward(initData);
   }
 
+  @Patch('updateClaimAll/:initData')
+  async updateClaimAll(@Param('initData') initData: string) {
+    return await this.usersService.updateClaimAll(initData);
+  }
+
   @Patch('updateTaskReward/:initData/:taskName/:taskReward')
   async updateTaskReward(
     @Param('initData') initData: string,
