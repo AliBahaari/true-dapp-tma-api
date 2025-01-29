@@ -1,16 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
-import { BuyTgmDto } from './dto/buy-tgm.dto';
-import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import axios from 'axios';
+import { Repository } from 'typeorm';
+import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { UserEntity } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 
 @Injectable()
@@ -721,5 +721,14 @@ export class UsersService {
     return await this.userRepo.delete({
       initData,
     });
+  }
+
+  public async userBannedStatus(secretCode:string):Promise<boolean>
+  {
+    const findedUser=await this.userRepo.findOne({
+      where:{secretCode}
+    })
+
+    return findedUser.isBanned
   }
 }

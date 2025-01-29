@@ -17,16 +17,41 @@ import { LongShotPacksEntity } from './long-shot/entities/long-shot-packs.entity
 import { LongShotTicketEntity } from './long-shot/entities/long-shot-tickets.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 
 @Module({
   imports: [
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   host: "ec2-40-172-49-49.me-central-1.compute.amazonaws.com",
+    //   port: 3306,
+    //   username: 'root',
+    //   password: 'true_dapp_pass',
+    //   database: 'true_dapp',
+    //   entities: [
+    //     UserEntity,
+    //     LanguageEntity,
+    //     CashAvalancheEntity,
+    //     LongShotPacksEntity,
+    //     LongShotLeaguesWeeklyEntity,
+    //     LongShotMatchesEntity,
+    //     LongShotParticipantsEntity,
+    //     LongShotTicketEntity,
+    //   ],
+    //   synchronize: true,
+    // }),
+
+
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'true_dapp',
+      type: 'postgres',
+      host: process.env.PSQL_HOST,
+      port: Number(process.env.PSQL_PORT),
+      username: process.env.PSQL_USERNAME,
+      password: process.env.PSQL_PASSWORD,
+      database: process.env.PSQL_DB,
       entities: [
         UserEntity,
         LanguageEntity,
@@ -37,8 +62,30 @@ import { join } from 'path';
         LongShotParticipantsEntity,
         LongShotTicketEntity,
       ],
-      synchronize: true,
+      synchronize: false,
     }),
+
+    //  TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   host: "ec2-40-172-49-49.me-central-1.compute.amazonaws.com",
+    //   port: 5432,
+    //   username: 'postgres',
+    //   password: 'd9K3zV8mQ2fT1xY7',
+    //   database: 'dapp_development',
+    //   entities: [
+    //     UserEntity,
+    //     LanguageEntity,
+    //     CashAvalancheEntity,
+    //     LongShotPacksEntity,
+    //     LongShotLeaguesWeeklyEntity,
+    //     LongShotMatchesEntity,
+    //     LongShotParticipantsEntity,
+    //     LongShotTicketEntity,
+    //   ],
+    //   synchronize: false,
+    // }),
+
+
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/static',
