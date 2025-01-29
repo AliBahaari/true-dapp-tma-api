@@ -138,7 +138,8 @@ export class UsersService {
       buyTgmDto.type !== 1 &&
       buyTgmDto.type !== 2 &&
       buyTgmDto.type !== 3 &&
-      buyTgmDto.type !== 4
+      buyTgmDto.type !== 4 &&
+      buyTgmDto.type !== 5
     ) {
       throw new HttpException('Package ID Is Wrong', HttpStatus.FORBIDDEN);
     }
@@ -152,14 +153,16 @@ export class UsersService {
     let packageReward = 0;
     if (buyTgmDto.type) {
       if (buyTgmDto.type === 1) {
-        packageReward = 100000;
+        packageReward = 10000;
       } else if (buyTgmDto.type === 2) {
         packageReward = 1000000;
+        userFindOne.isVip = true;
       } else if (buyTgmDto.type === 3) {
-        packageReward = 10000000;
+        packageReward = 100000;
       } else if (buyTgmDto.type === 4) {
         packageReward = 1000000;
-        userFindOne.isVip = true;
+      } else if (buyTgmDto.type === 5) {
+        packageReward = 10000000;
       }
       userFindOne.packageIds.push(buyTgmDto.type);
     }

@@ -113,7 +113,7 @@ export class UserEntity {
   @Column({
     type: 'simple-array',
   })
-  packageIds: (1 | 2 | 3 | 4)[];
+  packageIds: (1 | 2 | 3 | 4 | 5)[];
 
   @Column({
     type: 'simple-array',
