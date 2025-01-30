@@ -21,7 +21,8 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
-
+console.log("------- db -------")
+console.log(process.env.PSQL_DB)
 @Module({
   imports: [
     // TypeOrmModule.forRoot({

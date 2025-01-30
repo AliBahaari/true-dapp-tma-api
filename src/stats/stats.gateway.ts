@@ -18,6 +18,7 @@ export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   handleConnection() {
+    console.log("------- im connected --------")
     this.server.emit('onlineUsersCount', this.server.engine.clientsCount);
   }
 
