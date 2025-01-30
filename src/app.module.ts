@@ -63,6 +63,7 @@ dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`)
         LongShotTicketEntity,
       ],
       synchronize: false,
+      logging:false
     }),
 
     //  TypeOrmModule.forRoot({

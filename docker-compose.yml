@@ -32,4 +32,4 @@ services:
     environment:
       - NODE_ENV=production
       - APP_SOCKET_PORT=3001
-    command: npm run start:prod
+    command: npm run start

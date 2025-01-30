@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
+import { OnModuleInit } from '@nestjs/common/interfaces';
 
 @Injectable()
 export class CashAvalancheService {
@@ -14,6 +15,29 @@ export class CashAvalancheService {
     private readonly usersService: UsersService,
   ) {}
 
+  // async onModuleInit() {
+  //   for (let i = 0; i < this.x.length; i++) {
+  //     const element = this.x[i];
+  //     const res = this.cashAvalancheRepo.create({
+  //       allParticipants: element.allParticipants,
+  //       allParticipantsCount: element.allParticipantsCount,
+  //       bidStart: element.bidStart,
+  //       bidStep: element.bidStep,
+  //       gameId: element.gameId,
+  //       hasClaimedReward: Boolean(element.hasClaimedReward),
+  //       id: element.id,
+  //       intervalTime: element.intervalTime,
+  //       nextBid: element.nextBid,
+  //       remainingTime: element.remainingTime,
+  //       startAt: element.startAt,
+  //       startReward: element.startReward,
+  //       totalReward: element.totalReward,
+  //     });
+  //     console.log("created");
+  //     console.log(res.id);
+  //     await this.cashAvalancheRepo.save(res);
+  //   }
+  // }
   async create(createCashAvalancheDto: CreateCashAvalancheDto) {
     const latestCashAvalancheGame = await this.cashAvalancheRepo.find({
       order: {
