@@ -10,7 +10,7 @@ import { Server } from 'socket.io';
   cors: {
     origin: '*',
   },
-  namespace: '/socket',
+  // namespace: '/socket',
   transports: ['websocket', 'polling'],
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
