@@ -232,7 +232,11 @@ export class UsersService {
     }
 
     if (userFindOne) {
-      const usersFindAll = await this.userRepo.find();
+      const usersFindAll = await this.userRepo.find({
+        order:{
+          tgmCount:"DESC"
+        }
+      });
       let allEstimatedTgmPrices = '0';
       usersFindAll.map((i) => {
         const previousValue = new Decimal(allEstimatedTgmPrices);
@@ -245,6 +249,7 @@ export class UsersService {
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
       await this.userRepo.save(userFindOne);
+      userFindOne["rank"]=usersFindAll.findIndex(x=>x.initData==userFindOne.initData)+1
       const { secretCode, ...restProps } = userFindOne;
       const rowsCount = await this.userRepo.count();
 
