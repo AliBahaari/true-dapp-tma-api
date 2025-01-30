@@ -548,20 +548,20 @@ export class UsersService {
     }
   }
 
-  async updateJoinedTelegramChannel(initData: string) {
+  async updateCompleteTask(initData: string, taskName: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
     if (userFindOne) {
-      if (userFindOne.completedTasks.includes('JoinedTelegramChannel')) {
+      if (userFindOne.completedTasks.includes(taskName)) {
         throw new HttpException(
           'The Task Has Been Completed Before',
           HttpStatus.NOT_FOUND,
         );
       } else {
-        userFindOne.completedTasks.push('JoinedTelegramChannel');
+        userFindOne.completedTasks.push(taskName);
         await this.userRepo.save(userFindOne);
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
