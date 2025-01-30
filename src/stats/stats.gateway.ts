@@ -16,9 +16,7 @@ import { Server,Socket } from 'socket.io';
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  handleConnection(client:Socket) {
-    console.log("--------- new connection initialized --------")
-    console.log(client)
+  handleConnection() {
     this.server.emit('onlineUsersCount', this.server.engine.clientsCount);
   }
 
