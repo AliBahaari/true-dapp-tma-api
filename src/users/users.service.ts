@@ -27,7 +27,33 @@ export class UsersService {
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
   ) {}
 
+  private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
+  private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
+
   async create(createUserDto: CreateUserDto) {
+    let image = null;
+    try {
+      const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
+        params: { user_id: String(createUserDto.userId), limit: 1 },
+      });
+
+      const photos = response.data.result.photos;
+      if (!photos.length) return null;
+
+      const fileId = photos[0][0].file_id;
+
+      const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
+        params: { file_id: fileId },
+      });
+
+      const filePath = fileResponse.data.result.file_path;
+
+      image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
+    } catch (error) {
+      console.error('Error fetching Telegram profile photo:', error.message);
+      return null;
+    }
+
     if (!fs.existsSync(this.imageFolder)) {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
@@ -35,12 +61,12 @@ export class UsersService {
     let downloadedImage = '';
     try {
       const response = await axios({
-        url: createUserDto.image,
+        url: image,
         method: 'GET',
         responseType: 'stream',
       });
 
-      const extension = path.extname(createUserDto.image) || '.jpg'; // Default to .jpg if no extension
+      const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
       const filename = `${crypto.randomUUID()}${extension}`;
       const filePath = path.join(this.imageFolder, filename);
 
