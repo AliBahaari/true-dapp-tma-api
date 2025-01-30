@@ -359,6 +359,7 @@ export class UsersService {
   }
 
   async updateReferralCode(initData: string, referralCode: string) {
+    const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
     const referralCodeUserFindOne = await this.userRepo.findOne({
       where: {
         referralCode,
@@ -386,8 +387,10 @@ export class UsersService {
       );
     }
 
-    if (referralCodeUserFindOne.referralCount === 0) {
-      referralCodeUserFindOne.completedTasks.push('ReferralCode');
+    if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
+      referralCodeUserFindOne.completedTasks.push(
+        `Referral-${referralCodeUserFindOne.referralCount + 1}`,
+      );
     }
     if (
       referralCodeUserFindOne.level !==
@@ -723,12 +726,11 @@ export class UsersService {
     });
   }
 
-  public async userBannedStatus(secretCode:string):Promise<boolean>
-  {
-    const findedUser=await this.userRepo.findOne({
-      where:{secretCode}
-    })
+  public async userBannedStatus(secretCode: string): Promise<boolean> {
+    const foundUser = await this.userRepo.findOne({
+      where: { secretCode },
+    });
 
-    return findedUser.isBanned
+    return foundUser.isBanned;
   }
 }
