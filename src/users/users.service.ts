@@ -27,7 +27,33 @@ export class UsersService {
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
   ) {}
 
+  private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
+  private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
+
   async create(createUserDto: CreateUserDto) {
+    let image = null;
+    try {
+      const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
+        params: { user_id: String(createUserDto.userId), limit: 1 },
+      });
+
+      const photos = response.data.result.photos;
+      if (!photos.length) return null;
+
+      const fileId = photos[0][0].file_id;
+
+      const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
+        params: { file_id: fileId },
+      });
+
+      const filePath = fileResponse.data.result.file_path;
+
+      image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
+    } catch (error) {
+      console.error('Error fetching Telegram profile photo:', error.message);
+      return null;
+    }
+
     if (!fs.existsSync(this.imageFolder)) {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
@@ -35,12 +61,12 @@ export class UsersService {
     let downloadedImage = '';
     try {
       const response = await axios({
-        url: createUserDto.image,
+        url: image,
         method: 'GET',
         responseType: 'stream',
       });
 
-      const extension = path.extname(createUserDto.image) || '.jpg'; // Default to .jpg if no extension
+      const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
       const filename = `${crypto.randomUUID()}${extension}`;
       const filePath = path.join(this.imageFolder, filename);
 
@@ -232,7 +258,11 @@ export class UsersService {
     }
 
     if (userFindOne) {
-      const usersFindAll = await this.userRepo.find();
+      const usersFindAll = await this.userRepo.find({
+        order: {
+          tgmCount: 'DESC',
+        },
+      });
       let allEstimatedTgmPrices = '0';
       usersFindAll.map((i) => {
         const previousValue = new Decimal(allEstimatedTgmPrices);
@@ -245,6 +275,8 @@ export class UsersService {
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
       await this.userRepo.save(userFindOne);
+      userFindOne['rank'] =
+        usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
       const rowsCount = await this.userRepo.count();
 
@@ -359,6 +391,7 @@ export class UsersService {
   }
 
   async updateReferralCode(initData: string, referralCode: string) {
+    const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
     const referralCodeUserFindOne = await this.userRepo.findOne({
       where: {
         referralCode,
@@ -386,8 +419,10 @@ export class UsersService {
       );
     }
 
-    if (referralCodeUserFindOne.referralCount === 0) {
-      referralCodeUserFindOne.completedTasks.push('ReferralCode');
+    if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
+      referralCodeUserFindOne.completedTasks.push(
+        `Referral-${referralCodeUserFindOne.referralCount + 1}`,
+      );
     }
     if (
       referralCodeUserFindOne.level !==
@@ -548,20 +583,20 @@ export class UsersService {
     }
   }
 
-  async updateJoinedTelegramChannel(initData: string) {
+  async updateCompleteTask(initData: string, taskName: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
     if (userFindOne) {
-      if (userFindOne.completedTasks.includes('JoinedTelegramChannel')) {
+      if (userFindOne.completedTasks.includes(taskName)) {
         throw new HttpException(
           'The Task Has Been Completed Before',
           HttpStatus.NOT_FOUND,
         );
       } else {
-        userFindOne.completedTasks.push('JoinedTelegramChannel');
+        userFindOne.completedTasks.push(taskName);
         await this.userRepo.save(userFindOne);
         const { secretCode, ...restProps } = userFindOne;
         return restProps;

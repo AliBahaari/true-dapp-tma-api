@@ -12,7 +12,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  image: string;
+  userId: string;
 
   @IsArray()
   roles: UserRoles[];
