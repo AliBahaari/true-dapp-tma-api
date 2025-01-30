@@ -27,7 +27,7 @@ export class BannedUserGuard implements CanActivate {
         userSecretCode,
       );
 
-      if (!checkUserBannedStatus)
+      if (checkUserBannedStatus)
         throw new BadRequestException('User is Banned.');
 
       return true;
