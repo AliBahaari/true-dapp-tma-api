@@ -4,13 +4,13 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server,Socket } from 'socket.io';
+import { Server } from 'socket.io';
 
 @WebSocketGateway(3001, {
   cors: {
     origin: '*',
   },
-  namespace:"/socket",
+  namespace: '/socket',
   transports: ['websocket', 'polling'],
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {

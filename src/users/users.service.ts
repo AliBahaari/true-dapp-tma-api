@@ -28,6 +28,13 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const proxyList = await axios.get(
+      'https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all',
+    );
+    const proxiesArray = proxyList.data.split('\r\n');
+    const randomProxy =
+      proxiesArray[Math.floor(Math.random() * proxiesArray.length)];
+
     if (!fs.existsSync(this.imageFolder)) {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
@@ -38,6 +45,10 @@ export class UsersService {
         url: createUserDto.image,
         method: 'GET',
         responseType: 'stream',
+        proxy: {
+          host: randomProxy.split(':')[0],
+          port: randomProxy.split(':')[1],
+        },
       });
 
       const extension = path.extname(createUserDto.image) || '.jpg'; // Default to .jpg if no extension
@@ -233,9 +244,9 @@ export class UsersService {
 
     if (userFindOne) {
       const usersFindAll = await this.userRepo.find({
-        order:{
-          tgmCount:"DESC"
-        }
+        order: {
+          tgmCount: 'DESC',
+        },
       });
       let allEstimatedTgmPrices = '0';
       usersFindAll.map((i) => {
@@ -249,7 +260,8 @@ export class UsersService {
 
       userFindOne.lastOnline = new Date().toLocaleDateString();
       await this.userRepo.save(userFindOne);
-      userFindOne["rank"]=usersFindAll.findIndex(x=>x.initData==userFindOne.initData)+1
+      userFindOne['rank'] =
+        usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
       const rowsCount = await this.userRepo.count();
 
