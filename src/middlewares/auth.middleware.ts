@@ -8,12 +8,17 @@ export class AuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: () => void) {
     if (req.headers.authorization) {
+      console.log(req.headers.authorization)
       const secretCodeComparison = await this.usersService.compareBySecretCode(
         req.headers.authorization,
       );
       if (!secretCodeComparison) {
         res.status(401).send({ message: 'Authorization Is Wrong' });
       } else {
+
+        if(secretCodeComparison.isBanned==true)
+        res.status(401).send({ message: 'User Is Banned.' });
+
         next();
       }
     } else {

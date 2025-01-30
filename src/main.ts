@@ -18,7 +18,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   const userService=app.get<UsersService>(UsersService)
-  app.useGlobalGuards(new BannedUserGuard(userService))
+  // app.useGlobalGuards(new BannedUserGuard(userService))
 
   const config = new DocumentBuilder()
     .setTitle(process.env.SWAGGER_TITLE)

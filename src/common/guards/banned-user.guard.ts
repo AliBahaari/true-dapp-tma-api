@@ -19,6 +19,7 @@ export class BannedUserGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest();
 
     try {
+      console.log("-----------")
       if (!request.headers?.authorization)
         throw new BadRequestException('UnAuthorized');
 
