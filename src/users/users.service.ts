@@ -28,13 +28,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const proxyList = await axios.get(
-      'https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all',
-    );
-    const proxiesArray = proxyList.data.split('\r\n');
-    const randomProxy =
-      proxiesArray[Math.floor(Math.random() * proxiesArray.length)];
-
     if (!fs.existsSync(this.imageFolder)) {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
@@ -45,10 +38,6 @@ export class UsersService {
         url: createUserDto.image,
         method: 'GET',
         responseType: 'stream',
-        proxy: {
-          host: randomProxy.split(':')[0],
-          port: randomProxy.split(':')[1],
-        },
       });
 
       const extension = path.extname(createUserDto.image) || '.jpg'; // Default to .jpg if no extension
