@@ -722,4 +722,13 @@ export class UsersService {
       initData,
     });
   }
+
+  public async userBannedStatus(secretCode:string):Promise<boolean>
+  {
+    const findedUser=await this.userRepo.findOne({
+      where:{secretCode}
+    })
+
+    return findedUser.isBanned
+  }
 }
