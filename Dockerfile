@@ -12,6 +12,6 @@ ARG NODE_ENV
 
 RUN cp .env.${NODE_ENV} .env
 
-EXPOSE 3500
+EXPOSE 3000
 
 CMD ["npm", "run", "start"]
