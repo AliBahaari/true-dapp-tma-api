@@ -5,6 +5,8 @@ import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
+import { TaskEnum } from 'src/common/enum/tasks.enum';
 import { Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
@@ -81,7 +83,7 @@ export class UsersService {
       downloadedImage = `/static/images/${filename}`;
     } catch (error) {
       throw new HttpException(
-        `Failed To Download The Image: ${error.message}`,
+        `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -159,7 +161,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
     if (
       buyTgmDto.type &&
@@ -169,11 +171,11 @@ export class UsersService {
       buyTgmDto.type !== 4 &&
       buyTgmDto.type !== 5
     ) {
-      throw new HttpException('Package ID Is Wrong', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.PACKAGE_ID_IS_WRONG, HttpStatus.FORBIDDEN);
     }
     if (buyTgmDto.type && userFindOne.packageIds.includes(buyTgmDto.type)) {
       throw new HttpException(
-        'The Package ID Has Been Bought Previously',
+        ExceptionMessageEnum.THE_PACKAGE_ID_HAS_BEEN_BOUGHT_PREVIOUSLY,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -222,7 +224,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
@@ -292,7 +294,7 @@ export class UsersService {
         },
       };
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -398,7 +400,7 @@ export class UsersService {
       },
     });
     if (!referralCodeUserFindOne) {
-      throw new HttpException('Referral Code Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     const initDataUserFindOne = await this.userRepo.findOne({
@@ -407,21 +409,21 @@ export class UsersService {
       },
     });
     if (!initDataUserFindOne) {
-      throw new HttpException('Init Data Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
     if (
       initDataUserFindOne.invitedBy &&
       initDataUserFindOne.invitedBy.length > 0
     ) {
       throw new HttpException(
-        'User Has Been Invited Previously',
+        ExceptionMessageEnum.USER_HAS_BEEN_INVITED_PREVIOUSLY,
         HttpStatus.NOT_FOUND,
       );
     }
 
     if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
       referralCodeUserFindOne.completedTasks.push(
-        `Referral-${referralCodeUserFindOne.referralCount + 1}`,
+        `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
       );
     }
     if (
@@ -471,12 +473,12 @@ export class UsersService {
         return restProps;
       } else {
         throw new HttpException(
-          'No Referral Rewards Remained',
+          ExceptionMessageEnum.NO_REFERRAL_REWARD_REMAINED,
           HttpStatus.NOT_FOUND,
         );
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -496,12 +498,12 @@ export class UsersService {
         return restProps;
       } else {
         throw new HttpException(
-          'No Level Up Rewards Remained',
+          ExceptionMessageEnum.NO_LEVEL__UP_REWARDS_REMAINED,
           HttpStatus.NOT_FOUND,
         );
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -512,7 +514,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (
@@ -527,7 +529,7 @@ export class UsersService {
       const { secretCode, ...restProps } = userFindOne;
       return restProps;
     } else {
-      throw new HttpException('No Rewards Remained', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.NO_REWARD_REMAINED, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -544,7 +546,7 @@ export class UsersService {
     if (userFindOne) {
       if (userFindOne.claimedRewards.includes(taskName)) {
         throw new HttpException(
-          'The Task Has Been Claimed Before',
+          ExceptionMessageEnum.TASK_HAS_BEEN_CLAIMED_BEFORE,
           HttpStatus.NOT_FOUND,
         );
       } else if (userFindOne.completedTasks.includes(taskName)) {
@@ -555,7 +557,7 @@ export class UsersService {
         return restProps;
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -566,20 +568,20 @@ export class UsersService {
       },
     });
     if (userFindOne) {
-      if (userFindOne.completedTasks.includes('TGMPriceEstimation')) {
+      if (userFindOne.completedTasks.includes(TaskEnum.TGM_PRICE_ESTIMATION)) {
         throw new HttpException(
-          'The Task Has Been Completed Before',
+          ExceptionMessageEnum.THE_TASK_HAS_BEEN_COMPLETE_BEFORE,
           HttpStatus.NOT_FOUND,
         );
       } else {
         userFindOne.estimatedTgmPrice = estimatedPrice;
-        userFindOne.completedTasks.push('TGMPriceEstimation');
+        userFindOne.completedTasks.push(TaskEnum.TGM_PRICE_ESTIMATION);
         await this.userRepo.save(userFindOne);
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -592,7 +594,7 @@ export class UsersService {
     if (userFindOne) {
       if (userFindOne.completedTasks.includes(taskName)) {
         throw new HttpException(
-          'The Task Has Been Completed Before',
+          ExceptionMessageEnum.THE_TASK_HAS_BEEN_COMPLETE_BEFORE,
           HttpStatus.NOT_FOUND,
         );
       } else {
@@ -602,7 +604,7 @@ export class UsersService {
         return restProps;
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -617,7 +619,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (type === 'EQUAL') {
@@ -637,7 +639,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     userFindOne.walletAddress = walletAddress;
@@ -654,7 +656,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     userFindOne.roles = updateUserRolesDto.roles;
@@ -669,16 +671,16 @@ export class UsersService {
       },
     });
     if (!invitedUserFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
     if (!invitedUserFindOne.invitedBy) {
       throw new HttpException(
-        'User Has Not Been Invited By Anyone',
+        ExceptionMessageEnum.USER_HAS_NOT_BEEN_INVITED_BY_ANYONE,
         HttpStatus.FORBIDDEN,
       );
     }
     if (invitedUserFindOne.invitedUserBuyTgmCommission === 0) {
-      throw new HttpException('No Commission Remained', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.NO_COMMISSION_REMAINED, HttpStatus.FORBIDDEN);
     }
 
     const initDataUserFindOne = await this.userRepo.findOne({
@@ -687,7 +689,7 @@ export class UsersService {
       },
     });
     if (!initDataUserFindOne) {
-      throw new HttpException('Init Data User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     initDataUserFindOne.tgmCount +=
@@ -708,7 +710,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (Date.now() > userFindOne.hourlyRewardTime) {
@@ -716,7 +718,7 @@ export class UsersService {
       await this.userRepo.save(userFindOne);
       return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
     } else {
-      throw new HttpException('Time Has Not Been Passed', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -727,7 +729,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     userFindOne.tgmCount += userFindOne.redEnvelopeCount;
@@ -743,7 +745,7 @@ export class UsersService {
       },
     });
     if (!userFindOne) {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     userFindOne.isBanned = !userFindOne.isBanned;
