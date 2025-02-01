@@ -278,7 +278,7 @@ export class UsersService {
       userFindOne['rank'] =
         usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
-      const rowsCount = await this.userRepo.count();
+      const rowsCount = usersFindAll.length
 
       return {
         ...restProps,
