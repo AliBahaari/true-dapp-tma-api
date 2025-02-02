@@ -15,7 +15,6 @@ export class AuthMiddleware implements NestMiddleware {
       );
       if (!secretCodeComparison) {
         throw new UnauthorizedException(ExceptionMessageEnum.AUTHORIZATION_IS_WRONG);
-                // res.status(401).send({ message: 'Authorization Is Wrong' });
       } else {
 
         if(secretCodeComparison.isBanned==true)
