@@ -13,6 +13,7 @@ import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot
 import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
 import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
+import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 
 const matchesCount = {
   1: 10,
@@ -83,7 +84,7 @@ export class LongShotService {
       },
     });
     if (!packFindOne) {
-      throw new HttpException('Pack Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.PACK_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     const ticketFindOne = await this.ticketsRepo.findOne({
@@ -94,14 +95,14 @@ export class LongShotService {
     });
     if (!ticketFindOne) {
       throw new HttpException(
-        "Ticket Hasn't Been Bought",
+        ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
         HttpStatus.FORBIDDEN,
       );
     }
 
     if (new Date() < new Date(packFindOne.endDate)) {
       throw new HttpException(
-        'Pack Has Not Been Terminated',
+        ExceptionMessageEnum.PACK_HAB_NOOT_BEEN_TERMINATED,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -114,7 +115,7 @@ export class LongShotService {
     const nullResults = allMatches.filter((i) => i.result === null);
     if (nullResults.length > 0) {
       throw new HttpException(
-        'Some Matches Result Have Not Been Set',
+        ExceptionMessageEnum.SOME_MATCHES_RESULT_HAVE_NOT_BEEN_SET,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -147,7 +148,7 @@ export class LongShotService {
         message: 'You Won',
       };
     } else {
-      throw new HttpException('You Lost', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.YOU_LOST, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -159,12 +160,12 @@ export class LongShotService {
       },
     });
     if (!packFindOne) {
-      throw new HttpException('Pack Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.PACK_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (new Date() < new Date(packFindOne.endDate)) {
       throw new HttpException(
-        'Pack Has Not Been Terminated',
+        ExceptionMessageEnum.PACK_HAB_NOOT_BEEN_TERMINATED,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -182,11 +183,11 @@ export class LongShotService {
       return await this.packsRepo.save(packFindOne);
     } else if (packFindOne.hasWinnerClaimedReward) {
       throw new HttpException(
-        'User Has Cliamed Reward Before',
+        ExceptionMessageEnum.USER_HAS_CLIAMED_REWARD_BEFORE,
         HttpStatus.FORBIDDEN,
       );
     } else if (packFindOne.winner !== initData) {
-      throw new HttpException('Winner Is Another One', HttpStatus.FORBIDDEN);
+      throw new HttpException(ExceptionMessageEnum.WINNER_IS_ANOTHER_ONE, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -208,12 +209,12 @@ export class LongShotService {
       },
     });
     if (!packFindOne) {
-      throw new HttpException('Pack Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.PACK_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (new Date() > new Date(packFindOne.endDate)) {
       throw new HttpException(
-        'Pack Date Has Been Terminated',
+        ExceptionMessageEnum.PACK_DATE_HAS_BEEN_TERMINATED,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -296,7 +297,7 @@ export class LongShotService {
       matchFindOne.result = updateLongShotMatchResultDto.result;
       return await this.matchesRepo.save(matchFindOne);
     } else {
-      throw new HttpException('The Match Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -368,7 +369,7 @@ export class LongShotService {
           };
         } else {
           throw new HttpException(
-            'User Should Buy 1000000 TGM',
+            ExceptionMessageEnum.USER_SHOULD_BUY_1000000_TGM,
             HttpStatus.FORBIDDEN,
           );
         }
@@ -387,17 +388,17 @@ export class LongShotService {
               message: 'You Bought Level 3 Ticket',
             };
           } else {
-            throw new HttpException('User Should Be VIP', HttpStatus.FORBIDDEN);
+            throw new HttpException(ExceptionMessageEnum.USER_SHOULD_BE_VIP, HttpStatus.FORBIDDEN);
           }
         } else {
           throw new HttpException(
-            'User Should Buy 10000000 TGM',
+            ExceptionMessageEnum.USER_SHOULD_BUY_10000000_TGM,
             HttpStatus.FORBIDDEN,
           );
         }
       }
     } else {
-      throw new HttpException('User Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -431,14 +432,14 @@ export class LongShotService {
     });
     if (!ticketFindOne) {
       throw new HttpException(
-        "Ticket Hasn't Been Bought",
+        ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
         HttpStatus.FORBIDDEN,
       );
     }
 
     if (ticketFindOne.allowanceLeagueCount === 0) {
       throw new HttpException(
-        "You Can't Participate In More Leagues.",
+        ExceptionMessageEnum.YOU_CANT_PARTICIPATE_IN_MORE_LEAGUES,
         HttpStatus.FORBIDDEN,
       );
     }

@@ -1,5 +1,6 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -13,16 +14,17 @@ export class AuthMiddleware implements NestMiddleware {
         req.headers.authorization,
       );
       if (!secretCodeComparison) {
-        res.status(401).send({ message: 'Authorization Is Wrong' });
+        throw new UnauthorizedException(ExceptionMessageEnum.AUTHORIZATION_IS_WRONG);
+                // res.status(401).send({ message: 'Authorization Is Wrong' });
       } else {
 
         if(secretCodeComparison.isBanned==true)
-        res.status(401).send({ message: 'User Is Banned.' });
+        throw new UnauthorizedException(ExceptionMessageEnum.USER_IS_BANNED);
 
         next();
       }
     } else {
-      res.status(401).send({ message: 'Unauthorized' });
+      throw new UnauthorizedException(ExceptionMessageEnum.UN_AUTHORIZED);
     }
   }
 }

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LanguageEntity } from './entities/language.entity';
 import { Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
+import { LanguageEntity } from './entities/language.entity';
 
 @Injectable()
 export class LanguagesService {

@@ -1,4 +1,4 @@
-import { Module, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './users/entities/user.entity';
@@ -19,33 +19,14 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { EncryptionModule } from './utils/encryption/encryption.module';
+import { EncryptionMiddleware } from './common/middlewares/encryption.middleware';
 
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
 console.log(process.env.PSQL_DB)
 @Module({
   imports: [
-    // TypeOrmModule.forRoot({
-    //   type: 'mysql',
-    //   host: "ec2-40-172-49-49.me-central-1.compute.amazonaws.com",
-    //   port: 3306,
-    //   username: 'root',
-    //   password: 'true_dapp_pass',
-    //   database: 'true_dapp',
-    //   entities: [
-    //     UserEntity,
-    //     LanguageEntity,
-    //     CashAvalancheEntity,
-    //     LongShotPacksEntity,
-    //     LongShotLeaguesWeeklyEntity,
-    //     LongShotMatchesEntity,
-    //     LongShotParticipantsEntity,
-    //     LongShotTicketEntity,
-    //   ],
-    //   synchronize: true,
-    // }),
-
-
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.PSQL_HOST,
@@ -66,28 +47,6 @@ console.log(process.env.PSQL_DB)
       synchronize: false,
       logging:false
     }),
-
-    //  TypeOrmModule.forRoot({
-    //   type: 'postgres',
-    //   host: "ec2-40-172-49-49.me-central-1.compute.amazonaws.com",
-    //   port: 5432,
-    //   username: 'postgres',
-    //   password: 'd9K3zV8mQ2fT1xY7',
-    //   database: 'dapp_development',
-    //   entities: [
-    //     UserEntity,
-    //     LanguageEntity,
-    //     CashAvalancheEntity,
-    //     LongShotPacksEntity,
-    //     LongShotLeaguesWeeklyEntity,
-    //     LongShotMatchesEntity,
-    //     LongShotParticipantsEntity,
-    //     LongShotTicketEntity,
-    //   ],
-    //   synchronize: false,
-    // }),
-
-
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/static',
@@ -97,13 +56,17 @@ console.log(process.env.PSQL_DB)
     LanguagesModule,
     CashAvalancheModule,
     LongShotModule,
+    EncryptionModule
   ],
   controllers: [],
   providers: [],
 })
 export class AppModule {
-  configure(consumer) {
+  configure(consumer:MiddlewareConsumer) {
     consumer
+    .apply(EncryptionMiddleware)
+    .forRoutes('*')
+
       .apply(AuthMiddleware)
       .exclude(
         {

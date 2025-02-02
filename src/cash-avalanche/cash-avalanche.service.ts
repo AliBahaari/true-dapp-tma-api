@@ -6,6 +6,7 @@ import { CashAvalancheEntity } from './entities/cash-avalanche.entity';
 import { LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { OnModuleInit } from '@nestjs/common/interfaces';
+import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 
 @Injectable()
 export class CashAvalancheService {
@@ -99,13 +100,13 @@ export class CashAvalancheService {
           );
           return await this.cashAvalancheRepo.save(findOneGame);
         } else {
-          throw new HttpException('TGM Is Not Enough', HttpStatus.FORBIDDEN);
+          throw new HttpException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH, HttpStatus.FORBIDDEN);
         }
       } else {
-        throw new HttpException('Time Has Been Passed', HttpStatus.FORBIDDEN);
+        throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
       }
     } else {
-      throw new HttpException('Game Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.GAME_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -122,7 +123,7 @@ export class CashAvalancheService {
           await this.usersService.updateUserTgmCount(
             findOneGame.allParticipants[findOneGame.allParticipants.length - 1]
               .initData,
-            (findOneGame.totalReward * 90) / 100,
+            Math.floor((findOneGame.totalReward * 90) / 100),
             'ADD',
           );
           findOneGame.hasClaimedReward = true;
@@ -136,12 +137,12 @@ export class CashAvalancheService {
         };
       } else {
         throw new HttpException(
-          'The Game Is Being Continued',
+          ExceptionMessageEnum.THE_GAME_IS_BEING_CONTINUED,
           HttpStatus.FORBIDDEN,
         );
       }
     } else {
-      throw new HttpException('Game Not Found', HttpStatus.NOT_FOUND);
+      throw new HttpException(ExceptionMessageEnum.GAME_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
