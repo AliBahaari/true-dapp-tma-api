@@ -418,7 +418,8 @@ export class UsersService {
   }
 
   async updateReferralCode(initData: string, referralCode: string) {
-    const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+    try {
+      const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
     const referralCodeUserFindOne = await this.userRepo.findOne({
       where: {
         referralCode,
@@ -474,6 +475,9 @@ export class UsersService {
 
     const { secretCode, ...restProps } = initDataUserFindOne;
     return restProps;
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async updateClaimReferralReward(invitedUserId: string, initData: string) {
