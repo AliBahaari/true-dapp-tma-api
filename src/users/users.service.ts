@@ -34,16 +34,20 @@ export class UsersService {
   private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
 
   async create(createUserDto: CreateUserDto) {
+   try {
     let image = null;
-    try {
       const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
         params: { user_id: String(createUserDto.userId), limit: 1 },
       });
 
-      const photos = response.data.result.photos;
-      if (!photos.length) return null;
 
-      const fileId = photos[0][0].file_id;
+      const photos = response.data.result.photos;
+
+
+      if(photos && photos.length>0)
+      {
+        console.log("-- im freaking here -------")
+        const fileId = photos[0][0].file_id;
 
       const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
         params: { file_id: fileId },
@@ -52,10 +56,9 @@ export class UsersService {
       const filePath = fileResponse.data.result.file_path;
 
       image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
-    } catch (error) {
-      console.error('Error fetching Telegram profile photo:', error.message);
-      return null;
-    }
+      }
+
+
 
     if (!fs.existsSync(this.imageFolder)) {
       fs.mkdirSync(this.imageFolder, { recursive: true });
@@ -63,25 +66,29 @@ export class UsersService {
 
     let downloadedImage = '';
     try {
-      const response = await axios({
-        url: image,
-        method: 'GET',
-        responseType: 'stream',
-      });
-
-      const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
-      const filename = `${crypto.randomUUID()}${extension}`;
-      const filePath = path.join(this.imageFolder, filename);
-
-      const writer = fs.createWriteStream(filePath);
-      response.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
-
-      downloadedImage = `/static/images/${filename}`;
+      if(photos && photos.length>0)
+      {
+        const response = await axios({
+          url: image,
+          method: 'GET',
+          responseType: 'stream',
+        });
+  
+        const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
+        const filename = `${crypto.randomUUID()}${extension}`;
+        const filePath = path.join(this.imageFolder, filename);
+  
+  
+        const writer = fs.createWriteStream(filePath);
+        response.data.pipe(writer);
+  
+        await new Promise((resolve, reject) => {
+          writer.on('finish', resolve);
+          writer.on('error', reject);
+        });
+  
+        downloadedImage = `/static/images/${filename}`;
+      }
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -154,6 +161,10 @@ export class UsersService {
       redEnvelopeCount: 0,
       isBanned: false,
     };
+   } catch (error) {
+    console.log("------- catch ------")
+    console.log(error)
+   }
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
@@ -248,11 +259,16 @@ export class UsersService {
   }
 
   async find(initData: string) {
+    console.log("----- init data -------")
+    console.log(initData)
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
+
+    console.log("--------- finding user --------")
+    console.log(userFindOne)
 
     let whoInvitedUser = null;
 
