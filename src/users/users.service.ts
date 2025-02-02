@@ -1,17 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
-import { BuyTgmDto } from './dto/buy-tgm.dto';
-import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import axios from 'axios';
+import { Repository } from 'typeorm';
+import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { UserEntity } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
+var crypto = require('crypto');
 
 @Injectable()
 export class UsersService {
@@ -80,6 +81,7 @@ export class UsersService {
 
       downloadedImage = `/static/images/${filename}`;
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         `Failed To Download The Image: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -249,15 +251,16 @@ export class UsersService {
     });
 
     let whoInvitedUser = null;
-    if (userFindOne.invitedBy) {
-      whoInvitedUser = await this.userRepo.findOne({
-        where: {
-          referralCode: userFindOne.invitedBy,
-        },
-      });
-    }
+
 
     if (userFindOne) {
+      if (userFindOne.invitedBy) {
+        whoInvitedUser = await this.userRepo.findOne({
+          where: {
+            referralCode: userFindOne.invitedBy,
+          },
+        });
+      }
       const usersFindAll = await this.userRepo.find({
         order: {
           tgmCount: 'DESC',
@@ -282,10 +285,11 @@ export class UsersService {
 
       return {
         ...restProps,
-        allEstimatedTgmPrices: Decimal.div(
-          allEstimatedTgmPrices,
-          rowsCount,
-        ).toFixed(8),
+        // allEstimatedTgmPrices: Decimal.div(
+        //   allEstimatedTgmPrices,
+        //   rowsCount,
+        // ).toFixed(8),
+        allEstimatedTgmPrices: '0.0004',
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
           isVip: whoInvitedUser && whoInvitedUser.isVip,
@@ -758,11 +762,12 @@ export class UsersService {
     });
   }
 
-  public async userBannedStatus(secretCode: string): Promise<boolean> {
-    const foundUser = await this.userRepo.findOne({
-      where: { secretCode },
-    });
+  public async userBannedStatus(secretCode:string):Promise<boolean>
+  {
+    const findedUser=await this.userRepo.findOne({
+      where:{secretCode}
+    })
 
-    return foundUser.isBanned;
+    return findedUser.isBanned
   }
 }

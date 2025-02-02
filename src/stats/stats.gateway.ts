@@ -6,19 +6,19 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
-@WebSocketGateway(3001, {
+const socketPort = process.env.APP_SOCKET_PORT ? Number(process.env.APP_SOCKET_PORT) : 3001;
+
+@WebSocketGateway(socketPort, {
   cors: {
     origin: '*',
   },
-  // namespace: '/socket',
   transports: ['websocket', 'polling'],
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   handleConnection() {
-    console.log("-----------  is testing ----------")
-    console.log(this.server.engine.clientsCount)
+    console.log("------- im connected --------")
     this.server.emit('onlineUsersCount', this.server.engine.clientsCount);
   }
 
