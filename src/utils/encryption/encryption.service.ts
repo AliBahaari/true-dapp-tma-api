@@ -5,7 +5,7 @@ import * as CryptoJS from 'crypto-js';
 export class EncryptionService {
   private readonly secretKey = process.env.ENCRYPTION_KEY
 // constructor(){
-//   const mamad=this.decrypt("U2FsdGVkX1+zPAhKGLJUe5iL8QrIblhvR0YYjRsZJbk=")
+//   const mamad=this.decrypt("U2FsdGVkX18wX+XjV+jBbs/VKlxtukqCAWBl0K5uMng=")
 //   console.log("------ decrypt ")
 //   console.log(mamad)
 // }
