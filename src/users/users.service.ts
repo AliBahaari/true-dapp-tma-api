@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { UserEntity } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
+var crypto = require('crypto');
 
 @Injectable()
 export class UsersService {
@@ -80,6 +81,7 @@ export class UsersService {
 
       downloadedImage = `/static/images/${filename}`;
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         `Failed To Download The Image: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -249,15 +251,16 @@ export class UsersService {
     });
 
     let whoInvitedUser = null;
-    if (userFindOne.invitedBy) {
-      whoInvitedUser = await this.userRepo.findOne({
-        where: {
-          referralCode: userFindOne.invitedBy,
-        },
-      });
-    }
+
 
     if (userFindOne) {
+      if (userFindOne.invitedBy) {
+        whoInvitedUser = await this.userRepo.findOne({
+          where: {
+            referralCode: userFindOne.invitedBy,
+          },
+        });
+      }
       const usersFindAll = await this.userRepo.find({
         order: {
           tgmCount: 'DESC',
@@ -282,10 +285,11 @@ export class UsersService {
 
       return {
         ...restProps,
-        allEstimatedTgmPrices: Decimal.div(
-          allEstimatedTgmPrices,
-          rowsCount,
-        ).toFixed(8),
+        // allEstimatedTgmPrices: Decimal.div(
+        //   allEstimatedTgmPrices,
+        //   rowsCount,
+        // ).toFixed(8),
+        allEstimatedTgmPrices: '0.0004',
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
           isVip: whoInvitedUser && whoInvitedUser.isVip,
