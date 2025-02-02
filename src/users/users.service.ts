@@ -231,6 +231,8 @@ export class UsersService {
 
     userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
     await this.userRepo.save(userFindOne);
+
+    return true
   }
 
   async findAll() {
@@ -705,7 +707,8 @@ export class UsersService {
   }
 
   async updateUserHourlyReward(initData: string) {
-    const hourlyRewardTime = Date.now() + 3600000;
+    try {
+      const hourlyRewardTime = Date.now() + 3600000;
     const hourlyRewardCount = 100;
 
     const userFindOne = await this.userRepo.findOne({
@@ -723,6 +726,9 @@ export class UsersService {
       return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
     } else {
       throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
+    }
+    } catch (error) {
+     console.log(error) 
     }
   }
 

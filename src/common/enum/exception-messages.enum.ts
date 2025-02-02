@@ -31,6 +31,9 @@ export enum ExceptionMessageEnum{
     USER_HAS_NOT_BEEN_INVITED_BY_ANYONE='User Has Not Been Invited By Anyone',
     NO_COMMISSION_REMAINED='No Commission Remained',
     TIME_HAS_NOT_BEEN_PASSED='Time Has Not Been Passed',
+    AUTHORIZATION_IS_WRONG='Authorization Is Wrong',
+    USER_IS_BANNED="User is Banned",
+    UN_AUTHORIZED="UnAuthorized"
     
 
 }

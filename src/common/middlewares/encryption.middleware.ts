@@ -27,6 +27,8 @@ export class EncryptionMiddleware implements NestMiddleware {
   
     res.send = function (data) {
       // Modify the response body
+      console.log("-------- data --------")
+      console.log(JSON.parse(data))
       const encryptedResponse = encryptService.encrypt(data);  
       // Ensure the encrypted response is sent as a string
       oldSend.call(this, JSON.stringify({ data: encryptedResponse }));
