@@ -18,18 +18,3 @@ services:
       - .:/app
       - /app/node_modules
     command: npm run start:dev
-
-  nestjs-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: production  
-    container_name: nestjs_prod
-    ports:
-      - "3000:3000"
-      - "3001:3001"  
-    environment:
-      - NODE_ENV=production
-      - APP_SOCKET_PORT=3001
-    command: npm run start
