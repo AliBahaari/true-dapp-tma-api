@@ -123,7 +123,7 @@ export class CashAvalancheService {
           await this.usersService.updateUserTgmCount(
             findOneGame.allParticipants[findOneGame.allParticipants.length - 1]
               .initData,
-            (findOneGame.totalReward * 90) / 100,
+            Math.floor((findOneGame.totalReward * 90) / 100),
             'ADD',
           );
           findOneGame.hasClaimedReward = true;
