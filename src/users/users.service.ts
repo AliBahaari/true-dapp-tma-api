@@ -36,6 +36,10 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
    try {
     let image = null;
+        let downloadedImage = '';
+
+
+    try {
       const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
         params: { user_id: String(createUserDto.userId), limit: 1 },
       });
@@ -64,8 +68,7 @@ export class UsersService {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
 
-    let downloadedImage = '';
-    try {
+  
       if(photos && photos.length>0)
       {
         const response = await axios({
@@ -91,10 +94,10 @@ export class UsersService {
       }
     } catch (error) {
       console.log(error);
-      throw new HttpException(
-        `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      // throw new HttpException(
+      //   `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
+      //   HttpStatus.INTERNAL_SERVER_ERROR,
+      // );
     }
 
     const referralCode = Math.random().toString(36).substring(2, 7);
