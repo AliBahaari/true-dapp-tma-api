@@ -308,11 +308,11 @@ export class UsersService {
 
       return {
         ...restProps,
-        // allEstimatedTgmPrices: Decimal.div(
-        //   allEstimatedTgmPrices,
-        //   rowsCount,
-        // ).toFixed(8),
-        allEstimatedTgmPrices: '0.0004',
+        allEstimatedTgmPrices: Decimal.div(
+          allEstimatedTgmPrices,
+          rowsCount,
+        ).toFixed(8),
+        // allEstimatedTgmPrices: '0.0004',
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
           isVip: whoInvitedUser && whoInvitedUser.isVip,
