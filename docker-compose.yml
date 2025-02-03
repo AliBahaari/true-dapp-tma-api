@@ -13,7 +13,7 @@ services:
       - "3201:3201"  
     environment:
       - NODE_ENV=development
-      - APP_SOCKET_PORT=3001
+      - APP_SOCKET_PORT=3201
     volumes:
       - .:/app
       - /app/node_modules
