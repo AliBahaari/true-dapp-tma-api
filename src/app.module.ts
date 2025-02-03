@@ -21,7 +21,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { EncryptionModule } from './utils/encryption/encryption.module';
 import { EncryptionMiddleware } from './common/middlewares/encryption.middleware';
-
+console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
 console.log(process.env.PSQL_DB)
