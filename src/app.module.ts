@@ -44,7 +44,7 @@ console.log(process.env.PSQL_DB)
         LongShotParticipantsEntity,
         LongShotTicketEntity,
       ],
-      synchronize: false,
+      synchronize: true,
       logging:false
     }),
     ServeStaticModule.forRoot({
