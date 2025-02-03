@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
+COPY ./public /app
+
 ARG NODE_ENV
 
 RUN cp .env.${NODE_ENV} .env
