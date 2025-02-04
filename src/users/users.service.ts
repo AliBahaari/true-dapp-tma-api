@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
@@ -123,7 +124,7 @@ export class UsersService {
       lastOnline: '',
       privateCode,
       estimatedTgmPrice: '0',
-      invitedBy: createUserDto.invitedBy || null,
+      userHasInvitedLink:createUserDto.invitedBy?true:false,
       isVip: false,
       referralRewardsCount: 0,
       levelUpRewardsCount: 0,
@@ -152,7 +153,6 @@ export class UsersService {
       lastOnline: '',
       privateCode,
       estimatedTgmPrice: '0',
-      invitedBy: createUserDto.invitedBy || null,
       isVip: false,
       referralRewardsCount: 0,
       levelUpRewardsCount: 0,
@@ -163,6 +163,7 @@ export class UsersService {
       packageIds: [],
       redEnvelopeCount: 0,
       isBanned: false,
+      userHasInvitedLink:createUserDto.invitedBy?true:false,
     };
    } catch (error) {
     console.log("------- catch ------")
@@ -437,6 +438,13 @@ export class UsersService {
     if (!initDataUserFindOne) {
       throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
+
+    if(initDataUserFindOne.initData == referralCodeUserFindOne.initData)
+    throw new BadRequestException(ExceptionMessageEnum.CANT_REFERRAL_YOUR_SELF)
+
+    if(!initDataUserFindOne.userHasInvitedLink)
+    throw new BadRequestException(ExceptionMessageEnum.YOU_REGESTERED_WITHOUT_INVITED_LINK)
+
     if (
       initDataUserFindOne.invitedBy &&
       initDataUserFindOne.invitedBy.length > 0

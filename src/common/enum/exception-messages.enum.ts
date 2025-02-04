@@ -33,7 +33,9 @@ export enum ExceptionMessageEnum{
     TIME_HAS_NOT_BEEN_PASSED='Time Has Not Been Passed',
     AUTHORIZATION_IS_WRONG='Authorization Is Wrong',
     USER_IS_BANNED="User is Banned",
-    UN_AUTHORIZED="UnAuthorized"
+    UN_AUTHORIZED="UnAuthorized",
+    CANT_REFERRAL_YOUR_SELF="Cant Referral Your Self",
+    YOU_REGESTERED_WITHOUT_INVITED_LINK="You Regestered without invited link"
     
 
 }

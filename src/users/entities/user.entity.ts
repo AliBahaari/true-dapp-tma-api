@@ -139,6 +139,12 @@ export class UserEntity {
   })
   isBanned: boolean;
 
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  userHasInvitedLink: boolean;
+
   @CreateDateColumn()
   createdAt: string;
 }
