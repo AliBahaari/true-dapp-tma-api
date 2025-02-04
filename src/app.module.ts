@@ -23,6 +23,7 @@ import { EncryptionModule } from './utils/encryption/encryption.module';
 import { EncryptionMiddleware } from './common/middlewares/encryption.middleware';
 import { TreasuryEntity } from './treasury/entities/treasury.entity';
 import { TreasuryModule } from './treasury/treasury.module';
+import { TreasuryController } from './treasury/controllers/treasury.controller';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
@@ -82,6 +83,6 @@ export class AppModule {
           method: RequestMethod.GET,
         },
       )
-      .forRoutes(UsersController);
+      .forRoutes(UsersController,TreasuryController);
   }
 }
