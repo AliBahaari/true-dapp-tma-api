@@ -1,9 +1,9 @@
 import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    PrimaryGeneratedColumn,
-  } from 'typeorm';
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn
+} from 'typeorm';
   
   @Entity({
     name: 'treasury',
@@ -12,9 +12,7 @@ import {
     @PrimaryGeneratedColumn('uuid')
     id: string;
   
-    @Column({
-      unique: true,
-    })
+    @Column()
     address: string
   
     @CreateDateColumn()
