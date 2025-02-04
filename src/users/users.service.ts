@@ -12,8 +12,9 @@ import { Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { NewCreateRedEnvelopeDto } from './dto/new-create-red-envelope.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity, UserRoles } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
 
@@ -246,6 +247,37 @@ export class UsersService {
 
     userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
     await this.userRepo.save(userFindOne);
+
+    return true
+  }
+
+  async newCreateRedEnvelope(createRedEnvelopeDto: NewCreateRedEnvelopeDto) {
+    const fromUser=await this.userRepo.findOne({
+      where:{initData:createRedEnvelopeDto.initData}
+    })
+
+    const toUser = await this.userRepo.findOne({
+      where: {
+        referralCode: createRedEnvelopeDto.referralCode,
+      },
+    });
+
+    if (!fromUser || !toUser) 
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+    
+      if(fromUser.roles.includes(UserRoles.OWNER))
+      {
+        toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+        return await this.userRepo.save(toUser)
+      }
+
+      if(fromUser.tgmCount<createRedEnvelopeDto.amount)
+      throw new BadRequestException(ExceptionMessageEnum.TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE)
+
+      fromUser.tgmCount-=createRedEnvelopeDto.amount
+      toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+
+    await this.userRepo.save([fromUser,toUser]);
 
     return true
   }
@@ -689,7 +721,7 @@ export class UsersService {
   async updateUserRoles(updateUserRolesDto: UpdateUserRolesDto) {
     const userFindOne = await this.userRepo.findOne({
       where: {
-        initData: updateUserRolesDto.initData,
+        referralCode: updateUserRolesDto.userId,
       },
     });
     if (!userFindOne) {

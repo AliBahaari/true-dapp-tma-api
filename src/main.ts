@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { BannedUserGuard } from './common/guards/banned-user.guard';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { UsersService } from './users/users.service';
