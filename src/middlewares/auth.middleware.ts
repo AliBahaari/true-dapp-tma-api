@@ -23,7 +23,7 @@ export class AuthMiddleware implements NestMiddleware {
         const decodedUser:IUserToken={
           id:secretCodeComparison.id,
           initData:secretCodeComparison.initData,
-          roles:secretCodeComparison.roles,
+          roles:secretCodeComparison.roles.map(x=>Number(x)),
           secretCode:secretCodeComparison.secretCode
         }
 
