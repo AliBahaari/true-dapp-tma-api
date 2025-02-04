@@ -14,7 +14,6 @@ export class TreasuryService{
 
     public async createTreasuryAddress(createTreasuryDto:CreateTreasuryDto,user:IUserToken):Promise<TreasuryEntity>
     {
-
         if(!user.roles.includes(UserRoles.OWNER))
         throw new BadRequestException(ExceptionMessageEnum.ONLY_OWNER_CAN_CREATE_TREASURY)
         
