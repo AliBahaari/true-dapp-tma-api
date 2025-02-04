@@ -721,7 +721,7 @@ export class UsersService {
   async updateUserRoles(updateUserRolesDto: UpdateUserRolesDto) {
     const userFindOne = await this.userRepo.findOne({
       where: {
-        initData: updateUserRolesDto.initData,
+        referralCode: updateUserRolesDto.userId,
       },
     });
     if (!userFindOne) {

@@ -4,7 +4,7 @@ import { UserRoles } from '../entities/user.entity';
 export class UpdateUserRolesDto {
   @IsString()
   @IsNotEmpty()
-  initData: string;
+  userId: string;
 
   @IsArray()
   roles: UserRoles[];
