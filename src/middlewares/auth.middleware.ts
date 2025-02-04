@@ -14,6 +14,7 @@ export class AuthMiddleware implements NestMiddleware {
         req.headers.authorization,
       );
       if (!secretCodeComparison) {
+        console.log("------ im here --------")
         throw new UnauthorizedException(ExceptionMessageEnum.AUTHORIZATION_IS_WRONG);
       } else {
 

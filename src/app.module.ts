@@ -21,6 +21,8 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { EncryptionModule } from './utils/encryption/encryption.module';
 import { EncryptionMiddleware } from './common/middlewares/encryption.middleware';
+import { TreasuryEntity } from './treasury/entities/treasury.entity';
+import { TreasuryModule } from './treasury/treasury.module';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
@@ -43,6 +45,7 @@ console.log(process.env.PSQL_DB)
         LongShotMatchesEntity,
         LongShotParticipantsEntity,
         LongShotTicketEntity,
+        TreasuryEntity,
       ],
       synchronize: true,
       logging:false
@@ -56,7 +59,8 @@ console.log(process.env.PSQL_DB)
     LanguagesModule,
     CashAvalancheModule,
     LongShotModule,
-    EncryptionModule
+    EncryptionModule,
+    TreasuryModule
   ],
   controllers: [],
   providers: [],

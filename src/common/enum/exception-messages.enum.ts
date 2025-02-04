@@ -35,7 +35,8 @@ export enum ExceptionMessageEnum{
     USER_IS_BANNED="User is Banned",
     UN_AUTHORIZED="UnAuthorized",
     CANT_REFERRAL_YOUR_SELF="Cant Referral Your Self",
-    YOU_REGESTERED_WITHOUT_INVITED_LINK="You Regestered without invited link"
+    YOU_REGESTERED_WITHOUT_INVITED_LINK="You Regestered without invited link",
+    TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE="user TGM count is not  enough"
     
 
 }
