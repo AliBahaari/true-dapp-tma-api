@@ -188,7 +188,7 @@ export class LongShotService implements OnModuleInit {
       !packFindOne.hasWinnerClaimedReward &&
       packFindOne.winner === initData
     ) {
-      const ticket = await this.ticketFindOneWithPack(initData, packId);
+      const ticket = await this.ticketFindOneWithPackOrFail(initData, packId);
       if (!ticket) {
         throw new HttpException(
           ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
@@ -274,7 +274,7 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
-  async leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto:LongShotLeagueWeeklyFilterDto) {
+  async leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
     return await this.leaguesWeeklyRepo.find({
       relations: {
         matches: true,
@@ -385,19 +385,24 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+  async ticketFindOneWithPackOrFail(initData: string, packId: string) {
+    return await this.ticketsRepo.findOne({
+      where: {
+        initData,
+        packId
+      },
+    });
+  }
 
   async ticketFindOneWithPack(initData: string, packId: string) {
-    const result =  await this.ticketsRepo.findOne({
+    const result = await this.ticketsRepo.findOne({
       where: {
         initData,
         packId
       },
     });
     if (!result) {
-      throw new HttpException(
-        ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
-        HttpStatus.FORBIDDEN,
-      );
+      return { ticketCount: 0 }
     }
     return result
   }
@@ -405,7 +410,13 @@ export class LongShotService implements OnModuleInit {
   // Ticket Buy
   async ticketBuy(initData: string, packId: string, ticketLevel: 1 | 2 | 3) {
     const userFindOne = await this.usersService.find(initData);
-
+    const ticket = await this.ticketFindOneWithPackOrFail(initData, packId);
+    if (ticket) {
+      throw new HttpException(
+        ExceptionMessageEnum.TICKET_ALREADY_HAS_BEEN_BOUGHT,
+        HttpStatus.FORBIDDEN,
+      );
+    }
     if (userFindOne) {
       if (ticketLevel === 1) {
         await this.usersService.updateUserTgmCount(initData, 10, 'SUBTRACT');
@@ -416,7 +427,7 @@ export class LongShotService implements OnModuleInit {
           message: 'You Bought Level 1 Ticket',
         };
       } else if (ticketLevel === 2) {
-        if (userFindOne.boughtTgmCount === 1000000) {
+        if (userFindOne.boughtTgmCount >= 1000000) {
           await this.usersService.updateUserTgmCount(
             initData,
             1000,
@@ -435,7 +446,7 @@ export class LongShotService implements OnModuleInit {
           );
         }
       } else if (ticketLevel === 3) {
-        if (userFindOne.boughtTgmCount === 10000000) {
+        if (userFindOne.boughtTgmCount >= 10000000) {
           if (userFindOne.isVip) {
             await this.usersService.updateUserTgmCount(
               initData,

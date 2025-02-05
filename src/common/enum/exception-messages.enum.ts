@@ -38,7 +38,8 @@ export enum ExceptionMessageEnum{
     CANT_REFERRAL_YOUR_SELF="Cant Referral Your Self",
     YOU_REGESTERED_WITHOUT_INVITED_LINK="You Regestered without invited link",
     TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE="user TGM count is not  enough",
-    ONLY_OWNER_CAN_CREATE_TREASURY="Only owner can create treasury"
+    ONLY_OWNER_CAN_CREATE_TREASURY="Only owner can create treasury",
+    TICKET_ALREADY_HAS_BEEN_BOUGHT="User Already Have A Ticket"
     
 
 }
