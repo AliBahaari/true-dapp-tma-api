@@ -8,5 +8,11 @@ export class CreateLongShotMatchDto {
   secondSide: string;
 
   @IsString()
+  firstSideLogo: string;
+
+  @IsString()
+  secondSideLogo: string;
+
+  @IsString()
   leagueWeeklyId: string;
 }

@@ -15,6 +15,7 @@ import { UpdateLongShotMatchResultDto } from './dto/update-long-shot-match-resul
 import { CreateLongShotParticipantDto } from './dto/create-long-shot-participant.dto';
 import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
 import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
+import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
 
 @Controller('long-shot')
 export class LongShotController {
@@ -79,6 +80,11 @@ export class LongShotController {
     );
   }
 
+  @Post('league-weekly/findAll/pack')
+  async leagueWeeklyFindAllByPack(@Body() longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
+    return await this.longShotService.leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto);
+  }
+  
   @Get('league-weekly/findAll')
   async leagueWeeklyFindAll() {
     return await this.longShotService.leagueWeeklyFindAll();

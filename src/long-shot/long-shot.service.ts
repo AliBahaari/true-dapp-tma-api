@@ -14,6 +14,7 @@ import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
 import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
+import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
 
 const matchesCount = {
   1: 10,
@@ -256,7 +257,20 @@ export class LongShotService implements OnModuleInit {
     return await this.leaguesWeeklyRepo.find({
       relations: {
         matches: true,
+        pack: true
       },
+    });
+  }
+
+  async leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto:LongShotLeagueWeeklyFilterDto) {
+    return await this.leaguesWeeklyRepo.find({
+      relations: {
+        matches: true,
+        pack: true
+      },
+      where: {
+        packId: longShotLeagueWeeklyFilterDto.packId
+      }
     });
   }
 

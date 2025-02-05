@@ -22,6 +22,12 @@ export class LongShotMatchesEntity {
   @Column()
   secondSide: string;
 
+  @Column({nullable: true})
+  firstSideLogo: string;
+
+  @Column({nullable: true})
+  secondSideLogo: string;
+
   @Column({
     default: '',
   })

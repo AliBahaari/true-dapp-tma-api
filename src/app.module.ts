@@ -52,7 +52,7 @@ console.log(process.env.PSQL_DB)
         FileEntity
       ],
       synchronize: true,
-      logging: true
+      logging: false
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
