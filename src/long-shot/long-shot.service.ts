@@ -149,10 +149,10 @@ export class LongShotService implements OnModuleInit {
         checkWinner = false;
       }
     });
-
+    //TODO THIS SHOULD BE CHECKED
     if (
       checkWinner &&
-      participatedCompetitionsCount === matchesCount[ticketFindOne.ticketLevel]
+      ticketFindOne.participatedLeagues.length === matchesCount[ticketFindOne.ticketLevel]
     ) {
       packFindOne.winner = initData;
       await this.packsRepo.save(packFindOne);
