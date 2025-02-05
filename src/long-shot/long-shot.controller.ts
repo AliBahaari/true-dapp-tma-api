@@ -24,7 +24,7 @@ export class LongShotController {
 
   @Post('pack/create')
   async packCreate(@Body() createLongShotPackDto: CreateLongShotPackDto) {
-    await this.longShotService.packCreate(createLongShotPackDto);
+    return await this.longShotService.packCreate(createLongShotPackDto);
   }
 
   @Get('pack/findAll')

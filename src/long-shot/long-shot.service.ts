@@ -35,12 +35,12 @@ export class LongShotService {
     @InjectRepository(LongShotTicketEntity)
     private readonly ticketsRepo: Repository<LongShotTicketEntity>,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   // ------------------------- Packs -------------------------
 
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
-    return await this.packsRepo.save(createLongShotPackDto);
+      return await this.packsRepo.save(createLongShotPackDto);
   }
 
   async packFindAll() {
