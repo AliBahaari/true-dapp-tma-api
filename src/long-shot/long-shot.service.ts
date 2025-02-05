@@ -17,9 +17,9 @@ import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
 
 const matchesCount = {
-  1: 1,
-  2: 3,
-  3: 5,
+  1: 10,
+  2: 30,
+  3: 50,
 };
 
 @Injectable()
@@ -154,7 +154,8 @@ export class LongShotService implements OnModuleInit {
       checkWinner &&
       ticketFindOne.participatedLeagues.length === matchesCount[ticketFindOne.ticketLevel]
     ) {
-      packFindOne.winner = initData;
+      packFindOne.winner.push(initData);
+      packFindOne.hasWinnerClaimedReward.push(false);
       await this.packsRepo.save(packFindOne);
 
       return {
@@ -186,7 +187,7 @@ export class LongShotService implements OnModuleInit {
 
     if (
       !packFindOne.hasWinnerClaimedReward &&
-      packFindOne.winner === initData
+      packFindOne.winner.includes(initData)
     ) {
       const ticket = await this.ticketFindOneWithPackOrFail(initData, packId);
       if (!ticket) {
@@ -211,14 +212,15 @@ export class LongShotService implements OnModuleInit {
         Math.round((packFindOne.reward * 90) / 100),
         'ADD',
       );
-      packFindOne.hasWinnerClaimedReward = true;
+      const winnerIndex = packFindOne.winner.findIndex(x => x === initData)
+      packFindOne.hasWinnerClaimedReward[winnerIndex] = true;
       return await this.packsRepo.save(packFindOne);
     } else if (packFindOne.hasWinnerClaimedReward) {
       throw new HttpException(
         ExceptionMessageEnum.USER_HAS_CLIAMED_REWARD_BEFORE,
         HttpStatus.FORBIDDEN,
       );
-    } else if (packFindOne.winner !== initData) {
+    } else if (!packFindOne.winner.includes(initData)) {
       throw new HttpException(ExceptionMessageEnum.WINNER_IS_ANOTHER_ONE, HttpStatus.FORBIDDEN);
     }
   }

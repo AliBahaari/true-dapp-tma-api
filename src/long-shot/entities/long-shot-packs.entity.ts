@@ -22,15 +22,16 @@ export class LongShotPacksEntity {
   reward: number;
 
   @Column({
-    default: '',
+    type: 'jsonb',
+    default: []
   })
-  winner: string;
+  winner: string[];
 
   @Column({
-    type: 'boolean',
-    default: false,
+    type: 'jsonb',
+    default: []
   })
-  hasWinnerClaimedReward: boolean;
+  hasWinnerClaimedReward: boolean[];
 
   @Column()
   endDate: string;
