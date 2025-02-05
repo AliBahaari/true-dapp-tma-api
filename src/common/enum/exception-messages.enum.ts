@@ -1,4 +1,5 @@
 export enum ExceptionMessageEnum{
+    THERE_IS_AN_ACTIVE_PACK='Cannot Create Pack While Another Active Pack Exists',
     TASK_HAS_BEEN_CLAIMED_BEFORE='The Task Has Been Claimed Before',
     TGM_IS_NOT_ENOUGH='TGM Is Not Enough',
     TIME_HAS_BEEN_PASSED='Time Has Been Passed',

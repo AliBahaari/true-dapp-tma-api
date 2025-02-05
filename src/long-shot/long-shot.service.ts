@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
@@ -42,7 +42,19 @@ export class LongShotService implements OnModuleInit {
   // ------------------------- Packs -------------------------
 
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
+    const activePack = await this.findActivePack();
+    if (activePack) {
+      throw new ConflictException(ExceptionMessageEnum.THERE_IS_AN_ACTIVE_PACK);
+    }
     return await this.packsRepo.save(createLongShotPackDto);
+  }
+
+  async findActivePack(): Promise<LongShotPacksEntity> {
+    const currentDate = new Date().toISOString();
+    return this.packsRepo
+      .createQueryBuilder('pack')
+      .where('pack.endDate > :currentDate', { currentDate })
+      .getOne();
   }
 
   async packFindAll() {
@@ -375,12 +387,19 @@ export class LongShotService implements OnModuleInit {
   }
 
   async ticketFindOneWithPack(initData: string, packId: string) {
-    return await this.ticketsRepo.findOne({
+    const result =  await this.ticketsRepo.findOne({
       where: {
         initData,
         packId
       },
     });
+    if (!result) {
+      throw new HttpException(
+        ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    return result
   }
 
   // Ticket Buy
