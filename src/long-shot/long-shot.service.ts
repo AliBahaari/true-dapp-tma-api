@@ -52,7 +52,7 @@ export class LongShotService implements OnModuleInit {
           leaguesWeekly: true,
         },
       })
-    ).filter((i) => ({
+    ).map((i) => ({
       ...i,
       active: new Date() < new Date(i.endDate),
     }));
