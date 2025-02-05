@@ -166,6 +166,12 @@ export class LongShotController {
     return await this.longShotService.ticketFindOne(initData);
   }
 
+  @Get('ticket/findOne/:initData/:packId')
+  async ticketFindOneWithPack(@Param('initData') initData: string, @Param('packId') packId: string) {
+    return await this.longShotService.ticketFindOneWithPack(initData, packId);
+  }
+
+  
   @Patch('ticket/buy/:initData/:packId/:ticketLevel')
   async ticketBuy(
     @Param('initData') initData: string,
