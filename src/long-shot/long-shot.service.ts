@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
@@ -22,7 +22,7 @@ const matchesCount = {
 };
 
 @Injectable()
-export class LongShotService {
+export class LongShotService implements OnModuleInit {
   constructor(
     @InjectRepository(LongShotPacksEntity)
     private readonly packsRepo: Repository<LongShotPacksEntity>,
@@ -36,11 +36,12 @@ export class LongShotService {
     private readonly ticketsRepo: Repository<LongShotTicketEntity>,
     private readonly usersService: UsersService,
   ) { }
+  onModuleInit() { }
 
   // ------------------------- Packs -------------------------
 
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
-      return await this.packsRepo.save(createLongShotPackDto);
+    return await this.packsRepo.save(createLongShotPackDto);
   }
 
   async packFindAll() {
@@ -174,9 +175,27 @@ export class LongShotService {
       !packFindOne.hasWinnerClaimedReward &&
       packFindOne.winner === initData
     ) {
+      const ticket = await this.ticketFindOneWithPack(initData, packId);
+      if (!ticket) {
+        throw new HttpException(
+          ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
+          HttpStatus.FORBIDDEN,
+        );
+      }
+      switch (ticket.ticketLevel) {
+        case 1:
+          packFindOne.reward = packFindOne.reward * 1000
+          break;
+        case 2:
+          packFindOne.reward = packFindOne.reward * 100000
+          break;
+        case 3:
+          packFindOne.reward = packFindOne.reward * 10000000
+          break;
+      }
       await this.usersService.updateUserTgmCount(
         initData,
-        (packFindOne.reward * 90) / 100,
+        Math.round((packFindOne.reward * 90) / 100),
         'ADD',
       );
       packFindOne.hasWinnerClaimedReward = true;
@@ -337,6 +356,15 @@ export class LongShotService {
     return await this.ticketsRepo.find({
       where: {
         initData,
+      },
+    });
+  }
+
+  async ticketFindOneWithPack(initData: string, packId: string) {
+    return await this.ticketsRepo.findOne({
+      where: {
+        initData,
+        packId
       },
     });
   }

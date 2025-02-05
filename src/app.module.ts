@@ -24,6 +24,8 @@ import { EncryptionMiddleware } from './common/middlewares/encryption.middleware
 import { TreasuryEntity } from './treasury/entities/treasury.entity';
 import { TreasuryModule } from './treasury/treasury.module';
 import { TreasuryController } from './treasury/controllers/treasury.controller';
+import { FileEntity } from './file/entities/file.entity';
+import { FileModule } from './file/file.module';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
@@ -47,9 +49,10 @@ console.log(process.env.PSQL_DB)
         LongShotParticipantsEntity,
         LongShotTicketEntity,
         TreasuryEntity,
+        FileEntity
       ],
       synchronize: true,
-      logging:false
+      logging: true
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -60,6 +63,7 @@ console.log(process.env.PSQL_DB)
     LanguagesModule,
     CashAvalancheModule,
     LongShotModule,
+    FileModule,
     EncryptionModule,
     TreasuryModule
   ],
@@ -67,10 +71,10 @@ console.log(process.env.PSQL_DB)
   providers: [],
 })
 export class AppModule {
-  configure(consumer:MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer) {
     consumer
-    .apply(EncryptionMiddleware)
-    .forRoutes('*')
+      .apply(EncryptionMiddleware)
+      .forRoutes('*')
 
       .apply(AuthMiddleware)
       .exclude(
@@ -83,6 +87,6 @@ export class AppModule {
           method: RequestMethod.GET,
         },
       )
-      .forRoutes(UsersController,TreasuryController);
+      .forRoutes(UsersController, TreasuryController);
   }
 }

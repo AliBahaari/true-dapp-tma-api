@@ -166,6 +166,6 @@ export class LongShotController {
     @Param('packId') packId: string,
     @Param('ticketLevel', ParseIntPipe) ticketLevel: 1 | 2 | 3,
   ) {
-    await this.longShotService.ticketBuy(initData, packId, ticketLevel);
+    return await this.longShotService.ticketBuy(initData, packId, ticketLevel);
   }
 }
