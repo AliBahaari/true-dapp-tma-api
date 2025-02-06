@@ -151,11 +151,11 @@ export class LongShotService implements OnModuleInit {
       }
       
     };
-    
+
     //TODO THIS SHOULD BE CHECKED
     if (
       checkWinner &&
-      ticketFindOne.participatedLeagues.length == matchesCount[ticketFindOne.ticketLevel]
+      ticketFindOne.participatedLeagues.length >= matchesCount[ticketFindOne.ticketLevel]
     ) {
       packFindOne.winner.push(initData);
       packFindOne.hasWinnerClaimedReward.push(false);
