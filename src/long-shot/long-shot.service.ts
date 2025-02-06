@@ -66,7 +66,7 @@ export class LongShotService implements OnModuleInit {
   }
 
   async findTeamsByLeague(leagueId: string) {
-    return await this.teamRepo.findOne({
+    return await this.teamRepo.find({
       where: {leagueId}
     })
   }
