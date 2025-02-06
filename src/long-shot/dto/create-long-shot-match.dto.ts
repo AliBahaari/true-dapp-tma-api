@@ -2,17 +2,14 @@ import { IsString } from 'class-validator';
 
 export class CreateLongShotMatchDto {
   @IsString()
-  firstSide: string;
+  firstTeamId: string;
 
   @IsString()
-  secondSide: string;
-
-  @IsString()
-  firstSideLogo: string;
-
-  @IsString()
-  secondSideLogo: string;
+  secondTeamId: string;
 
   @IsString()
   leagueWeeklyId: string;
+  
+  @IsString()
+  matchDate: Date;
 }

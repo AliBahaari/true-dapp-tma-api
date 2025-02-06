@@ -21,14 +21,30 @@ export class LongShotMatchesEntity {
   @JoinColumn({ name: 'firstTeamId' })
   firstTeam: LongShotTeamEntity;
 
+  @Column({
+    name: 'firstTeamId',
+  })
+  firstTeamId: string;
+
   @ManyToOne(() => LongShotTeamEntity, { nullable: true })
   @JoinColumn({ name: 'secondTeamId' })
   secondTeam: LongShotTeamEntity;
 
   @Column({
+    name: 'secondTeamId',
+  })
+  secondTeamId: string;
+
+  @Column({
     default: '',
   })
   result: string;
+
+  @Column({
+    default: new Date(),
+    type: 'date'
+  })
+  matchDate: Date;
 
   @Column({
     name: 'leagueWeeklyId',

@@ -47,6 +47,7 @@ export class LongShotService implements OnModuleInit {
 
 
   // ------------------------- Teams -------------------------
+  //#region team
   async teamCreate(createLongShotTeamDto: CreateLongShotTeamDto) {
     return await this.teamRepo.save(createLongShotTeamDto);
   }
@@ -77,10 +78,11 @@ export class LongShotService implements OnModuleInit {
       }
     })
   }
+  //#endregion
 
 
   // ------------------------- Packs -------------------------
-
+  //#region pack
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
     const activePack = await this.findActivePack();
     if (activePack) {
@@ -126,6 +128,7 @@ export class LongShotService implements OnModuleInit {
       id,
     });
   }
+  //#endregion
 
   // Find Winner Endpoint
   async findWinner(packId: string, initData: string) {
@@ -269,7 +272,7 @@ export class LongShotService implements OnModuleInit {
   }
 
   // ------------------------- Leagues Weekly -------------------------
-
+  //#region league
   async leagueWeeklyCreate(
     createLongShotLeagueWeeklyDto: CreateLongShotLeagueWeeklyDto,
   ) {
@@ -354,9 +357,10 @@ export class LongShotService implements OnModuleInit {
       id,
     });
   }
+  //#endregion
 
   // ------------------------- Matches -------------------------
-
+  //#region match
   async matchCreate(createLongShotMatchDto: CreateLongShotMatchDto) {
     return await this.matchesRepo.save(createLongShotMatchDto);
   }
@@ -365,6 +369,8 @@ export class LongShotService implements OnModuleInit {
     return await this.matchesRepo.find({
       relations: {
         participants: true,
+        firstTeam: true,
+        secondTeam: true
       },
     });
   }
@@ -373,6 +379,8 @@ export class LongShotService implements OnModuleInit {
     return await this.matchesRepo.find({
       relations: {
         participants: true,
+        firstTeam: true,
+        secondTeam: true
       },
       where: {
         leagueWeeklyId: leagueId
@@ -387,6 +395,8 @@ export class LongShotService implements OnModuleInit {
       },
       relations: {
         participants: true,
+        firstTeam: true,
+        secondTeam: true
       },
     });
   }
@@ -427,9 +437,10 @@ export class LongShotService implements OnModuleInit {
       id,
     });
   }
+  //#endregion
 
   // ------------------------- Participants -------------------------
-
+  //#region Participants
   async participantCreate(
     createLongShotParticipantDto: CreateLongShotParticipantDto,
   ) {
@@ -447,9 +458,10 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+  //#endregion
 
   // ------------------------- Tickets -------------------------
-
+  //#region ticket
   async ticketFindAll() {
     return await this.ticketsRepo.find();
   }
@@ -597,4 +609,6 @@ export class LongShotService implements OnModuleInit {
 
     await this.ticketsRepo.save(ticketFindOne);
   }
+
+  //#endregion
 }
