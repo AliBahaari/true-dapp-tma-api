@@ -417,8 +417,8 @@ export class LongShotService implements OnModuleInit {
   async matchUpdateResult(
     updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
   ) {
-    for (let i = 0; i < updateLongShotMatchResultDto.data.length; i++) {
-      const element = updateLongShotMatchResultDto.data[i];
+    for (let i = 0; i < updateLongShotMatchResultDto.matches.length; i++) {
+      const element = updateLongShotMatchResultDto.matches[i];
       const matchFindOne = await this.matchesRepo.findOne({
         where: {
           id: element.matchId,

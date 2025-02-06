@@ -11,5 +11,5 @@ export class UpdateOneLongShotMatchResultDto {
 
 export class UpdateLongShotMatchResultDto {
   @ApiProperty()
-  data: UpdateOneLongShotMatchResultDto[];
+  matches: UpdateOneLongShotMatchResultDto[];
 }
