@@ -1,4 +1,4 @@
-import { ConflictException, HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
@@ -50,6 +50,19 @@ export class LongShotService implements OnModuleInit {
   //#region team
   async teamCreate(createLongShotTeamDto: CreateLongShotTeamDto) {
     return await this.teamRepo.save(createLongShotTeamDto);
+  }
+
+  async teamDelete(id: string) {
+    const haveMatch = await this.matchesRepo.findOne({
+      where: [
+        {firstTeamId: id},
+        {secondTeamId: id}
+      ],
+    });
+    if (haveMatch) {
+      throw new BadRequestException(ExceptionMessageEnum.CANNOT_REMOVE_TEAM_WHILE_THERE_IS_MATCH)
+    }
+    return await this.teamRepo.delete(id);
   }
 
   async teamUpdate(id: string, updateLongShotTeamDto: UpdateLongShotTeamDto) {
@@ -419,6 +432,7 @@ export class LongShotService implements OnModuleInit {
         throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
     }
+
   }
 
   async matchDelete(id: string) {

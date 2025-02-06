@@ -1,4 +1,5 @@
 export enum ExceptionMessageEnum{
+    CANNOT_REMOVE_TEAM_WHILE_THERE_IS_MATCH='Cannot Remove A Team If There Is Match',
     THERE_IS_AN_ACTIVE_PACK='Cannot Create Pack While Another Active Pack Exists',
     TASK_HAS_BEEN_CLAIMED_BEFORE='The Task Has Been Claimed Before',
     TGM_IS_NOT_ENOUGH='TGM Is Not Enough',
