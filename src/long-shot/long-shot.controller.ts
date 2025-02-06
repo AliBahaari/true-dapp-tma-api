@@ -112,19 +112,22 @@ export class LongShotController {
     return await this.longShotService.matchFindAll();
   }
 
+  @Get('match/findAll/league/:id')
+  async matchFindAllByLeague(@Param('id') id: string) {
+    return await this.longShotService.matchFindAllByLeague(id);
+  }
+
   @Get('match/findOne/:id')
   async matchFindOne(@Param('id') id: string) {
     return await this.longShotService.matchFindOne(id);
   }
 
-  @Patch('match/updateResult/:id')
+  @Patch('match/updateResult')
   async matchUpdateResult(
-    @Param('id') id: string,
     @Body() updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
   ) {
     return await this.longShotService.matchUpdateResult(
-      id,
-      updateLongShotMatchResultDto,
+      updateLongShotMatchResultDto, 
     );
   }
 

@@ -303,6 +303,13 @@ export class LongShotService implements OnModuleInit {
   }
 
   async leagueWeeklyDelete(id: string) {
+    const leagueMatch = await this.matchFindAllByLeague(id);
+    if (leagueMatch.length >= 1) {
+      for (let y = 0; y < leagueMatch.length; y++) {
+        const element = leagueMatch[y];
+        await this.matchDelete(element.id);
+      }
+    }
     return await this.leaguesWeeklyRepo.delete({
       id,
     });
@@ -322,6 +329,17 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
+  async matchFindAllByLeague(leagueId: string) {
+    return await this.matchesRepo.find({
+      relations: {
+        participants: true,
+      },
+      where: {
+        leagueWeeklyId: leagueId
+      }
+    });
+  }
+
   async matchFindOne(id: string) {
     return await this.matchesRepo.findOne({
       where: {
@@ -334,24 +352,37 @@ export class LongShotService implements OnModuleInit {
   }
 
   async matchUpdateResult(
-    id: string,
     updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
   ) {
-    const matchFindOne = await this.matchesRepo.findOne({
-      where: {
-        id,
-      },
-    });
-
-    if (matchFindOne) {
-      matchFindOne.result = updateLongShotMatchResultDto.result;
-      return await this.matchesRepo.save(matchFindOne);
-    } else {
-      throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
+    for (let i = 0; i < updateLongShotMatchResultDto.data.length; i++) {
+      const element = updateLongShotMatchResultDto.data[i];
+      const matchFindOne = await this.matchesRepo.findOne({
+        where: {
+          id: element.matchId,
+        },
+      });
+  
+      if (matchFindOne) {
+        matchFindOne.result = element.result;
+        return await this.matchesRepo.save(matchFindOne);
+      } else {
+        throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
     }
   }
 
   async matchDelete(id: string) {
+    const findParticipant = await this.participantsRepo.find({
+      where: {
+        matchId: id
+      }
+    });
+    if (findParticipant.length >= 1) {
+      for (let x = 0; x < findParticipant.length; x++) {
+        const element = findParticipant[x];
+        await this.participantsRepo.delete(element.id);
+      }
+    }
     return await this.matchesRepo.delete({
       id,
     });
