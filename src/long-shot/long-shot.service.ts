@@ -2,7 +2,7 @@ import { ConflictException, HttpException, HttpStatus, Injectable, OnModuleInit 
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
-import { In, MoreThan, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { LongShotMatchesEntity } from './entities/long-shot-matches.entity';
 import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
 import { UpdateLongShotMatchResultDto } from './dto/update-long-shot-match-result.dto';
@@ -62,9 +62,6 @@ export class LongShotService implements OnModuleInit {
       await this.packsRepo.find({
         relations: {
           leaguesWeekly: true,
-        },
-        where: {
-          endDate: MoreThan(new Date().toISOString()), // Filter for active packs
         },
       })
     ).map((i) => ({
