@@ -32,7 +32,7 @@ export class LongShotController {
     return await this.longShotService.teamCreate(createLongShotTeamDto);
   }
   
-  @Post('team/delete/:id')
+  @Delete('team/delete/:id')
   async teamDelete(@Param("id") id: string) {
     return await this.longShotService.teamDelete(id);
   }
