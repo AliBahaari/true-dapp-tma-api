@@ -23,6 +23,7 @@ export class LongShotMatchesEntity {
 
   @Column({
     name: 'firstTeamId',
+    nullable: true,
   })
   firstTeamId: string;
 
@@ -32,6 +33,7 @@ export class LongShotMatchesEntity {
 
   @Column({
     name: 'secondTeamId',
+    nullable: true,
   })
   secondTeamId: string;
 
