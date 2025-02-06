@@ -17,9 +17,9 @@ import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
 
 const matchesCount = {
-  1: 10,
-  2: 30,
-  3: 50,
+  1: 1,
+  2: 3,
+  3: 5,
 };
 
 @Injectable()
@@ -135,7 +135,8 @@ export class LongShotService implements OnModuleInit {
     }
     let participatedCompetitionsCount = 0;
     let checkWinner = true;
-    allMatches.forEach(async (element) => {
+    for (let i = 0; i < allMatches.length; i++) {
+      const element = allMatches[i];
       const choiceOfUser = await this.participantsRepo.findOne({
         where: {
           matchId: element.id,
@@ -144,15 +145,17 @@ export class LongShotService implements OnModuleInit {
       });
 
       participatedCompetitionsCount += 1;
-
+      
       if (element.result !== choiceOfUser.choice) {
         checkWinner = false;
       }
-    });
+      
+    };
+    
     //TODO THIS SHOULD BE CHECKED
     if (
       checkWinner &&
-      ticketFindOne.participatedLeagues.length === matchesCount[ticketFindOne.ticketLevel]
+      ticketFindOne.participatedLeagues.length == matchesCount[ticketFindOne.ticketLevel]
     ) {
       packFindOne.winner.push(initData);
       packFindOne.hasWinnerClaimedReward.push(false);
