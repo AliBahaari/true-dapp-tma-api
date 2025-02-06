@@ -8,6 +8,7 @@ import { LongShotParticipantsEntity } from './entities/long-shot-participants.en
 import { UsersModule } from 'src/users/users.module';
 import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
+import { LongShotTeamEntity } from './entities/long-shot-teams.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
       LongShotMatchesEntity,
       LongShotParticipantsEntity,
       LongShotTicketEntity,
+      LongShotTeamEntity
     ]),
     UsersModule,
   ],

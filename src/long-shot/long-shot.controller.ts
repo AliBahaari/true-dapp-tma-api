@@ -7,6 +7,7 @@ import {
   Patch,
   Delete,
   ParseIntPipe,
+  Put,
 } from '@nestjs/common';
 import { LongShotService } from './long-shot.service';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
@@ -16,10 +17,40 @@ import { CreateLongShotParticipantDto } from './dto/create-long-shot-participant
 import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
 import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
 import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
+import { CreateLongShotTeamDto } from './dto/create-long-shot-team.dto';
+import { UpdateLongShotTeamDto } from './dto/update-long-shot-team.dto';
 
 @Controller('long-shot')
 export class LongShotController {
   constructor(private readonly longShotService: LongShotService) {}
+
+
+  //team
+
+  @Post('team/create')
+  async teamCreate(@Body() createLongShotTeamDto: CreateLongShotTeamDto) {
+    return await this.longShotService.teamCreate(createLongShotTeamDto);
+  } 
+
+  @Put('team/update/:id')
+  async teamUpdate(@Param("id") id: string, @Body() updateLongShotTeamDto: UpdateLongShotTeamDto) {
+    return await this.longShotService.teamUpdate(id, updateLongShotTeamDto);
+  }
+
+  @Get('team/findOne/:id')
+  async teamFindOne(@Param('id') id: string) {
+    return await this.longShotService.teamFindOne(id);
+  }
+
+  @Get('team/find/league/:id')
+  async findTeamsByLeague(@Param('id') id: string) {
+    return await this.longShotService.findTeamsByLeague(id);
+  }
+
+  @Get('team/list')
+  async teamList() {
+    return await this.longShotService.teamList();
+  }
 
   // Packs
 

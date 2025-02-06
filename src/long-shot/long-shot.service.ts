@@ -15,6 +15,9 @@ import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
+import { LongShotTeamEntity } from './entities/long-shot-teams.entity';
+import { CreateLongShotTeamDto } from './dto/create-long-shot-team.dto';
+import { UpdateLongShotTeamDto } from './dto/update-long-shot-team.dto';
 
 const matchesCount = {
   1: 1,
@@ -35,9 +38,46 @@ export class LongShotService implements OnModuleInit {
     private readonly participantsRepo: Repository<LongShotParticipantsEntity>,
     @InjectRepository(LongShotTicketEntity)
     private readonly ticketsRepo: Repository<LongShotTicketEntity>,
+    @InjectRepository(LongShotTeamEntity)
+    private readonly teamRepo: Repository<LongShotTeamEntity>,
     private readonly usersService: UsersService,
   ) { }
   onModuleInit() { }
+
+
+
+  // ------------------------- Teams -------------------------
+  async teamCreate(createLongShotTeamDto: CreateLongShotTeamDto) {
+    return await this.teamRepo.save(createLongShotTeamDto);
+  }
+
+  async teamUpdate(id: string, updateLongShotTeamDto: UpdateLongShotTeamDto) {
+    return await this.teamRepo.update(id, updateLongShotTeamDto)
+  }
+
+  async teamFindOne(id: string) {
+    return await this.teamRepo.findOne({
+      where: {id},
+      relations: {
+        league: true
+      }
+    })
+  }
+
+  async findTeamsByLeague(leagueId: string) {
+    return await this.teamRepo.findOne({
+      where: {leagueId}
+    })
+  }
+
+  async teamList() {
+    return await this.teamRepo.find({
+      relations: {
+        league: true
+      }
+    })
+  }
+
 
   // ------------------------- Packs -------------------------
 

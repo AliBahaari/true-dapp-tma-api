@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { LongShotMatchesEntity } from './long-shot-matches.entity';
 import { LongShotPacksEntity } from './long-shot-packs.entity';
+import { LongShotTeamEntity } from './long-shot-teams.entity';
 
 @Entity({
   name: 'long-shot-leagues-weekly',
@@ -38,4 +39,11 @@ export class LongShotLeaguesWeeklyEntity {
     name: 'packId',
   })
   pack: LongShotPacksEntity;
+
+
+  @OneToMany(
+    () => LongShotTeamEntity,
+    (longShowTeamEntity) => longShowTeamEntity.league,
+  )
+  team: LongShotTeamEntity[];
 }
