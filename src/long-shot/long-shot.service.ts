@@ -481,7 +481,7 @@ export class LongShotService implements OnModuleInit {
         isUpdatedResult: true
       })
     }
-
+    return true
   }
 
   async matchDelete(id: string) {
