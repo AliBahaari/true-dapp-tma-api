@@ -394,6 +394,13 @@ export class LongShotService implements OnModuleInit {
         await this.teamDelete(element.id);
       }
     }
+    const leaguePacks = await this.packOfLeagues(id);
+    if (leaguePacks.length >= 1) {
+      for (let y = 0; y < leaguePacks.length; y++) {
+        const element = leaguePacks[y];
+        await this.packDelete(element.id);
+      }
+    }
     return await this.leaguesWeeklyRepo.delete({
       id,
     });
