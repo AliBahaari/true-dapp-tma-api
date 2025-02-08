@@ -24,6 +24,9 @@ export class LongShotPacksEntity {
   @Column()
   reward: number;
 
+  @Column({default: false})
+  isUpdatedResult: boolean;
+
   @Column({
     type: 'jsonb',
     default: []

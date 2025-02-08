@@ -466,7 +466,7 @@ export class LongShotService implements OnModuleInit {
       const matchFindOne = await this.matchesRepo.findOne({
         where: {
           id: element.matchId,
-        },
+        }
       });
   
       if (matchFindOne) {
@@ -475,6 +475,11 @@ export class LongShotService implements OnModuleInit {
       } else {
         throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
+    }
+    if (updateLongShotMatchResultDto.packId) {
+      await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+        isUpdatedResult: true
+      })
     }
 
   }

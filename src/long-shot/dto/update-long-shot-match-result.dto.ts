@@ -12,4 +12,6 @@ export class UpdateOneLongShotMatchResultDto {
 export class UpdateLongShotMatchResultDto {
   @ApiProperty()
   matches: UpdateOneLongShotMatchResultDto[];
+  @ApiProperty()
+  packId: string;
 }
