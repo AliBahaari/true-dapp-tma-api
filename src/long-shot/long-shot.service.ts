@@ -432,6 +432,19 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
+  async matchFindAllByPack(packId: string) {
+    return await this.matchesRepo.find({
+      relations: {
+        participants: true,
+        firstTeam: true,
+        secondTeam: true
+      },
+      where: {
+        packId: packId
+      }
+    });
+  }
+
   async matchFindOne(id: string) {
     return await this.matchesRepo.findOne({
       where: {
