@@ -100,17 +100,13 @@ export class LongShotService implements OnModuleInit {
   // ------------------------- Packs -------------------------
   //#region pack
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
-    const activePack = await this.findActivePack();
-    if (activePack) {
-      throw new ConflictException(ExceptionMessageEnum.THERE_IS_AN_ACTIVE_PACK);
-    }
     return await this.packsRepo.save({
       ...createLongShotPackDto,
       leagueWeeklyId: createLongShotPackDto.leagueWeaklyId
     });
   }
 
-  async findActivePack(): Promise<LongShotPacksEntity> {
+  async  findActivePack(): Promise<LongShotPacksEntity> {
     const currentDate = new Date().toISOString();
     return this.packsRepo
       .createQueryBuilder('pack')
