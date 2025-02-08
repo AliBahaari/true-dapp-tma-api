@@ -53,14 +53,17 @@ export class LongShotService implements OnModuleInit {
   }
 
   async teamDelete(id: string) {
-    const haveMatch = await this.matchesRepo.findOne({
+    const haveMatch = await this.matchesRepo.find({
       where: [
         {firstTeamId: id},
         {secondTeamId: id}
       ],
     });
-    if (haveMatch) {
-      throw new BadRequestException(ExceptionMessageEnum.CANNOT_REMOVE_TEAM_WHILE_THERE_IS_MATCH)
+    if (haveMatch.length >= 1) {  
+      for (let i = 0; i < haveMatch.length; i++) {
+        const element = haveMatch[i];
+        await this.matchDelete(element.id)
+      }
     }
     return await this.teamRepo.delete(id);
   }
@@ -382,6 +385,13 @@ export class LongShotService implements OnModuleInit {
       for (let y = 0; y < leagueMatch.length; y++) {
         const element = leagueMatch[y];
         await this.matchDelete(element.id);
+      }
+    }
+    const leagueTeam = await this.findTeamsByLeague(id);
+    if (leagueTeam.length >= 1) {
+      for (let y = 0; y < leagueTeam.length; y++) {
+        const element = leagueTeam[y];
+        await this.teamDelete(element.id);
       }
     }
     return await this.leaguesWeeklyRepo.delete({
