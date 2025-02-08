@@ -159,7 +159,7 @@ export class LongShotController {
 
   @Get('match/findAll/pack/:id')
   async matchFindAllByPack(@Param('id') id: string) {
-    return await this.longShotService.matchFindAllByLeague(id);
+    return await this.longShotService.matchFindAllByPack(id);
   }
 
   @Get('match/findAll/league/:id')
