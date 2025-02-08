@@ -471,7 +471,7 @@ export class LongShotService implements OnModuleInit {
   
       if (matchFindOne) {
         matchFindOne.result = element.result;
-        return await this.matchesRepo.save(matchFindOne);
+        await this.matchesRepo.save(matchFindOne);
       } else {
         throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
