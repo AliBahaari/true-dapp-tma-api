@@ -33,6 +33,12 @@ export class LongShotPacksEntity {
   })
   hasWinnerClaimedReward: boolean[];
 
+  @Column({ nullable: true })
+  startDate: string;
+
+  @Column({ nullable: true })
+  guessTime: string;
+
   @Column()
   endDate: string;
 

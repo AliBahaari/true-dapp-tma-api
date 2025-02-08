@@ -7,6 +7,12 @@ export class CreateLongShotPackDto {
   @IsNumber()
   reward: number;
 
+  @IsNumber()
+  guessTime: string;
+
+  @IsNumber()
+  startDate: string;
+
   @IsString()
   endDate: string;
 }

@@ -5,5 +5,8 @@ export class CreateLongShotLeagueWeeklyDto {
   title: string;
 
   @IsString()
+  logo: string;
+
+  @IsString()
   packId: string;
 }

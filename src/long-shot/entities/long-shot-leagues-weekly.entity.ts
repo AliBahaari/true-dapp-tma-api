@@ -20,6 +20,9 @@ export class LongShotLeaguesWeeklyEntity {
   @Column()
   title: string;
 
+  @Column({nullable: true})
+  logo: string;
+
   @Column({
     name: 'packId',
     nullable: true
