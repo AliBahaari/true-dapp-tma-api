@@ -101,7 +101,10 @@ export class LongShotService implements OnModuleInit {
     if (activePack) {
       throw new ConflictException(ExceptionMessageEnum.THERE_IS_AN_ACTIVE_PACK);
     }
-    return await this.packsRepo.save(createLongShotPackDto);
+    return await this.packsRepo.save({
+      ...createLongShotPackDto,
+      leagueWeeklyId: createLongShotPackDto.leagueWeaklyId
+    });
   }
 
   async findActivePack(): Promise<LongShotPacksEntity> {
