@@ -140,7 +140,7 @@ export class LongShotService implements OnModuleInit {
   }
 
   async packOfLeagues(leagueId: string) {
-    return await this.packsRepo.findOne({
+    return await this.packsRepo.find({
       where: {
         leagueWeeklyId: leagueId
       },
