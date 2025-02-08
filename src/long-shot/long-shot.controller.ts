@@ -97,7 +97,7 @@ export class LongShotController {
 
   // Leagues Weekly
 
-  @Post('league-weekly/packs/:id')
+  @Get('league-weekly/packs/:id')
   async leagueWeeklyPack(
     @Param('id') id: string
   ) {
