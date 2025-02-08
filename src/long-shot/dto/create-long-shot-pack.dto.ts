@@ -7,11 +7,14 @@ export class CreateLongShotPackDto {
   @IsNumber()
   reward: number;
 
-  @IsNumber()
+  @IsString()
   guessTime: string;
 
-  @IsNumber()
+  @IsString()
   startDate: string;
+  
+  @IsString()
+  leagueWeaklyId: string;
 
   @IsString()
   endDate: string;

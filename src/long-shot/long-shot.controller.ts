@@ -97,6 +97,15 @@ export class LongShotController {
 
   // Leagues Weekly
 
+  @Post('league-weekly/packs/:id')
+  async leagueWeeklyPack(
+    @Param('id') id: string
+  ) {
+    return this.longShotService.packOfLeagues(
+      id
+    );
+  }
+
   @Post('league-weekly/create')
   async leagueWeeklyCreate(
     @Body() createLongShotLeagueWeeklyDto: CreateLongShotLeagueWeeklyDto,

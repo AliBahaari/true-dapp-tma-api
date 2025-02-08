@@ -23,11 +23,6 @@ export class LongShotLeaguesWeeklyEntity {
   @Column({nullable: true})
   logo: string;
 
-  @Column({
-    name: 'packId',
-    nullable: true
-  })
-  packId: string;
 
   @OneToMany(
     () => LongShotMatchesEntity,
@@ -35,14 +30,11 @@ export class LongShotLeaguesWeeklyEntity {
   )
   matches: LongShotMatchesEntity[];
 
-  @ManyToOne(
+  @OneToMany(
     () => LongShotPacksEntity,
-    (longShotPacksEntity) => longShotPacksEntity.leaguesWeekly,
+    (longShowPacksEntity) => longShowPacksEntity.leagueWeekly,
   )
-  @JoinColumn({
-    name: 'packId',
-  })
-  pack: LongShotPacksEntity;
+  pack: LongShotPacksEntity[];
 
 
   @OneToMany(

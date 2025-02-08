@@ -9,6 +9,7 @@ import {
 import { LongShotLeaguesWeeklyEntity } from './long-shot-leagues-weekly.entity';
 import { LongShotParticipantsEntity } from './long-shot-participants.entity';
 import { LongShotTeamEntity } from './long-shot-teams.entity';
+import { LongShotPacksEntity } from './long-shot-packs.entity';
 
 @Entity({
   name: 'long-shot-matches',
@@ -61,6 +62,22 @@ export class LongShotMatchesEntity {
     name: 'leagueWeeklyId',
   })
   leagueWeekly: LongShotLeaguesWeeklyEntity;
+
+
+  @Column({
+    name: 'packId',
+    nullable: true
+  })
+  packId: string;
+  
+  @ManyToOne(
+    () => LongShotPacksEntity,
+    (longShotPacksEntity) => longShotPacksEntity.matches,
+  )
+  @JoinColumn({
+    name: 'packId',
+  })
+  pack: LongShotPacksEntity;
 
   @OneToMany(
     () => LongShotParticipantsEntity,

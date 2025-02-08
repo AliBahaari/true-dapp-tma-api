@@ -116,7 +116,7 @@ export class LongShotService implements OnModuleInit {
     return (
       await this.packsRepo.find({
         relations: {
-          leaguesWeekly: true,
+          leagueWeekly: true,
         },
       })
     ).map((i) => ({
@@ -131,7 +131,18 @@ export class LongShotService implements OnModuleInit {
         id,
       },
       relations: {
-        leaguesWeekly: true,
+        leagueWeekly: true,
+      },
+    });
+  }
+
+  async packOfLeagues(leagueId: string) {
+    return await this.packsRepo.findOne({
+      where: {
+        leagueWeeklyId: leagueId
+      },
+      relations: {
+        matches: true
       },
     });
   }
@@ -150,7 +161,8 @@ export class LongShotService implements OnModuleInit {
         id: packId,
       },
       relations: {
-        leaguesWeekly: true,
+        leagueWeekly: true,
+        matches: true
       },
     });
     if (!packFindOne) {
@@ -179,7 +191,8 @@ export class LongShotService implements OnModuleInit {
 
     const allMatches = await this.matchesRepo.find({
       where: {
-        leagueWeeklyId: In(packFindOne.leaguesWeekly.map((i) => i.id)),
+        leagueWeeklyId: packFindOne.leagueWeekly.id,
+        packId: packId
       },
     });
     const nullResults = allMatches.filter((i) => i.result === null);
@@ -342,7 +355,9 @@ export class LongShotService implements OnModuleInit {
         pack: true
       },
       where: {
-        packId: longShotLeagueWeeklyFilterDto.packId
+        pack: {
+          id: longShotLeagueWeeklyFilterDto.packId
+        }
       }
     });
   }

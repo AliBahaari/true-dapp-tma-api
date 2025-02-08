@@ -9,6 +9,9 @@ export class CreateLongShotMatchDto {
 
   @IsString()
   leagueWeeklyId: string;
+
+  @IsString()
+  packId: string;
   
   @IsString()
   matchDate: Date;
