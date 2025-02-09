@@ -78,7 +78,9 @@ export class LongShotService implements OnModuleInit {
         },
       ],
     });
-  
+    if (packsInTimeLine.length < 1) {
+      return 1
+    }
     if (!packsInTimeLine.some((p) => p.id === pack.id)) {
       packsInTimeLine.push(pack);
     }
