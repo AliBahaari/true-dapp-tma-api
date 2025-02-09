@@ -139,14 +139,28 @@ export class LongShotService implements OnModuleInit {
   }
 
   async packOfLeagues(leagueId: string) {
-    return await this.packsRepo.find({
+    let pack = await this.packsRepo.find({
       where: {
-        leagueWeeklyId: leagueId
+        leagueWeeklyId: leagueId,
       },
       relations: {
-        matches: true
+        matches: true,
       },
     });
+  
+    const updatedPack = pack.map((i) => {
+      const currentTime = new Date();
+      const guessEndTime = new Date(new Date(i.startDate).getTime() + i.guessTime);
+      const isActive = currentTime < new Date(i.endDate);
+  
+      return {
+        ...i,
+        canGuess: currentTime < guessEndTime,
+        active: isActive,
+      };
+    });
+  
+    return updatedPack;
   }
 
   async packDelete(id: string) {
