@@ -31,7 +31,7 @@ export class LongShotController {
   async teamCreate(@Body() createLongShotTeamDto: CreateLongShotTeamDto) {
     return await this.longShotService.teamCreate(createLongShotTeamDto);
   }
-  
+
   @Delete('team/delete/:id')
   async teamDelete(@Param("id") id: string) {
     return await this.longShotService.teamDelete(id);
@@ -129,7 +129,7 @@ export class LongShotController {
   async leagueWeeklyFindAllByPack(@Body() longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
     return await this.longShotService.leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto);
   }
-  
+
   @Get('league-weekly/findAll')
   async leagueWeeklyFindAll() {
     return await this.longShotService.leagueWeeklyFindAll();
@@ -173,11 +173,11 @@ export class LongShotController {
   }
 
   @Patch('match/updateResult')
-  async matchUpdateResult(
+  async updateMatchResultAndFindWinner(
     @Body() updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
   ) {
-    return await this.longShotService.matchUpdateResult(
-      updateLongShotMatchResultDto, 
+    return await this.longShotService.updateMatchResultAndFindWinner(
+      updateLongShotMatchResultDto,
     );
   }
 
@@ -224,7 +224,7 @@ export class LongShotController {
     return await this.longShotService.ticketFindOneWithPack(initData, packId);
   }
 
-  
+
   @Patch('ticket/buy/:initData/:packId/:ticketLevel')
   async ticketBuy(
     @Param('initData') initData: string,

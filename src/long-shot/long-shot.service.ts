@@ -59,7 +59,7 @@ export class LongShotService implements OnModuleInit {
         {secondTeamId: id}
       ],
     });
-    if (haveMatch.length >= 1) {  
+    if (haveMatch.length >= 1) {
       for (let i = 0; i < haveMatch.length; i++) {
         const element = haveMatch[i];
         await this.matchDelete(element.id)
@@ -156,6 +156,135 @@ export class LongShotService implements OnModuleInit {
   }
   //#endregion
 
+  //#region updateResultWithFindWinner
+  async updateMatchResultAndFindWinner(
+    updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
+  ) {
+
+    for (let i = 0; i < updateLongShotMatchResultDto.matches.length; i++) {
+      const element = updateLongShotMatchResultDto.matches[i];
+      const matchFindOne = await this.matchesRepo.findOne({
+        where: {
+          id: element.matchId,
+        },
+      });
+
+      if (matchFindOne) {
+        matchFindOne.result = element.result;
+        await this.matchesRepo.save(matchFindOne);
+      } else {
+        throw new HttpException(
+          ExceptionMessageEnum.MATCH_NOT_FOUND,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+
+    if (updateLongShotMatchResultDto.packId) {
+      await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+        isUpdatedResult: true,
+      });
+    }
+    const packFindOne = await this.packsRepo.findOne({
+      where: {
+        id: updateLongShotMatchResultDto.packId,
+      },
+      relations: {
+        leagueWeekly: true,
+        matches: true,
+      },
+    });
+
+    if (!packFindOne) {
+      throw new HttpException(
+        ExceptionMessageEnum.PACK_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const allMatches = await this.matchesRepo.find({
+      where: {
+        leagueWeeklyId: packFindOne.leagueWeekly.id,
+        packId: updateLongShotMatchResultDto.packId,
+      },
+    });
+
+    const nullResults = allMatches.filter((i) => i.result === null);
+    if (nullResults.length > 0) {
+      throw new HttpException(
+        ExceptionMessageEnum.SOME_MATCHES_RESULT_HAVE_NOT_BEEN_SET,
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const tickets = await this.ticketsRepo.find({
+      where: {
+        packId: updateLongShotMatchResultDto.packId,
+      },
+    });
+
+    for (const ticket of tickets) {
+      let checkWinner = true;
+
+      for (const match of allMatches) {
+        const choiceOfUser = await this.participantsRepo.findOne({
+          where: {
+            matchId: match.id,
+            initData: ticket.initData,
+          },
+        });
+
+        if (!choiceOfUser || match.result !== choiceOfUser.choice) {
+          checkWinner = false;
+          break;
+        }
+      }
+
+
+      if (
+        checkWinner &&
+        ticket.participatedLeagues.length >= matchesCount[ticket.ticketLevel]
+      ) {
+        packFindOne.winner.push(ticket.initData);
+        packFindOne.hasWinnerClaimedReward.push(false);
+      }
+    }
+
+
+    await this.packsRepo.save(packFindOne);
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Match results updated and winners calculated successfully.',
+    };
+  }
+  //#endregion
+
+  async matchUpdateResult(
+    updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
+  ) {
+    for (let i = 0; i < updateLongShotMatchResultDto.matches.length; i++) {
+      const element = updateLongShotMatchResultDto.matches[i];
+      const matchFindOne = await this.matchesRepo.findOne({
+        where: {
+          id: element.matchId,
+        }
+      });
+
+      if (matchFindOne) {
+        matchFindOne.result = element.result;
+        await this.matchesRepo.save(matchFindOne);
+      } else {
+        throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+    }
+    if (updateLongShotMatchResultDto.packId) {
+      await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+        isUpdatedResult: true
+      })
+    }
+    return true
+  }
   // Find Winner Endpoint
   async findWinner(packId: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
@@ -216,11 +345,11 @@ export class LongShotService implements OnModuleInit {
       });
 
       participatedCompetitionsCount += 1;
-      
+
       if (element.result !== choiceOfUser.choice) {
         checkWinner = false;
       }
-      
+
     };
 
     //TODO THIS SHOULD BE CHECKED
@@ -458,31 +587,7 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
-  async matchUpdateResult(
-    updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
-  ) {
-    for (let i = 0; i < updateLongShotMatchResultDto.matches.length; i++) {
-      const element = updateLongShotMatchResultDto.matches[i];
-      const matchFindOne = await this.matchesRepo.findOne({
-        where: {
-          id: element.matchId,
-        }
-      });
-  
-      if (matchFindOne) {
-        matchFindOne.result = element.result;
-        await this.matchesRepo.save(matchFindOne);
-      } else {
-        throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
-      }
-    }
-    if (updateLongShotMatchResultDto.packId) {
-      await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
-        isUpdatedResult: true
-      })
-    }
-    return true
-  }
+
 
   async matchDelete(id: string) {
     const findParticipant = await this.participantsRepo.find({
