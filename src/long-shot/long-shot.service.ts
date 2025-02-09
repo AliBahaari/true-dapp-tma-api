@@ -1,23 +1,23 @@
-import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
-import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
+import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
-import { In, Repository } from 'typeorm';
-import { LongShotMatchesEntity } from './entities/long-shot-matches.entity';
-import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
-import { UpdateLongShotMatchResultDto } from './dto/update-long-shot-match-result.dto';
-import { CreateLongShotParticipantDto } from './dto/create-long-shot-participant.dto';
-import { LongShotParticipantsEntity } from './entities/long-shot-participants.entity';
-import { UsersService } from 'src/users/users.service';
-import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
-import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
-import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
-import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
-import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
-import { LongShotTeamEntity } from './entities/long-shot-teams.entity';
+import { UsersService } from 'src/users/users.service';
+import { Between, Repository } from 'typeorm';
+import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
+import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
+import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
+import { CreateLongShotParticipantDto } from './dto/create-long-shot-participant.dto';
+import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
 import { CreateLongShotTeamDto } from './dto/create-long-shot-team.dto';
+import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
+import { UpdateLongShotMatchResultDto } from './dto/update-long-shot-match-result.dto';
 import { UpdateLongShotTeamDto } from './dto/update-long-shot-team.dto';
+import { LongShotLeaguesWeeklyEntity } from './entities/long-shot-leagues-weekly.entity';
+import { LongShotMatchesEntity } from './entities/long-shot-matches.entity';
+import { LongShotPacksEntity } from './entities/long-shot-packs.entity';
+import { LongShotParticipantsEntity } from './entities/long-shot-participants.entity';
+import { LongShotTeamEntity } from './entities/long-shot-teams.entity';
+import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
 
 const matchesCount = {
   1: 1,
@@ -44,6 +44,47 @@ export class LongShotService implements OnModuleInit {
   ) { }
   onModuleInit() { }
 
+
+  async findCountOfTicket(ticketId: string) {
+    const ticket = await this.ticketsRepo.findOne({ where: { id: ticketId } });
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+  
+    const pack = await this.packsRepo.findOne({
+      where: {
+        tickets: {
+          id: ticketId,
+        },
+      },
+    });
+  
+    if (!pack) {
+      throw new Error('Pack not found for the given ticketId');
+    }
+  
+    const packsInTimeLine = await this.packsRepo.find({
+      where: [
+        {
+          startDate: Between(pack.startDate, pack.endDate),
+        },
+        {
+          endDate: Between(pack.startDate, pack.endDate),
+        },
+        {
+          tickets: {
+            initData: ticket.initData,
+          },
+        },
+      ],
+    });
+  
+    if (!packsInTimeLine.some((p) => p.id === pack.id)) {
+      packsInTimeLine.push(pack);
+    }
+  
+    return packsInTimeLine.length;
+  }
 
 
   // ------------------------- Teams -------------------------
@@ -655,6 +696,7 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+  
   async ticketFindOneWithPackOrFail(initData: string, packId: string) {
     return await this.ticketsRepo.findOne({
       where: {

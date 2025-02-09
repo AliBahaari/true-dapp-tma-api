@@ -214,6 +214,11 @@ export class LongShotController {
     return await this.longShotService.ticketFindAll();
   }
 
+  @Get('ticket/find/user/limit')
+  async findCountOfTicket(@Param('id') id: string) {
+    return await this.longShotService.findCountOfTicket(id);
+  }
+
   @Get('ticket/findOne/:initData')
   async ticketFindOne(@Param('initData') initData: string) {
     return await this.longShotService.ticketFindOne(initData);
