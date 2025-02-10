@@ -543,16 +543,28 @@ export class LongShotService implements OnModuleInit {
         }
       }
 
-      const matchResults=findPack.matches.map(x=>x.result)
-      const emptyResult=matchResults.find(x=>x=='')
-      if(!emptyResult)
+      const findMatchsPack=await this.packsRepo.findOne({
+        where:{
+          id:updateLongShotMatchResultDto.packId
+        },
+        relations:{
+          matches:true
+        }
+      })
+      const matchResults=findMatchsPack.matches.map(x=>x.result)
+      console.log(matchResults)
+      const emptyResult=matchResults.filter(x=>x=='')
+      console.log(emptyResult)
+      if(emptyResult.length>0)
+      {
+        await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+          isUpdatedResult: false
+        });
+      }
+      if(emptyResult.length==0)
       {
         await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
           isUpdatedResult: true
-        });
-      }else{
-        await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
-          isUpdatedResult: false
         });
       }
       
