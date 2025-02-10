@@ -1,14 +1,9 @@
 import {
   Column,
   CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
+  Entity, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
-import { LongShotLeaguesWeeklyEntity } from './long-shot-leagues-weekly.entity';
-import { LongShotTicketEntity } from './long-shot-tickets.entity';
+
 import { LongShotMatchesEntity } from './long-shot-matches.entity';
 
 @Entity({
@@ -48,29 +43,11 @@ export class LongShotPacksEntity {
   @Column()
   endDate: string;
 
+  @Column()
+  ticketLevel:number
+
   @CreateDateColumn()
   createdAt: string;
-
-  @OneToMany(
-    () => LongShotTicketEntity,
-    (longShotTicketEntity) => longShotTicketEntity.pack,
-  )
-  tickets: LongShotTicketEntity[];
-
-  @Column({
-    name: 'leagueWeeklyId',
-    nullable: true,
-  })
-  leagueWeeklyId: string;
-
-  @ManyToOne(
-    () => LongShotLeaguesWeeklyEntity,
-    (longShotLeaguesWeeklyEntity) => longShotLeaguesWeeklyEntity.pack,
-  )
-  @JoinColumn({
-    name: 'leagueWeeklyId',
-  })
-  leagueWeekly: LongShotLeaguesWeeklyEntity;
 
   @OneToMany(
     () => LongShotMatchesEntity,

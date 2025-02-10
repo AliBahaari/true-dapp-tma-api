@@ -698,6 +698,11 @@ export class UsersService {
     } else if (type === 'SUBTRACT') {
       userFindOne.tgmCount -= tgmCount;
     }
+
+
+    if(userFindOne.tgmCount<0)
+    throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH)
+
     await this.userRepo.save(userFindOne);
   }
 

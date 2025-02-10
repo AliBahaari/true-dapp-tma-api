@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { UsersService } from 'src/users/users.service';
@@ -45,6 +45,7 @@ export class LongShotService implements OnModuleInit {
   onModuleInit() { }
 
 
+  /*
   async findCountOfTicket(ticketId: string) {
     const ticket = await this.ticketsRepo.findOne({ where: { id: ticketId } });
     if (!ticket) {
@@ -87,7 +88,7 @@ export class LongShotService implements OnModuleInit {
   
     return packsInTimeLine.length;
   }
-
+*/
 
   // ------------------------- Teams -------------------------
   //#region team
@@ -143,10 +144,35 @@ export class LongShotService implements OnModuleInit {
   // ------------------------- Packs -------------------------
   //#region pack
   async packCreate(createLongShotPackDto: CreateLongShotPackDto) {
-    return await this.packsRepo.save({
-      ...createLongShotPackDto,
-      leagueWeeklyId: createLongShotPackDto.leagueWeaklyId
-    });
+    // return await this.packsRepo.save({
+    //   ...createLongShotPackDto,
+    //   leagueWeeklyId: createLongShotPackDto.leagueWeaklyId
+    // });
+
+    const leagueIds=Array.from(new Set(createLongShotPackDto.matches.map(x=>x.leagueWeeklyId)))
+    const ticketLevel=this.ticketLevelMapper(leagueIds.length)
+
+
+    const createdPack=await this.packsRepo.save({
+      startDate:createLongShotPackDto.startDate,
+      endDate:createLongShotPackDto.endDate,
+      guessTime:createLongShotPackDto.guessTime,
+      reward:createLongShotPackDto.reward,
+      title:createLongShotPackDto.title,
+      ticketLevel:ticketLevel
+    })
+
+    for (const matchDto of createLongShotPackDto.matches) {
+      const createMatchDto:CreateLongShotMatchDto={
+        firstTeamId:matchDto.firstTeamId,
+        leagueWeeklyId:matchDto.leagueWeeklyId,
+        matchDate:matchDto.matchDate,
+        packId:createdPack.id,
+        secondTeamId:matchDto.secondTeamId
+      }
+
+      await this.matchCreate(createMatchDto)
+    }
   }
 
   async  findActivePack(): Promise<LongShotPacksEntity> {
@@ -159,11 +185,7 @@ export class LongShotService implements OnModuleInit {
 
   async packFindAll() {
     return (
-      await this.packsRepo.find({
-        relations: {
-          leagueWeekly: true,
-        },
-      })
+      await this.packsRepo.find()
     ).map((i) => ({
       ...i,
       active: new Date() < new Date(i.endDate),
@@ -174,17 +196,16 @@ export class LongShotService implements OnModuleInit {
     return await this.packsRepo.findOne({
       where: {
         id,
-      },
-      relations: {
-        leagueWeekly: true,
-      },
+      }
     });
   }
 
   async packOfLeagues(leagueId: string) {
     let pack = await this.packsRepo.find({
       where: {
-        leagueWeeklyId: leagueId,
+        matches:{
+          leagueWeeklyId:leagueId
+        }
       },
       relations: {
         matches: true,
@@ -213,6 +234,7 @@ export class LongShotService implements OnModuleInit {
   }
   //#endregion
 
+  /*
   //#region updateResultWithFindWinner
   async updateMatchResultAndFindWinner(
     updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
@@ -247,7 +269,6 @@ export class LongShotService implements OnModuleInit {
         id: updateLongShotMatchResultDto.packId,
       },
       relations: {
-        leagueWeekly: true,
         matches: true,
       },
     });
@@ -316,6 +337,7 @@ export class LongShotService implements OnModuleInit {
     };
   }
   //#endregion
+*/
 
   async matchUpdateResult(
     updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
@@ -342,6 +364,8 @@ export class LongShotService implements OnModuleInit {
     }
     return true
   }
+
+  /*
   // Find Winner Endpoint
   async findWinner(packId: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
@@ -426,7 +450,9 @@ export class LongShotService implements OnModuleInit {
       throw new HttpException(ExceptionMessageEnum.YOU_LOST, HttpStatus.FORBIDDEN);
     }
   }
+  */
 
+  /*
   // Claim Reward Endpoint
   async claimReward(packId: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
@@ -484,6 +510,7 @@ export class LongShotService implements OnModuleInit {
       throw new HttpException(ExceptionMessageEnum.WINNER_IS_ANOTHER_ONE, HttpStatus.FORBIDDEN);
     }
   }
+  */
 
   // ------------------------- Leagues Weekly -------------------------
   //#region league
@@ -493,6 +520,7 @@ export class LongShotService implements OnModuleInit {
     return this.leaguesWeeklyRepo.save(createLongShotLeagueWeeklyDto);
   }
 
+  /*
   // Vote Endpoint
   async vote(
     createLongShotParticipateLeagueWeeklyDto: CreateLongShotParticipateLeagueWeeklyDto,
@@ -526,7 +554,9 @@ export class LongShotService implements OnModuleInit {
       });
     });
   }
+  */
 
+  /*
   async leagueWeeklyFindAll() {
     return await this.leaguesWeeklyRepo.find({
       relations: {
@@ -535,7 +565,9 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+  */
 
+  /*
   async leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
     return await this.leaguesWeeklyRepo.find({
       relations: {
@@ -549,6 +581,7 @@ export class LongShotService implements OnModuleInit {
       }
     });
   }
+  */
 
   async leagueWeeklyFindOne(id: string) {
     return await this.leaguesWeeklyRepo.findOne({
@@ -699,6 +732,7 @@ export class LongShotService implements OnModuleInit {
     });
   }
   
+  /*
   async ticketFindOneWithPackOrFail(initData: string, packId: string) {
     return await this.ticketsRepo.findOne({
       where: {
@@ -707,7 +741,9 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+  */
 
+  /*
   async ticketFindOneWithPack(initData: string, packId: string) {
     const result = await this.ticketsRepo.findOne({
       where: {
@@ -720,18 +756,38 @@ export class LongShotService implements OnModuleInit {
     }
     return result
   }
+  */
 
+  
   // Ticket Buy
   async ticketBuy(initData: string, packId: string, ticketLevel: 1 | 2 | 3) {
     const userFindOne = await this.usersService.find(initData);
-    const ticket = await this.ticketFindOneWithPackOrFail(initData, packId);
+    const findPack=await this.packsRepo.findOne({
+      where:{id:packId}
+    })
+
+    if(ticketLevel> findPack.ticketLevel)
+    throw new BadRequestException(ExceptionMessageEnum.YOU_CANT_BUY_THIS_LEVEL_OF_TICKET_FOR_THIS_PACK)
+
+    const ticket = await this.ticketsRepo.findOne({
+      where:{
+        initData,
+        pack:{
+          id:packId
+        }
+      }
+    })
+
     if (ticket) {
       throw new HttpException(
         ExceptionMessageEnum.TICKET_ALREADY_HAS_BEEN_BOUGHT,
         HttpStatus.FORBIDDEN,
       );
     }
-    if (userFindOne) {
+
+    if(!userFindOne)
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+
       if (ticketLevel === 1) {
         await this.usersService.updateUserTgmCount(initData, 10, 'SUBTRACT');
         await this.createTicket(initData, packId, 10, 1, 1);
@@ -783,10 +839,9 @@ export class LongShotService implements OnModuleInit {
           );
         }
       }
-    } else {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
+    
   }
+  
 
   async createTicket(
     initData: string,
@@ -805,6 +860,7 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
+  /*
   async updateTicketAllowanceLeagueCount(
     initData: string,
     packId: string,
@@ -835,6 +891,25 @@ export class LongShotService implements OnModuleInit {
 
     await this.ticketsRepo.save(ticketFindOne);
   }
+  */
 
   //#endregion
+
+
+   ticketLevelMapper(input: number): number {
+    switch (input) {
+        case 1:
+            return 1
+        case 2:
+        case 3:
+            return 2
+        case 4:
+        case 5:
+            return 3
+        default:
+            throw new Error("Invalid number");
+    
 }
+   }
+  
+  }

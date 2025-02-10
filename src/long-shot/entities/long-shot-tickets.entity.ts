@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LongShotPacksEntity } from './long-shot-packs.entity';
@@ -37,15 +38,8 @@ export class LongShotTicketEntity {
   })
   participatedLeagues: string[];
 
-  @Column({
-    name: 'packId',
-  })
-  packId: string;
-
-  @ManyToOne(
-    () => LongShotPacksEntity,
-    (longShotPacksEntity) => longShotPacksEntity.tickets,
-  )
+  @OneToOne(
+    () => LongShotPacksEntity)
   @JoinColumn({
     name: 'packId',
   })

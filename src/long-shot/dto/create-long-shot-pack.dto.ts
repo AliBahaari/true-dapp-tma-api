@@ -1,4 +1,5 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { CreateLongShotMatchDto } from './create-long-shot-match.dto';
 
 export class CreateLongShotPackDto {
   @IsString()
@@ -12,10 +13,10 @@ export class CreateLongShotPackDto {
 
   @IsString()
   startDate: string;
-  
-  @IsString()
-  leagueWeaklyId: string;
 
   @IsString()
   endDate: string;
+
+  @IsNotEmpty()
+  matches:CreateLongShotMatchDto[]
 }

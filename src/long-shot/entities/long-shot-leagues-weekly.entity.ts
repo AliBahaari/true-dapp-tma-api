@@ -23,19 +23,11 @@ export class LongShotLeaguesWeeklyEntity {
   @Column({nullable: true})
   logo: string;
 
-
   @OneToMany(
     () => LongShotMatchesEntity,
     (longShowMatchesEntity) => longShowMatchesEntity.leagueWeekly,
   )
   matches: LongShotMatchesEntity[];
-
-  @OneToMany(
-    () => LongShotPacksEntity,
-    (longShowPacksEntity) => longShowPacksEntity.leagueWeekly,
-  )
-  pack: LongShotPacksEntity[];
-
 
   @OneToMany(
     () => LongShotTeamEntity,

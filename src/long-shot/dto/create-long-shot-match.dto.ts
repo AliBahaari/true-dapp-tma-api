@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateLongShotMatchDto {
   @IsString()
@@ -10,6 +10,7 @@ export class CreateLongShotMatchDto {
   @IsString()
   leagueWeeklyId: string;
 
+  @IsOptional()
   @IsString()
   packId: string;
   
