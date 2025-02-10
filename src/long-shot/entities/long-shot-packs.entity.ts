@@ -40,6 +40,9 @@ export class LongShotPacksEntity {
   @Column({ nullable: true })
   guessTime: string;
 
+  @Column({type:"jsonb",default:[],nullable:true})
+  leagueUpdateResult:string[]
+
   @Column()
   endDate: string;
 

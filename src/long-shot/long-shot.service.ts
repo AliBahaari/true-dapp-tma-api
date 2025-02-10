@@ -495,6 +495,7 @@ export class LongShotService implements OnModuleInit {
   async matchUpdateResult(
     updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
   ) {
+
     for (let i = 0; i < updateLongShotMatchResultDto.matches.length; i++) {
       const element = updateLongShotMatchResultDto.matches[i];
       const matchFindOne = await this.matchesRepo.findOne({
@@ -510,10 +511,51 @@ export class LongShotService implements OnModuleInit {
         throw new HttpException(ExceptionMessageEnum.MATCH_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
     }
+
+
+
+
     if (updateLongShotMatchResultDto.packId) {
-      await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
-        isUpdatedResult: true
-      });
+      const findPack=await this.packsRepo.findOne({
+        where:{
+          id:updateLongShotMatchResultDto.packId
+        },
+        relations:{
+          matches:true
+        }
+      })
+      const leagues=findPack.matches.map(x=>x.leagueWeeklyId)
+      const uniqueLeagueIds=Array.from(new Set(leagues))
+
+      for (let index = 0; index < uniqueLeagueIds.length; index++) {
+        const unqieuLeague = uniqueLeagueIds[index];
+        const leagueMatches=findPack.matches.filter(x=>x.leagueWeeklyId==unqieuLeague)
+        const checkMatchesResults=leagueMatches.filter(x=>x.result==null)
+        if(checkMatchesResults.length==0)
+        {
+         if(!findPack.leagueUpdateResult.find(x=>x==unqieuLeague))
+         {
+          findPack.leagueUpdateResult.push(unqieuLeague)
+          await this.packsRepo.update(findPack.id,{
+            leagueUpdateResult:findPack.leagueUpdateResult
+          })
+         }
+        }
+      }
+
+      const matchResults=findPack.matches.map(x=>x.result)
+      const nullResult=matchResults.find(x=>x==null)
+      if(!nullResult)
+      {
+        await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+          isUpdatedResult: true
+        });
+      }else{
+        await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
+          isUpdatedResult: false
+        });
+      }
+      
     }
     return true;
   }
