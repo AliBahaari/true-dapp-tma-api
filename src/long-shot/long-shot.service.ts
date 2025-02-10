@@ -1098,6 +1098,7 @@ export class LongShotService implements OnModuleInit {
   }
 
   async checkUserWinninStatus(initData:string,packId:string){
+    console.log(initData)
     const findUserTicket=await this.ticketsRepo.findOne({
       where:{
         initData,
@@ -1114,7 +1115,6 @@ export class LongShotService implements OnModuleInit {
 
     if(!findUserTicket)
     throw new BadRequestException(ExceptionMessageEnum.YOU_DID_NOT_BUY_TICKET_FOR_THIS_PACK)
-
 
 
     let lostMatches:string[]=[]

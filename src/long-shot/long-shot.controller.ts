@@ -277,7 +277,7 @@ export class LongShotController {
   }
 
   @Get("winning/status/:initData/:packId")
-  async checkUserWinninStatus(@Param("initDate") initDate:string,@Param("packId") packId:string){
+  async checkUserWinninStatus(@Param("initData") initDate:string,@Param("packId") packId:string){
     return await this.longShotService.checkUserWinninStatus(initDate,packId)
   }
 
