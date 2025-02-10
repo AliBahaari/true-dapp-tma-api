@@ -43,7 +43,7 @@ export class LongShotPacksEntity {
   @Column()
   endDate: string;
 
-  @Column()
+  @Column({nullable:true})
   ticketLevel:number
 
   @CreateDateColumn()
