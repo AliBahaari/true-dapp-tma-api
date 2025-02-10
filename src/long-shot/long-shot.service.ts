@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, OnModuleIni
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { UsersService } from 'src/users/users.service';
-import { MoreThan, Repository } from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
 import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
@@ -95,6 +95,49 @@ export class LongShotService implements OnModuleInit {
     return transformedPacks;
   }
 
+  async lastestActivePack() {
+    const currentDate = new Date();
+
+    // Fetch all packs with their matches and related data
+    const pack = await this.packsRepo
+      .createQueryBuilder('pack')
+      .where('pack.endDate > :currentDate', { currentDate })
+      .andWhere('pack.startDate < :currentDate', { currentDate })
+      .leftJoinAndSelect('pack.matches', 'matches')
+      .leftJoinAndSelect('matches.leagueWeekly', 'leagueWeekly')
+      .leftJoinAndSelect('matches.firstTeam', 'firstTeam')
+      .leftJoinAndSelect('matches.secondTeam', 'secondTeam')
+      .getOne();
+
+      if (!pack) {
+        throw new HttpException('Pack not found', HttpStatus.NOT_FOUND);
+      }
+  
+      const leaguesMap = new Map<string, any>();
+  
+      for (const match of pack.matches) {
+        const leagueId = match.leagueWeekly.id;
+  
+        if (!leaguesMap.has(leagueId)) {
+          leaguesMap.set(leagueId, {
+            ...match.leagueWeekly,
+            matches: [],
+          });
+        }
+  
+        leaguesMap.get(leagueId).matches.push({
+          ...match
+        });
+      }
+  
+      const leagues = Array.from(leaguesMap.values());
+  
+      delete pack.matches
+      return {
+        ...pack,
+        leagues,
+      };
+  }
 
   //find one pack id => match group by league
 
@@ -247,6 +290,20 @@ export class LongShotService implements OnModuleInit {
     const leagueIds = Array.from(new Set(createLongShotPackDto.matches.map(x => x.leagueWeeklyId)));
     const ticketLevel = this.ticketLevelMapper(leagueIds.length);
 
+    const activePack=await this.packsRepo.findOne({
+      where: [
+        {
+          startDate: Between(createLongShotPackDto.startDate, createLongShotPackDto.endDate),
+        },
+        {
+          endDate: Between(createLongShotPackDto.startDate, createLongShotPackDto.endDate),
+        }
+      ],
+    })
+
+    if(activePack)
+    throw new BadRequestException(ExceptionMessageEnum.ACTIVE_PACK_IS_EXIST_ALREADY)
+
 
     const createdPack = await this.packsRepo.save({
       startDate: createLongShotPackDto.startDate,
@@ -329,6 +386,7 @@ export class LongShotService implements OnModuleInit {
   }
   //#endregion
 
+  
   /*
   //#region updateResultWithFindWinner
   async updateMatchResultAndFindWinner(
@@ -460,7 +518,7 @@ export class LongShotService implements OnModuleInit {
     return true;
   }
 
-  /*
+  
   // Find Winner Endpoint
   async findWinner(packId: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
@@ -468,7 +526,6 @@ export class LongShotService implements OnModuleInit {
         id: packId,
       },
       relations: {
-        leagueWeekly: true,
         matches: true
       },
     });
@@ -479,7 +536,7 @@ export class LongShotService implements OnModuleInit {
     const ticketFindOne = await this.ticketsRepo.findOne({
       where: {
         initData,
-        packId: packFindOne.id,
+        pack: {id:packFindOne.id},
       },
     });
     if (!ticketFindOne) {
@@ -496,12 +553,8 @@ export class LongShotService implements OnModuleInit {
       );
     }
 
-    const allMatches = await this.matchesRepo.find({
-      where: {
-        leagueWeeklyId: packFindOne.leagueWeekly.id,
-        packId: packId
-      },
-    });
+    const allMatches = packFindOne.matches
+    
     const nullResults = allMatches.filter((i) => i.result === null);
     if (nullResults.length > 0) {
       throw new HttpException(
@@ -545,7 +598,7 @@ export class LongShotService implements OnModuleInit {
       throw new HttpException(ExceptionMessageEnum.YOU_LOST, HttpStatus.FORBIDDEN);
     }
   }
-  */
+  
 
   /*
   // Claim Reward Endpoint

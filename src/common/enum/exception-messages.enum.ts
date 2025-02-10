@@ -41,7 +41,8 @@ export enum ExceptionMessageEnum{
     TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE="user TGM count is not  enough",
     ONLY_OWNER_CAN_CREATE_TREASURY="Only owner can create treasury",
     TICKET_ALREADY_HAS_BEEN_BOUGHT="User Already Have A Ticket",
-    YOU_CANT_BUY_THIS_LEVEL_OF_TICKET_FOR_THIS_PACK="You cant buy this level of ticket for this Pack"
+    YOU_CANT_BUY_THIS_LEVEL_OF_TICKET_FOR_THIS_PACK="You cant buy this level of ticket for this Pack",
+    ACTIVE_PACK_IS_EXIST_ALREADY='Active pack exsit already'
     
 
 }
