@@ -567,7 +567,7 @@ export class LongShotService implements OnModuleInit {
           isUpdatedResult: true
         });
       }
-      
+
     }
     return true;
   }
@@ -653,10 +653,10 @@ export class LongShotService implements OnModuleInit {
   }
 
 
-  
+
   // Claim Reward Endpoint
 
-  
+
 
   // ------------------------- Leagues Weekly -------------------------
   //#region league
@@ -1091,7 +1091,7 @@ export class LongShotService implements OnModuleInit {
         }else{
           deActiveTicket.pack["winninStatus"]="You Lost"
         }
-      
+
     }
 
     return deActiveTickets
@@ -1104,6 +1104,11 @@ export class LongShotService implements OnModuleInit {
         pack:{
           id:packId
         }
+      },
+      relations: {
+        pack: {
+          matches: true
+        }
       }
     })
 
@@ -1111,16 +1116,16 @@ export class LongShotService implements OnModuleInit {
     throw new BadRequestException(ExceptionMessageEnum.YOU_DID_NOT_BUY_TICKET_FOR_THIS_PACK)
 
 
-    
+
     let lostMatches:string[]=[]
     let lostGuess:string[]=[]
 
     for (let index = 0; index < findUserTicket.pack.matches.length; index++) {
       const packMatch = findUserTicket.pack.matches[index];
-      
+
       const userGuess=await this.participantsRepo.findOne({
         where:{
-          initData, 
+          initData,
           matchId:packMatch.id
         }
       })
@@ -1131,7 +1136,7 @@ export class LongShotService implements OnModuleInit {
        if(userGuess.choice!==packMatch.result)
        {
         lostMatches.push(packMatch.id)
-       } 
+       }
       }
 
       if(!userGuess)
