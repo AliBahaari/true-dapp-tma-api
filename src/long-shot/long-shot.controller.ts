@@ -119,7 +119,7 @@ export class LongShotController {
     );
   }
 
-  /*
+  
   @Post('/league-weekly/vote')
   async leagueWeeklyVote(
     @Body()
@@ -129,21 +129,21 @@ export class LongShotController {
       createLongShotParticipateLeagueWeeklyDto,
     );
   }
-  */
+  
 
-  /*
+  
   @Post('league-weekly/findAll/pack')
   async leagueWeeklyFindAllByPack(@Body() longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
     return await this.longShotService.leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto);
   }
-  */
+  
 
-  /*
+  
   @Get('league-weekly/findAll')
   async leagueWeeklyFindAll() {
     return await this.longShotService.leagueWeeklyFindAll();
   }
-  */
+  
 
   @Get('league-weekly/findOne/:id')
   async leagueWeeklyFindOne(@Param('id') id: string) {

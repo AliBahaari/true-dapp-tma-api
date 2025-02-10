@@ -520,7 +520,7 @@ export class LongShotService implements OnModuleInit {
     return this.leaguesWeeklyRepo.save(createLongShotLeagueWeeklyDto);
   }
 
-  /*
+  
   // Vote Endpoint
   async vote(
     createLongShotParticipateLeagueWeeklyDto: CreateLongShotParticipateLeagueWeeklyDto,
@@ -554,34 +554,28 @@ export class LongShotService implements OnModuleInit {
       });
     });
   }
-  */
+  
 
-  /*
+  
   async leagueWeeklyFindAll() {
     return await this.leaguesWeeklyRepo.find({
       relations: {
-        matches: true,
-        pack: true
+        matches: true
       },
     });
   }
-  */
+  
 
-  /*
+  
   async leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
-    return await this.leaguesWeeklyRepo.find({
-      relations: {
-        matches: true,
-        pack: true
-      },
-      where: {
-        pack: {
-          id: longShotLeagueWeeklyFilterDto.packId
-        }
+    return await this.packsRepo.findOne({
+      where:{id:longShotLeagueWeeklyFilterDto.packId},
+      relations:{
+        matches:true
       }
-    });
+    })
   }
-  */
+  
 
   async leagueWeeklyFindOne(id: string) {
     return await this.leaguesWeeklyRepo.findOne({
@@ -860,7 +854,7 @@ export class LongShotService implements OnModuleInit {
     });
   }
 
-  /*
+  
   async updateTicketAllowanceLeagueCount(
     initData: string,
     packId: string,
@@ -869,7 +863,7 @@ export class LongShotService implements OnModuleInit {
     const ticketFindOne = await this.ticketsRepo.findOne({
       where: {
         initData,
-        packId,
+        pack:{id:packId},
       },
     });
     if (!ticketFindOne) {
@@ -891,7 +885,7 @@ export class LongShotService implements OnModuleInit {
 
     await this.ticketsRepo.save(ticketFindOne);
   }
-  */
+  
 
   //#endregion
 
