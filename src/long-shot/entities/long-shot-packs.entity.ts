@@ -32,7 +32,7 @@ export class LongShotPacksEntity {
     type: 'jsonb',
     default: []
   })
-  hasWinnerClaimedReward: boolean[];
+  hasWinnerClaimedReward: string[];
 
   @Column({ nullable: true })
   startDate: string;
@@ -42,6 +42,9 @@ export class LongShotPacksEntity {
 
   @Column({type:"jsonb",default:[],nullable:true})
   leagueUpdateResult:string[]
+
+  @Column({type:"jsonb",default:[],nullable:true})
+  userChecked:string[]
 
   @Column()
   endDate: string;

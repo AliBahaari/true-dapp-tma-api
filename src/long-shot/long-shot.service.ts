@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, OnModuleIni
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { UsersService } from 'src/users/users.service';
-import { Between, MoreThan, Repository } from 'typeorm';
+import { Between, In, LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateLongShotLeagueWeeklyDto } from './dto/create-long-shot-league-weekly.dto';
 import { CreateLongShotMatchDto } from './dto/create-long-shot-match.dto';
 import { CreateLongShotPackDto } from './dto/create-long-shot-pack.dto';
@@ -641,7 +641,6 @@ export class LongShotService implements OnModuleInit {
       ticketFindOne.participatedLeagues.length >= matchesCount[ticketFindOne.ticketLevel]
     ) {
       packFindOne.winner.push(initData);
-      packFindOne.hasWinnerClaimedReward.push(false);
       await this.packsRepo.save(packFindOne);
 
       return {
@@ -654,65 +653,10 @@ export class LongShotService implements OnModuleInit {
   }
 
 
-  /*
+  
   // Claim Reward Endpoint
-  async claimReward(packId: string, initData: string) {
-    const packFindOne = await this.packsRepo.findOne({
-      where: {
-        id: packId,
-      },
-    });
-    if (!packFindOne) {
-      throw new HttpException(ExceptionMessageEnum.PACK_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
 
-    if (new Date() < new Date(packFindOne.endDate)) {
-      throw new HttpException(
-        ExceptionMessageEnum.PACK_HAB_NOOT_BEEN_TERMINATED,
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    if (
-      !packFindOne.hasWinnerClaimedReward &&
-      packFindOne.winner.includes(initData)
-    ) {
-      const ticket = await this.ticketFindOneWithPackOrFail(initData, packId);
-      if (!ticket) {
-        throw new HttpException(
-          ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
-          HttpStatus.FORBIDDEN,
-        );
-      }
-      switch (ticket.ticketLevel) {
-        case 1:
-          packFindOne.reward = packFindOne.reward * 1000
-          break;
-        case 2:
-          packFindOne.reward = packFindOne.reward * 100000
-          break;
-        case 3:
-          packFindOne.reward = packFindOne.reward * 10000000
-          break;
-      }
-      await this.usersService.updateUserTgmCount(
-        initData,
-        Math.round((packFindOne.reward * 90) / 100),
-        'ADD',
-      );
-      const winnerIndex = packFindOne.winner.findIndex(x => x === initData)
-      packFindOne.hasWinnerClaimedReward[winnerIndex] = true;
-      return await this.packsRepo.save(packFindOne);
-    } else if (packFindOne.hasWinnerClaimedReward) {
-      throw new HttpException(
-        ExceptionMessageEnum.USER_HAS_CLIAMED_REWARD_BEFORE,
-        HttpStatus.FORBIDDEN,
-      );
-    } else if (!packFindOne.winner.includes(initData)) {
-      throw new HttpException(ExceptionMessageEnum.WINNER_IS_ANOTHER_ONE, HttpStatus.FORBIDDEN);
-    }
-  }
-  */
+  
 
   // ------------------------- Leagues Weekly -------------------------
   //#region league
@@ -1122,6 +1066,164 @@ export class LongShotService implements OnModuleInit {
       default:
         throw new Error("Invalid number");
 
+    }
+  }
+
+  async findUserDeActivePacksAndCalculateWinning(initData:string){
+    const currentDate=new Date()
+    const tickets=await this.ticketsRepo.find({
+      where:{
+        initData
+      },
+      relations:{
+        pack:true
+      }
+    })
+
+    let deActiveTickets=tickets.filter(x=>new Date(x.pack.endDate).getTime() < currentDate.getTime())
+
+    for (let index = 0; index < deActiveTickets.length; index++) {
+      const deActiveTicket = deActiveTickets[index];
+
+      if(deActiveTicket.pack.winner.find(x=>x==initData))
+        {
+          deActiveTicket.pack["winninStatus"]="You Won"
+        }else{
+          deActiveTicket.pack["winninStatus"]="You Lost"
+        }
+      
+    }
+
+    return deActiveTickets
+  }
+
+  async checkUserWinninStatus(initData:string,packId:string){
+    const findUserTicket=await this.ticketsRepo.findOne({
+      where:{
+        initData,
+        pack:{
+          id:packId
+        }
+      }
+    })
+
+    if(!findUserTicket)
+    throw new BadRequestException(ExceptionMessageEnum.YOU_DID_NOT_BUY_TICKET_FOR_THIS_PACK)
+
+
+    
+    let lostMatches:string[]=[]
+    let lostGuess:string[]=[]
+
+    for (let index = 0; index < findUserTicket.pack.matches.length; index++) {
+      const packMatch = findUserTicket.pack.matches[index];
+      
+      const userGuess=await this.participantsRepo.findOne({
+        where:{
+          initData, 
+          matchId:packMatch.id
+        }
+      })
+
+
+      if(userGuess)
+      {
+       if(userGuess.choice!==packMatch.result)
+       {
+        lostMatches.push(packMatch.id)
+       } 
+      }
+
+      if(!userGuess)
+      lostGuess.push(packMatch.id)
+    }
+
+    const userCheckedDuplicate=findUserTicket.pack.userChecked.find(x=>x==initData)
+    if(!userCheckedDuplicate)
+    {
+      findUserTicket.pack.userChecked.push(initData)
+    }
+
+    if(lostMatches.length==0 && lostGuess.length==0)
+    {
+      const checkDuplicate=findUserTicket.pack.winner.find(x=>x==initData)
+      if(!checkDuplicate)
+      {
+        findUserTicket.pack.winner.push(initData)
+      }
+      const userPack= await this.packsRepo.save(findUserTicket.pack)
+      return {
+       pack:userPack,
+        winningStatus:"You Won"
+     }
+    }else{
+      return {
+        pack:findUserTicket.pack,
+        winningStatus:"You Lost"
+      }
+    }
+  }
+
+  async claimReward(packId: string, initData: string) {
+    const packFindOne = await this.packsRepo.findOne({
+      where: {
+        id: packId,
+      },
+    });
+    if (!packFindOne) {
+      throw new HttpException(ExceptionMessageEnum.PACK_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    if (new Date() < new Date(packFindOne.endDate)) {
+      throw new HttpException(
+        ExceptionMessageEnum.PACK_HAB_NOOT_BEEN_TERMINATED,
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (
+      !packFindOne.hasWinnerClaimedReward.includes(initData) &&
+      packFindOne.winner.includes(initData)
+    ) {
+      const ticket = await this.ticketsRepo.findOne({
+        where:{
+          initData,
+          pack:{id:packId}
+        }
+      })
+
+      if (!ticket) {
+        throw new HttpException(
+          ExceptionMessageEnum.TICKET_HAS_NOT_BEEN_BOUGHT,
+          HttpStatus.FORBIDDEN,
+        );
+      }
+      switch (ticket.ticketLevel) {
+        case 1:
+          packFindOne.reward = packFindOne.reward * 1000
+          break;
+        case 2:
+          packFindOne.reward = packFindOne.reward * 100000
+          break;
+        case 3:
+          packFindOne.reward = packFindOne.reward * 10000000
+          break;
+      }
+      await this.usersService.updateUserTgmCount(
+        initData,
+        Math.round((packFindOne.reward * 90) / 100),
+        'ADD',
+      );
+
+      packFindOne.hasWinnerClaimedReward.push(initData)
+      return await this.packsRepo.save(packFindOne);
+    } else if (packFindOne.hasWinnerClaimedReward.includes(initData)) {
+      throw new HttpException(
+        ExceptionMessageEnum.USER_HAS_CLIAMED_REWARD_BEFORE,
+        HttpStatus.FORBIDDEN,
+      );
+    } else if (!packFindOne.winner.includes(initData)) {
+      throw new HttpException(ExceptionMessageEnum.WINNER_IS_ANOTHER_ONE, HttpStatus.FORBIDDEN);
     }
   }
 

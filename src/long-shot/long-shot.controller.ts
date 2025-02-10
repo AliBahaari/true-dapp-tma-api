@@ -105,15 +105,9 @@ export class LongShotController {
   }
 
 
-  /*
-  @Get('pack/claimReward/:packId/:initData')
-  async packClaimReward(
-    @Param('packId') packId: string,
-    @Param('initData') initData: string,
-  ) {
-    return this.longShotService.claimReward(packId, initData);
-  }
-  */
+  
+
+  
 
   // Leagues Weekly
 
@@ -275,6 +269,24 @@ export class LongShotController {
     @Param('ticketLevel', ParseIntPipe) ticketLevel: 1 | 2 | 3,
   ) {
     return await this.longShotService.ticketBuy(initData, packId, ticketLevel);
+  }
+
+  @Get("de/active/packs/:initData")
+  async findUserDeActivePacksAndCalculateWinning(@Param("initDate") initDate:string){
+    return await this.longShotService.findUserDeActivePacksAndCalculateWinning(initDate)
+  }
+
+  @Get("winning/status/:initData/:packId")
+  async checkUserWinninStatus(@Param("initDate") initDate:string,@Param("packId") packId:string){
+    return await this.longShotService.checkUserWinninStatus(initDate,packId)
+  }
+
+  @Get('pack/claimReward/:packId/:initData')
+  async packClaimReward(
+    @Param('packId') packId: string,
+    @Param('initData') initData: string,
+  ) {
+    return this.longShotService.claimReward(packId, initData);
   }
 
 }
