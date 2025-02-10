@@ -112,26 +112,26 @@ export class LongShotService implements OnModuleInit {
       if (!pack) {
         throw new HttpException('Pack not found', HttpStatus.NOT_FOUND);
       }
-  
+
       const leaguesMap = new Map<string, any>();
-  
+
       for (const match of pack.matches) {
         const leagueId = match.leagueWeekly.id;
-  
+
         if (!leaguesMap.has(leagueId)) {
           leaguesMap.set(leagueId, {
             ...match.leagueWeekly,
             matches: [],
           });
         }
-  
+
         leaguesMap.get(leagueId).matches.push({
           ...match
         });
       }
-  
+
       const leagues = Array.from(leaguesMap.values());
-  
+
       delete pack.matches
       return {
         ...pack,
@@ -386,7 +386,7 @@ export class LongShotService implements OnModuleInit {
   }
   //#endregion
 
-  
+
   /*
   //#region updateResultWithFindWinner
   async updateMatchResultAndFindWinner(
@@ -518,7 +518,7 @@ export class LongShotService implements OnModuleInit {
     return true;
   }
 
-  
+
   // Find Winner Endpoint
   async findWinner(packId: string, initData: string) {
     const packFindOne = await this.packsRepo.findOne({
@@ -554,7 +554,7 @@ export class LongShotService implements OnModuleInit {
     }
 
     const allMatches = packFindOne.matches
-    
+
     const nullResults = allMatches.filter((i) => i.result === null);
     if (nullResults.length > 0) {
       throw new HttpException(
@@ -598,7 +598,7 @@ export class LongShotService implements OnModuleInit {
       throw new HttpException(ExceptionMessageEnum.YOU_LOST, HttpStatus.FORBIDDEN);
     }
   }
-  
+
 
   /*
   // Claim Reward Endpoint
@@ -872,6 +872,24 @@ export class LongShotService implements OnModuleInit {
       },
     });
   }
+
+  async ticketFindOneActivePack(initData: string) {
+    const currentDate = new Date();
+    const pack = await this.packsRepo
+    .createQueryBuilder('pack')
+    .where('pack.endDate > :currentDate', { currentDate })
+    .andWhere('pack.startDate < :currentDate', { currentDate })
+    .getOne();
+    return await this.ticketsRepo.find({
+      where: {
+        initData,
+        pack: {
+          id: pack.id
+        }
+      },
+    });
+  }
+
 
   /*
   async ticketFindOneWithPackOrFail(initData: string, packId: string) {

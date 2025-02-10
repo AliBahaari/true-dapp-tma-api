@@ -95,7 +95,7 @@ export class LongShotController {
     return await this.longShotService.packDelete(id);
   }
 
-  
+
   @Get('pack/findWinner/:packId/:initData')
   async packFindWinner(
     @Param('packId') packId: string,
@@ -103,7 +103,7 @@ export class LongShotController {
   ) {
     return this.longShotService.findWinner(packId, initData);
   }
-  
+
 
   /*
   @Get('pack/claimReward/:packId/:initData')
@@ -198,7 +198,7 @@ export class LongShotController {
     return await this.longShotService.matchFindOne(id);
   }
 
-  
+
   @Patch('match/updateResult')
   async updateMatchResultAndFindWinner(
     @Body() updateLongShotMatchResultDto: UpdateLongShotMatchResultDto,
@@ -207,7 +207,7 @@ export class LongShotController {
       updateLongShotMatchResultDto,
     );
   }
-  
+
 
   @Delete('match/delete/:id')
   async matchDelete(@Param('id') id: string) {
@@ -252,6 +252,11 @@ export class LongShotController {
   @Get('ticket/findOne/:initData')
   async ticketFindOne(@Param('initData') initData: string) {
     return await this.longShotService.ticketFindOne(initData);
+  }
+
+  @Get('ticket/findOne/active/:initData')
+  async ticketFindOneActivePack(@Param('initData') initData: string) {
+    return await this.longShotService.ticketFindOneActivePack(initData);
   }
 
   /*
