@@ -15,5 +15,6 @@ export class CreateLongShotMatchDto {
   packId: string;
   
   @IsString()
+  @IsOptional()
   matchDate: Date;
 }
