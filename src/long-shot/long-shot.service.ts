@@ -530,7 +530,7 @@ export class LongShotService implements OnModuleInit {
       for (let index = 0; index < uniqueLeagueIds.length; index++) {
         const unqieuLeague = uniqueLeagueIds[index];
         const leagueMatches=findPack.matches.filter(x=>x.leagueWeeklyId==unqieuLeague)
-        const checkMatchesResults=leagueMatches.filter(x=>x.result==null)
+        const checkMatchesResults=leagueMatches.filter(x=>x.result=='')
         if(checkMatchesResults.length==0)
         {
          if(!findPack.leagueUpdateResult.find(x=>x==unqieuLeague))
@@ -544,8 +544,8 @@ export class LongShotService implements OnModuleInit {
       }
 
       const matchResults=findPack.matches.map(x=>x.result)
-      const nullResult=matchResults.find(x=>x==null)
-      if(!nullResult)
+      const emptyResult=matchResults.find(x=>x=='')
+      if(!emptyResult)
       {
         await this.packsRepo.update(updateLongShotMatchResultDto.packId, {
           isUpdatedResult: true
