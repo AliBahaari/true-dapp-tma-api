@@ -74,6 +74,17 @@ export class LongShotController {
     return await this.longShotService.packFindOne(id);
   }
 
+  @Get('pack/matches/findOne/:id')
+  async findMatchByPack(@Param('id') id: string) {
+    return await this.longShotService.findMatchByPack(id);
+  }
+
+
+  @Get('pack/matches/findAll')
+  async findMatchByAllPack() {
+    return await this.longShotService.findMatchByAllPack();
+  }
+
   @Delete('pack/delete/:id')
   async packDelete(@Param('id') id: string) {
     return await this.longShotService.packDelete(id);
@@ -119,7 +130,7 @@ export class LongShotController {
     );
   }
 
-  
+
   @Post('/league-weekly/vote')
   async leagueWeeklyVote(
     @Body()
@@ -129,21 +140,21 @@ export class LongShotController {
       createLongShotParticipateLeagueWeeklyDto,
     );
   }
-  
 
-  
+
+
   @Post('league-weekly/findAll/pack')
   async leagueWeeklyFindAllByPack(@Body() longShotLeagueWeeklyFilterDto: LongShotLeagueWeeklyFilterDto) {
     return await this.longShotService.leagueWeeklyFindAllByPack(longShotLeagueWeeklyFilterDto);
   }
-  
 
-  
+
+
   @Get('league-weekly/findAll')
   async leagueWeeklyFindAll() {
     return await this.longShotService.leagueWeeklyFindAll();
   }
-  
+
 
   @Get('league-weekly/findOne/:id')
   async leagueWeeklyFindOne(@Param('id') id: string) {
@@ -246,7 +257,7 @@ export class LongShotController {
   */
 
 
-  
+
   @Patch('ticket/buy/:initData/:packId/:ticketLevel')
   async ticketBuy(
     @Param('initData') initData: string,
@@ -255,5 +266,5 @@ export class LongShotController {
   ) {
     return await this.longShotService.ticketBuy(initData, packId, ticketLevel);
   }
-  
+
 }
