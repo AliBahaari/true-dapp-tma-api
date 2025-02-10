@@ -272,7 +272,7 @@ export class LongShotController {
   }
 
   @Get("de/active/packs/:initData")
-  async findUserDeActivePacksAndCalculateWinning(@Param("initDate") initDate:string){
+  async findUserDeActivePacksAndCalculateWinning(@Param("initData") initDate:string){
     return await this.longShotService.findUserDeActivePacksAndCalculateWinning(initDate)
   }
 

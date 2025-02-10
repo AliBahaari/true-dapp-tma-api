@@ -1085,20 +1085,19 @@ export class LongShotService implements OnModuleInit {
     for (let index = 0; index < deActiveTickets.length; index++) {
       const deActiveTicket = deActiveTickets[index];
 
-      if(deActiveTicket.pack.winner.find(x=>x==initData))
-        {
+      const checkIfUserIsWinner=deActiveTicket.pack.winner.find(x=>x==initData)
+      if(checkIfUserIsWinner)
           deActiveTicket.pack["winninStatus"]=true
-        }else{
-          deActiveTicket.pack["winninStatus"]=false
-        }
+        
 
+        if(!checkIfUserIsWinner)
+          deActiveTicket.pack["winninStatus"]=false
     }
 
     return deActiveTickets
   }
 
   async checkUserWinninStatus(initData:string,packId:string){
-    console.log(initData)
     const findUserTicket=await this.ticketsRepo.findOne({
       where:{
         initData,
