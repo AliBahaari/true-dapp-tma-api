@@ -1087,9 +1087,9 @@ export class LongShotService implements OnModuleInit {
 
       if(deActiveTicket.pack.winner.find(x=>x==initData))
         {
-          deActiveTicket.pack["winninStatus"]="You Won"
+          deActiveTicket.pack["winninStatus"]=true
         }else{
-          deActiveTicket.pack["winninStatus"]="You Lost"
+          deActiveTicket.pack["winninStatus"]=false
         }
 
     }
@@ -1159,12 +1159,12 @@ export class LongShotService implements OnModuleInit {
       const userPack= await this.packsRepo.save(findUserTicket.pack)
       return {
        pack:userPack,
-        winningStatus:"You Won"
+        winningStatus:true
      }
     }else{
       return {
         pack:findUserTicket.pack,
-        winningStatus:"You Lost"
+        winningStatus:false
       }
     }
   }
