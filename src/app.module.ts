@@ -53,7 +53,7 @@ console.log(process.env.PSQL_DB)
         TreasuryEntity,
         FileEntity
       ],
-      synchronize: false,
+      synchronize: true,
       logging: false
     }),
     ServeStaticModule.forRoot({

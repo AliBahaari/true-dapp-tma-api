@@ -204,13 +204,13 @@ export class UsersService {
         packageReward = 10000;
       } else if (buyTgmDto.type === 2) {
         packageReward = 1000000;
-        userFindOne.isVip = true;
       } else if (buyTgmDto.type === 3) {
         packageReward = 100000;
       } else if (buyTgmDto.type === 4) {
         packageReward = 1000000;
+        userFindOne.isVip = true;
       } else if (buyTgmDto.type === 5) {
-        packageReward = 10000000;
+        packageReward = 12000000;
       }
       userFindOne.packageIds.push(buyTgmDto.type);
     }

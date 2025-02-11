@@ -72,7 +72,7 @@ export class UserEntity {
   lastOnline: string;
 
   @Column({
-    default: '0',
+    default: '0.000777',
   })
   estimatedTgmPrice: string;
 
