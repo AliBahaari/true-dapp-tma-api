@@ -70,7 +70,7 @@ export class UsersService {
       fs.mkdirSync(this.imageFolder, { recursive: true });
     }
 
-  
+
       if(photos && photos.length>0)
       {
         const response = await axios({
@@ -78,20 +78,20 @@ export class UsersService {
           method: 'GET',
           responseType: 'stream',
         });
-  
+
         const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
         const filename = `${crypto.randomUUID()}${extension}`;
         const filePath = path.join(this.imageFolder, filename);
-  
-  
+
+
         const writer = fs.createWriteStream(filePath);
         response.data.pipe(writer);
-  
+
         await new Promise((resolve, reject) => {
           writer.on('finish', resolve);
           writer.on('error', reject);
         });
-  
+
         downloadedImage = `/static/images/${filename}`;
       }
     } catch (error) {
@@ -262,9 +262,9 @@ export class UsersService {
       },
     });
 
-    if (!fromUser || !toUser) 
+    if (!fromUser || !toUser)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    
+
       if(fromUser.roles.includes(UserRoles.OWNER))
       {
         toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
@@ -698,6 +698,11 @@ export class UsersService {
     } else if (type === 'SUBTRACT') {
       userFindOne.tgmCount -= tgmCount;
     }
+
+
+    if(userFindOne.tgmCount<0)
+    throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH)
+
     await this.userRepo.save(userFindOne);
   }
 
@@ -791,7 +796,7 @@ export class UsersService {
       throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
     }
     } catch (error) {
-     console.log(error) 
+     console.log(error)
     }
   }
 

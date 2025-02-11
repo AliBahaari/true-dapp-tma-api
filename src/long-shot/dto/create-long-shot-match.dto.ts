@@ -1,12 +1,20 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateLongShotMatchDto {
   @IsString()
-  firstSide: string;
+  firstTeamId: string;
 
   @IsString()
-  secondSide: string;
+  secondTeamId: string;
 
   @IsString()
   leagueWeeklyId: string;
+
+  @IsOptional()
+  @IsString()
+  packId: string;
+  
+  @IsString()
+  @IsOptional()
+  matchDate: Date;
 }

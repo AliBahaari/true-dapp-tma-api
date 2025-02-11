@@ -1,4 +1,6 @@
 export enum ExceptionMessageEnum{
+    CANNOT_REMOVE_TEAM_WHILE_THERE_IS_MATCH='Cannot Remove A Team If There Is Match',
+    THERE_IS_AN_ACTIVE_PACK='Cannot Create Pack While Another Active Pack Exists',
     TASK_HAS_BEEN_CLAIMED_BEFORE='The Task Has Been Claimed Before',
     TGM_IS_NOT_ENOUGH='TGM Is Not Enough',
     TIME_HAS_BEEN_PASSED='Time Has Been Passed',
@@ -37,7 +39,11 @@ export enum ExceptionMessageEnum{
     CANT_REFERRAL_YOUR_SELF="Cant Referral Your Self",
     YOU_REGESTERED_WITHOUT_INVITED_LINK="You Regestered without invited link",
     TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE="user TGM count is not  enough",
-    ONLY_OWNER_CAN_CREATE_TREASURY="Only owner can create treasury"
+    ONLY_OWNER_CAN_CREATE_TREASURY="Only owner can create treasury",
+    TICKET_ALREADY_HAS_BEEN_BOUGHT="User Already Have A Ticket",
+    YOU_CANT_BUY_THIS_LEVEL_OF_TICKET_FOR_THIS_PACK="You cant buy this level of ticket for this Pack",
+    ACTIVE_PACK_IS_EXIST_ALREADY='Active pack exsit already',
+    YOU_DID_NOT_BUY_TICKET_FOR_THIS_PACK="User didint buy ticket for this pack"
     
 
 }

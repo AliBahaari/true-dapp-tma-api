@@ -1,12 +1,10 @@
 import {
   Column,
   CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
+  Entity, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
-import { LongShotLeaguesWeeklyEntity } from './long-shot-leagues-weekly.entity';
-import { LongShotTicketEntity } from './long-shot-tickets.entity';
+
+import { LongShotMatchesEntity } from './long-shot-matches.entity';
 
 @Entity({
   name: 'long-shot-packs',
@@ -21,32 +19,46 @@ export class LongShotPacksEntity {
   @Column()
   reward: number;
 
-  @Column({
-    default: '',
-  })
-  winner: string;
+  @Column({default: false})
+  isUpdatedResult: boolean;
 
   @Column({
-    type: 'boolean',
-    default: false,
+    type: 'jsonb',
+    default: []
   })
-  hasWinnerClaimedReward: boolean;
+  winner: string[];
+
+  @Column({
+    type: 'jsonb',
+    default: []
+  })
+  hasWinnerClaimedReward: string[];
+
+  @Column({ nullable: true })
+  startDate: string;
+
+  @Column({ nullable: true })
+  guessTime: string;
+
+  @Column({type:"jsonb",default:[],nullable:true})
+  leagueUpdateResult:string[]
+
+  @Column({type:"jsonb",default:[],nullable:true})
+  userChecked:string[]
 
   @Column()
   endDate: string;
+
+  @Column({nullable:true})
+  ticketLevel:number
 
   @CreateDateColumn()
   createdAt: string;
 
   @OneToMany(
-    () => LongShotLeaguesWeeklyEntity,
-    (longShotLeaguesWeeklyEntity) => longShotLeaguesWeeklyEntity.pack,
+    () => LongShotMatchesEntity,
+    (longShowMatchesEntity) => longShowMatchesEntity.pack,
   )
-  leaguesWeekly: LongShotLeaguesWeeklyEntity[];
+  matches: LongShotMatchesEntity[];
 
-  @OneToMany(
-    () => LongShotTicketEntity,
-    (longShotTicketEntity) => longShotTicketEntity.pack,
-  )
-  tickets: LongShotTicketEntity[];
 }
