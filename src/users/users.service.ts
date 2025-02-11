@@ -124,7 +124,6 @@ export class UsersService {
       claimedRewards: [],
       lastOnline: '',
       privateCode,
-      estimatedTgmPrice: '0',
       userHasInvitedLink:createUserDto.invitedBy?true:false,
       isVip: false,
       referralRewardsCount: 0,
