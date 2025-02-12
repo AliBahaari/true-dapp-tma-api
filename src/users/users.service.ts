@@ -495,7 +495,7 @@ export class UsersService {
       referralCodeUserFindOne.level !==
       fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
     ) {
-      referralCodeUserFindOne.levelUpRewardsCount += 10000;
+      referralCodeUserFindOne.levelUpRewardsCount += 1000;
     }
     referralCodeUserFindOne.level = fibonacciPosition(
       referralCodeUserFindOne.referralCount + 1,
@@ -503,9 +503,9 @@ export class UsersService {
     referralCodeUserFindOne.referralCount += 1;
 
     if (referralCodeUserFindOne.isVip) {
-      referralCodeUserFindOne.referralRewardsCount += 20000;
+      referralCodeUserFindOne.referralRewardsCount += 2000;
     } else {
-      referralCodeUserFindOne.referralRewardsCount += 10000;
+      referralCodeUserFindOne.referralRewardsCount += 1000;
     }
     initDataUserFindOne.invitedBy = referralCode;
 
