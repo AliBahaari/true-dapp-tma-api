@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -434,10 +434,11 @@ export class UsersService {
     findAllUsers.forEach((i) => {
       tgmCount += i.tgmCount;
     });
-
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
     const todayUsers = await this.userRepo.find({
       where: {
-        lastOnline: new Date().toLocaleDateString(),
+        lastOnline: MoreThanOrEqual(twentyFourHoursAgoString),
       },
     });
 
