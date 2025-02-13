@@ -76,6 +76,13 @@ export class UsersController {
     );
   }
 
+  @Patch("claim/all/referral/reward/:initData")
+  async claimAllReferralRewards(@Param("initData") initData:string):Promise<boolean>
+  {
+    return await this.usersService.claimAllReferralRewards(initData)
+  }
+
+
   @Patch('updateClaimLevelUpReward/:initData')
   async updateClaimLevelUpReward(@Param('initData') initData: string) {
     return await this.usersService.updateClaimLevelUpReward(initData);

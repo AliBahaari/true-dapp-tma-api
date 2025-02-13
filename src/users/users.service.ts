@@ -551,6 +551,26 @@ export class UsersService {
     }
   }
 
+  async claimAllReferralRewards(initData:string):Promise<boolean>
+  {
+    const initDataUser=await this.userRepo.findOne({
+      where:{initData}
+    })
+
+    const findAllInvitedUsers=await this.userRepo.find({
+      where:{
+        invitedBy:initDataUser.referralCode
+      }    
+    })
+
+    for (let index = 0; index < findAllInvitedUsers.length; index++) {
+      const invitedUser = findAllInvitedUsers[index];
+      await this.updateClaimReferralReward(invitedUser.id,initDataUser.id) 
+    }
+
+    return true
+  }
+
   async updateClaimLevelUpReward(initData: string) {
     const userFindOne = await this.userRepo.findOne({
       where: {
