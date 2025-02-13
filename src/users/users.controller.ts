@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -76,10 +77,10 @@ export class UsersController {
     );
   }
 
-  @Patch("claim/all/referral/reward/:initData")
-  async claimAllReferralRewards(@Param("initData") initData:string):Promise<boolean>
+  @Patch("claim/all/rewards/:initData")
+  async claimAllRewards(@Param("initData") initData:string):Promise<UserEntity>
   {
-    return await this.usersService.claimAllReferralRewards(initData)
+    return await this.usersService.claimAllRewards(initData)
   }
 
 
