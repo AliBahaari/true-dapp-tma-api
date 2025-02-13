@@ -560,12 +560,11 @@ export class UsersService {
     const findAllInvitedUsers=await this.userRepo.find({
       where:{
         invitedBy:initDataUser.referralCode
-      }    
+      }
     })
-
     for (let index = 0; index < findAllInvitedUsers.length; index++) {
       const invitedUser = findAllInvitedUsers[index];
-      await this.updateClaimReferralReward(invitedUser.id,initDataUser.id) 
+      await this.updateClaimReferralReward(invitedUser.id,initDataUser.initData)
     }
 
     return true
