@@ -33,145 +33,143 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
     @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
-  ) {}
+  ) { }
 
   private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
   private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
 
   async create(createUserDto: CreateUserDto) {
-   try {
-    let image = null;
-        let downloadedImage = '';
-
-
     try {
-      const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
-        params: { user_id: String(createUserDto.userId), limit: 1 },
-      });
+      let image = null;
+      let downloadedImage = '';
 
 
-      const photos = response.data.result.photos;
-
-
-      if(photos && photos.length>0)
-      {
-        console.log("-- im freaking here -------")
-        const fileId = photos[0][0].file_id;
-
-      const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
-        params: { file_id: fileId },
-      });
-
-      const filePath = fileResponse.data.result.file_path;
-
-      image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
-      }
-
-
-
-    if (!fs.existsSync(this.imageFolder)) {
-      fs.mkdirSync(this.imageFolder, { recursive: true });
-    }
-
-
-      if(photos && photos.length>0)
-      {
-        const response = await axios({
-          url: image,
-          method: 'GET',
-          responseType: 'stream',
+      try {
+        const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
+          params: { user_id: String(createUserDto.userId), limit: 1 },
         });
 
-        const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
-        const filename = `${crypto.randomUUID()}${extension}`;
-        const filePath = path.join(this.imageFolder, filename);
+
+        const photos = response.data.result.photos;
 
 
-        const writer = fs.createWriteStream(filePath);
-        response.data.pipe(writer);
+        if (photos && photos.length > 0) {
+          console.log("-- im freaking here -------");
+          const fileId = photos[0][0].file_id;
 
-        await new Promise((resolve, reject) => {
-          writer.on('finish', resolve);
-          writer.on('error', reject);
-        });
+          const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
+            params: { file_id: fileId },
+          });
 
-        downloadedImage = `/static/images/${filename}`;
+          const filePath = fileResponse.data.result.file_path;
+
+          image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
+        }
+
+
+
+        if (!fs.existsSync(this.imageFolder)) {
+          fs.mkdirSync(this.imageFolder, { recursive: true });
+        }
+
+
+        if (photos && photos.length > 0) {
+          const response = await axios({
+            url: image,
+            method: 'GET',
+            responseType: 'stream',
+          });
+
+          const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
+          const filename = `${crypto.randomUUID()}${extension}`;
+          const filePath = path.join(this.imageFolder, filename);
+
+
+          const writer = fs.createWriteStream(filePath);
+          response.data.pipe(writer);
+
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+
+          downloadedImage = `/static/images/${filename}`;
+        }
+      } catch (error) {
+        console.log(error);
+        // throw new HttpException(
+        //   `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
+        //   HttpStatus.INTERNAL_SERVER_ERROR,
+        // );
       }
+
+      const referralCode = Math.random().toString(36).substring(2, 7);
+      const privateCode = Math.random().toString(36).substring(2, 7);
+      const initData = createUserDto.initData;
+      const secretCodeHash = CryptoJS.SHA256(
+        initData + privateCode.toString(),
+      ).toString();
+      const hourlyRewardTime = Date.now() + 3600000;
+
+      await this.userRepo.save({
+        initData,
+        fullName: createUserDto.fullName,
+        image: downloadedImage,
+        walletAddress: '',
+        tgmCount: 0,
+        tapCoinCount: 0,
+        level: 1,
+        referralCount: 0,
+        referralCode,
+        completedTasks: [],
+        claimedRewards: [],
+        lastOnline: '',
+        privateCode,
+        userHasInvitedLink: createUserDto.invitedBy ? true : false,
+        isVip: false,
+        referralRewardsCount: 0,
+        levelUpRewardsCount: 0,
+        boughtTgmCount: 0,
+        roles: createUserDto.roles,
+        hourlyRewardTime,
+        invitedUserBuyTgmCommission: 0,
+        packageIds: [],
+        redEnvelopeCount: 0,
+        isBanned: false,
+        secretCode: secretCodeHash,
+      });
+
+      return {
+        initData,
+        fullName: createUserDto.fullName,
+        image: downloadedImage,
+        walletAddress: '',
+        tgmCount: 0,
+        tapCoinCount: 0,
+        level: 1,
+        referralCount: 0,
+        referralCode,
+        completedTasks: [],
+        claimedRewards: [],
+        lastOnline: '',
+        privateCode,
+        estimatedTgmPrice: '0',
+        isVip: false,
+        referralRewardsCount: 0,
+        levelUpRewardsCount: 0,
+        boughtTgmCount: 0,
+        roles: createUserDto.roles,
+        hourlyRewardTime,
+        invitedUserBuyTgmCommission: 0,
+        packageIds: [],
+        redEnvelopeCount: 0,
+        isBanned: false,
+        userHasInvitedLink: createUserDto.invitedBy ? true : false,
+      };
     } catch (error) {
+      console.log("------- catch ------");
       console.log(error);
-      // throw new HttpException(
-      //   `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
-      //   HttpStatus.INTERNAL_SERVER_ERROR,
-      // );
     }
-
-    const referralCode = Math.random().toString(36).substring(2, 7);
-    const privateCode = Math.random().toString(36).substring(2, 7);
-    const initData = createUserDto.initData;
-    const secretCodeHash = CryptoJS.SHA256(
-      initData + privateCode.toString(),
-    ).toString();
-    const hourlyRewardTime = Date.now() + 3600000;
-
-    await this.userRepo.save({
-      initData,
-      fullName: createUserDto.fullName,
-      image: downloadedImage,
-      walletAddress: '',
-      tgmCount: 0,
-      tapCoinCount: 0,
-      level: 1,
-      referralCount: 0,
-      referralCode,
-      completedTasks: [],
-      claimedRewards: [],
-      lastOnline: '',
-      privateCode,
-      userHasInvitedLink:createUserDto.invitedBy?true:false,
-      isVip: false,
-      referralRewardsCount: 0,
-      levelUpRewardsCount: 0,
-      boughtTgmCount: 0,
-      roles: createUserDto.roles,
-      hourlyRewardTime,
-      invitedUserBuyTgmCommission: 0,
-      packageIds: [],
-      redEnvelopeCount: 0,
-      isBanned: false,
-      secretCode: secretCodeHash,
-    });
-
-    return {
-      initData,
-      fullName: createUserDto.fullName,
-      image: downloadedImage,
-      walletAddress: '',
-      tgmCount: 0,
-      tapCoinCount: 0,
-      level: 1,
-      referralCount: 0,
-      referralCode,
-      completedTasks: [],
-      claimedRewards: [],
-      lastOnline: '',
-      privateCode,
-      estimatedTgmPrice: '0',
-      isVip: false,
-      referralRewardsCount: 0,
-      levelUpRewardsCount: 0,
-      boughtTgmCount: 0,
-      roles: createUserDto.roles,
-      hourlyRewardTime,
-      invitedUserBuyTgmCommission: 0,
-      packageIds: [],
-      redEnvelopeCount: 0,
-      isBanned: false,
-      userHasInvitedLink:createUserDto.invitedBy?true:false,
-    };
-   } catch (error) {
-    console.log("------- catch ------")
-    console.log(error)
-   }
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
@@ -235,13 +233,13 @@ export class UsersService {
     }
 
 
-    const purchasedInstance= this.purchasedTgmRepo.create({
-      amount:buyTgmDto.type?String(packageReward):String(buyTgmDto.amount),
-      type:buyTgmDto.type?buyTgmDto.type:0,
-      user:userFindOne
-    })
+    const purchasedInstance = this.purchasedTgmRepo.create({
+      amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
+      type: buyTgmDto.type ? buyTgmDto.type : 0,
+      user: userFindOne
+    });
 
-    await this.purchasedTgmRepo.save(purchasedInstance)
+    await this.purchasedTgmRepo.save(purchasedInstance);
 
     return await this.userRepo.save(userFindOne);
   }
@@ -259,13 +257,13 @@ export class UsersService {
     userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
     await this.userRepo.save(userFindOne);
 
-    return true
+    return true;
   }
 
   async newCreateRedEnvelope(createRedEnvelopeDto: NewCreateRedEnvelopeDto) {
-    const fromUser=await this.userRepo.findOne({
-      where:{initData:createRedEnvelopeDto.initData}
-    })
+    const fromUser = await this.userRepo.findOne({
+      where: { initData: createRedEnvelopeDto.initData }
+    });
 
     const toUser = await this.userRepo.findOne({
       where: {
@@ -276,21 +274,20 @@ export class UsersService {
     if (!fromUser || !toUser)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
 
-      if(fromUser.roles.includes(UserRoles.OWNER))
-      {
-        toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
-        return await this.userRepo.save(toUser)
-      }
-
-      if(fromUser.tgmCount<createRedEnvelopeDto.amount)
-      throw new BadRequestException(ExceptionMessageEnum.TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE)
-
-      fromUser.tgmCount-=createRedEnvelopeDto.amount
+    if (fromUser.roles.includes(UserRoles.OWNER)) {
       toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+      return await this.userRepo.save(toUser);
+    }
 
-    await this.userRepo.save([fromUser,toUser]);
+    if (fromUser.tgmCount < createRedEnvelopeDto.amount)
+      throw new BadRequestException(ExceptionMessageEnum.TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE);
 
-    return true
+    fromUser.tgmCount -= createRedEnvelopeDto.amount;
+    toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+
+    await this.userRepo.save([fromUser, toUser]);
+
+    return true;
   }
 
   async findAll() {
@@ -306,17 +303,11 @@ export class UsersService {
   }
 
   async find(initData: string) {
-    console.log("----- init data -------")
-    console.log(initData)
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-
-    console.log("--------- finding user --------")
-    console.log(userFindOne)
-
     let whoInvitedUser = null;
 
 
@@ -348,7 +339,7 @@ export class UsersService {
       userFindOne['rank'] =
         usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
-      const rowsCount = usersFindAll.length
+      const rowsCount = usersFindAll.length;
 
       return {
         ...restProps,
@@ -462,73 +453,92 @@ export class UsersService {
     };
   }
 
-  async updateReferralCode(initData: string, referralCode: string) {
-    try {
-      const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
-    const referralCodeUserFindOne = await this.userRepo.findOne({
-      where: {
-        referralCode,
-      },
-    });
-    if (!referralCodeUserFindOne) {
-      throw new HttpException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    const initDataUserFindOne = await this.userRepo.findOne({
+  async addTask(initData: string, taskName: string) {
+    const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-    if (!initDataUserFindOne) {
-      throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    if(initDataUserFindOne.initData == referralCodeUserFindOne.initData)
-    throw new BadRequestException(ExceptionMessageEnum.CANT_REFERRAL_YOUR_SELF)
-
-    if(!initDataUserFindOne.userHasInvitedLink)
-    throw new BadRequestException(ExceptionMessageEnum.YOU_REGESTERED_WITHOUT_INVITED_LINK)
-
-    if (
-      initDataUserFindOne.invitedBy &&
-      initDataUserFindOne.invitedBy.length > 0
-    ) {
-      throw new HttpException(
-        ExceptionMessageEnum.USER_HAS_BEEN_INVITED_PREVIOUSLY,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
-      referralCodeUserFindOne.completedTasks.push(
-        `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
-      );
-    }
-    if (
-      referralCodeUserFindOne.level !==
-      fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
-    ) {
-      referralCodeUserFindOne.levelUpRewardsCount += 1000;
-    }
-    referralCodeUserFindOne.level = fibonacciPosition(
-      referralCodeUserFindOne.referralCount + 1,
-    );
-    referralCodeUserFindOne.referralCount += 1;
-
-    if (referralCodeUserFindOne.isVip) {
-      referralCodeUserFindOne.referralRewardsCount += 2000;
+    if (userFindOne) {
+      if (userFindOne.completedTasks.includes(taskName)) {
+        return true;
+      } else {
+        userFindOne.completedTasks.push(taskName);
+        await this.userRepo.save(userFindOne);
+        return true;
+      }
     } else {
-      referralCodeUserFindOne.referralRewardsCount += 1000;
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
-    initDataUserFindOne.invitedBy = referralCode;
+  }
 
-    await this.userRepo.save(referralCodeUserFindOne);
-    await this.userRepo.save(initDataUserFindOne);
+  async updateReferralCode(initData: string, referralCode: string) {
+    try {
+      const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+      const referralCodeUserFindOne = await this.userRepo.findOne({
+        where: {
+          referralCode,
+        },
+      });
+      if (!referralCodeUserFindOne) {
+        throw new HttpException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
 
-    const { secretCode, ...restProps } = initDataUserFindOne;
-    return restProps;
+      const initDataUserFindOne = await this.userRepo.findOne({
+        where: {
+          initData,
+        },
+      });
+      if (!initDataUserFindOne) {
+        throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      if (initDataUserFindOne.initData == referralCodeUserFindOne.initData)
+        throw new BadRequestException(ExceptionMessageEnum.CANT_REFERRAL_YOUR_SELF);
+
+      if (!initDataUserFindOne.userHasInvitedLink)
+        throw new BadRequestException(ExceptionMessageEnum.YOU_REGESTERED_WITHOUT_INVITED_LINK);
+
+      if (
+        initDataUserFindOne.invitedBy &&
+        initDataUserFindOne.invitedBy.length > 0
+      ) {
+        throw new HttpException(
+          ExceptionMessageEnum.USER_HAS_BEEN_INVITED_PREVIOUSLY,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
+        referralCodeUserFindOne.completedTasks.push(
+          `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
+        );
+      }
+      if (
+        referralCodeUserFindOne.level !==
+        fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
+      ) {
+        referralCodeUserFindOne.levelUpRewardsCount += 1000;
+      }
+      referralCodeUserFindOne.level = fibonacciPosition(
+        referralCodeUserFindOne.referralCount + 1,
+      );
+      referralCodeUserFindOne.referralCount += 1;
+
+      if (referralCodeUserFindOne.isVip) {
+        referralCodeUserFindOne.referralRewardsCount += 2000;
+      } else {
+        referralCodeUserFindOne.referralRewardsCount += 1000;
+      }
+      initDataUserFindOne.invitedBy = referralCode;
+
+      await this.userRepo.save(referralCodeUserFindOne);
+      await this.userRepo.save(initDataUserFindOne);
+
+      const { secretCode, ...restProps } = initDataUserFindOne;
+      return restProps;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -563,39 +573,60 @@ export class UsersService {
     }
   }
 
-  async claimAllRewards(initData:string):Promise<UserEntity>
-  {
-    const findInitDatUser=await this.userRepo.findOne({
-      where:{initData}
-    })
+  async claimAllRewards(initData: string): Promise<UserEntity> {
+    const findInitDatUser = await this.userRepo.findOne({
+      where: { initData }
+    });
 
-    if(findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount>0)
-    {
-      findInitDatUser.tgmCount+=findInitDatUser.levelUpRewardsCount
-      findInitDatUser.levelUpRewardsCount=0
+    if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
+      findInitDatUser.levelUpRewardsCount = 0;
     }
 
-    if(findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount>0)
-    {
-      findInitDatUser.tgmCount+=findInitDatUser.referralRewardsCount
-      findInitDatUser.referralRewardsCount=0
+    if (findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.referralRewardsCount;
+      findInitDatUser.referralRewardsCount = 0;
     }
 
-    const invitedUsers=await this.userRepo.find({
-      where:{
-        invitedBy:findInitDatUser.referralCode,
-        invitedUserBuyTgmCommission:MoreThan(0)
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+    }
+
+    const invitedUsers = await this.userRepo.find({
+      where: {
+        invitedBy: findInitDatUser.referralCode,
+        invitedUserBuyTgmCommission: MoreThan(0)
       }
-    })
+    });
 
     for (let index = 0; index < invitedUsers.length; index++) {
       const invitedUser = invitedUsers[index];
-      findInitDatUser.tgmCount+=invitedUser.invitedUserBuyTgmCommission
-      invitedUser.invitedUserBuyTgmCommission=0
-      await this.userRepo.save(invitedUser)
+      findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
+      invitedUser.invitedUserBuyTgmCommission = 0;
+      await this.userRepo.save(invitedUser);
     }
 
-    return await this.userRepo.save(findInitDatUser)
+    return await this.userRepo.save(findInitDatUser);
   }
 
   async updateClaimLevelUpReward(initData: string) {
@@ -646,6 +677,45 @@ export class UsersService {
       return restProps;
     } else {
       throw new HttpException(ExceptionMessageEnum.NO_REWARD_REMAINED, HttpStatus.FORBIDDEN);
+    }
+  }
+
+  async updateTaskRewardByTask(
+    initData: string,
+    taskName: string
+  ) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (userFindOne) {
+      if (userFindOne.claimedRewards.includes(taskName)) {
+        throw new HttpException(
+          ExceptionMessageEnum.TASK_HAS_BEEN_CLAIMED_BEFORE,
+          HttpStatus.NOT_FOUND,
+        );
+      } else if (userFindOne.completedTasks.includes(taskName)) {
+        switch (taskName) {
+          case TaskEnum.CONNNECT_WALLET:
+            userFindOne.tgmCount += Number(1000);
+            break;
+          case TaskEnum.FIRST_CASH_AVALANCHE:
+            userFindOne.tgmCount += Number(1000);
+            break;
+          case TaskEnum.FIRST_LONG_SHOT:
+            userFindOne.tgmCount += Number(1000);
+            break;
+          default:
+            break;
+        }
+        userFindOne.claimedRewards.push(taskName);
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      }
+    } else {
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -747,22 +817,18 @@ export class UsersService {
     }
 
 
-    if(userFindOne.tgmCount<0)
-    throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH)
-
+    if (userFindOne.tgmCount < 0)
+      throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH);
     await this.userRepo.save(userFindOne);
   }
 
   async updateUserWalletAddress(initData: string, walletAddress: string) {
+    const x = await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-    if (!userFindOne) {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
     userFindOne.walletAddress = walletAddress;
     await this.userRepo.save(userFindOne);
 
@@ -824,26 +890,26 @@ export class UsersService {
   async updateUserHourlyReward(initData: string) {
     try {
       const hourlyRewardTime = Date.now() + 3600000;
-    const hourlyRewardCount = 100;
+      const hourlyRewardCount = 100;
 
-    const userFindOne = await this.userRepo.findOne({
-      where: {
-        initData,
-      },
-    });
-    if (!userFindOne) {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
+      const userFindOne = await this.userRepo.findOne({
+        where: {
+          initData,
+        },
+      });
+      if (!userFindOne) {
+        throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
 
-    if (Date.now() > userFindOne.hourlyRewardTime) {
-      userFindOne.hourlyRewardTime = hourlyRewardTime;
-      await this.userRepo.save(userFindOne);
-      return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
-    } else {
-      throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
-    }
+      if (Date.now() > userFindOne.hourlyRewardTime) {
+        userFindOne.hourlyRewardTime = hourlyRewardTime;
+        await this.userRepo.save(userFindOne);
+        return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
+      } else {
+        throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
+      }
     } catch (error) {
-     console.log(error)
+      console.log(error);
     }
   }
 
@@ -885,13 +951,12 @@ export class UsersService {
     });
   }
 
-  public async userBannedStatus(secretCode:string):Promise<boolean>
-  {
-    const findedUser=await this.userRepo.findOne({
-      where:{secretCode}
-    })
+  public async userBannedStatus(secretCode: string): Promise<boolean> {
+    const findedUser = await this.userRepo.findOne({
+      where: { secretCode }
+    });
 
-    return findedUser.isBanned
+    return findedUser.isBanned;
   }
 
   async purchasedTgmPagination(paginationDto: PaginationDto<{type:number}>): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
@@ -899,11 +964,11 @@ export class UsersService {
     const queryObject:FindManyOptions<PurchasedTgmEntity>={
       skip: (page - 1) * limit,
       take: limit,
-      relations:{user:true},
+      relations: { user: true },
       order: {
         [sortBy]: sortOrder, // Apply sorting
       },
-      
+
     }
     
     if(paginationDto.filter)

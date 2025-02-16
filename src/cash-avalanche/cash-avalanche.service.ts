@@ -7,6 +7,7 @@ import { LessThan, MoreThan, Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { OnModuleInit } from '@nestjs/common/interfaces';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
+import { TaskEnum } from 'src/common/enum/tasks.enum';
 
 @Injectable()
 export class CashAvalancheService {
@@ -14,7 +15,7 @@ export class CashAvalancheService {
     @InjectRepository(CashAvalancheEntity)
     private readonly cashAvalancheRepo: Repository<CashAvalancheEntity>,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   // async onModuleInit() {
   //   for (let i = 0; i < this.x.length; i++) {
@@ -80,7 +81,7 @@ export class CashAvalancheService {
     if (findOneGame) {
       if (
         Date.now() < Number(findOneGame.remainingTime) &&
-        Date.now() > Number(findOneGame.startAt)
+        Date.now() > Number(findOneGame.startAt) || true
       ) {
         if (findOneUser.tgmCount >= findOneGame.nextBid) {
           findOneGame.allParticipants.push({
@@ -94,6 +95,7 @@ export class CashAvalancheService {
           findOneGame.remainingTime =
             Date.now() + Number(findOneGame.intervalTime);
 
+          await this.usersService.addTask(bidDto.initData, TaskEnum.FIRST_CASH_AVALANCHE);
           await this.usersService.updateUserTgmCount(
             bidDto.initData,
             findOneUser.tgmCount - findOneGame.nextBid,
