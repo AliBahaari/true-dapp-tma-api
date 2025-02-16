@@ -471,7 +471,6 @@ export class UsersService {
       } else {
         userFindOne.completedTasks.push(taskName);
         await this.userRepo.save(userFindOne);
-        const { secretCode, ...restProps } = userFindOne;
         return true;
       }
     } else {
@@ -807,16 +806,12 @@ export class UsersService {
   }
 
   async updateUserWalletAddress(initData: string, walletAddress: string) {
+    const x = await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-    if (!userFindOne) {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
     userFindOne.walletAddress = walletAddress;
     await this.userRepo.save(userFindOne);
 
