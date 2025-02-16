@@ -905,10 +905,10 @@ export class UsersService {
       },
       
     }
-
+    
     if(paginationDto.filter)
     {
-      if(paginationDto.filter.type)
+      if(paginationDto.filter.type || paginationDto.filter.type==0)
       {
         Object.assign(queryObject,{
           where:{
