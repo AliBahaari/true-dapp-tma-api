@@ -13,6 +13,7 @@ import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { UserEntity } from './entities/user.entity';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('users')
 export class UsersController {
@@ -169,5 +170,10 @@ export class UsersController {
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);
+  }
+
+  @Post()
+  async purchasedTgmPagination(@Body() paginationDto: PaginationDto) {
+    return this.usersService.purchasedTgmPagination(paginationDto);
   }
 }

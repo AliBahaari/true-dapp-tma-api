@@ -27,6 +27,7 @@ import { TreasuryController } from './treasury/controllers/treasury.controller';
 import { FileEntity } from './file/entities/file.entity';
 import { FileModule } from './file/file.module';
 import { LongShotTeamEntity } from './long-shot/entities/long-shot-teams.entity';
+import { PurchasedTgmEntity } from './users/entities/purchased-tgm.entity';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
@@ -51,7 +52,8 @@ console.log(process.env.PSQL_DB)
         LongShotTicketEntity,
         LongShotTeamEntity,
         TreasuryEntity,
-        FileEntity
+        FileEntity,
+        PurchasedTgmEntity
       ],
       synchronize: true,
       logging: false

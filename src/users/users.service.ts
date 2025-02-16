@@ -13,7 +13,9 @@ import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NewCreateRedEnvelopeDto } from './dto/new-create-red-envelope.dto';
+import { PaginationDto } from './dto/pagination.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
@@ -30,6 +32,7 @@ export class UsersService {
 
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+    @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
   ) {}
 
   private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
@@ -230,6 +233,15 @@ export class UsersService {
         : buyTgmDto.amount;
       userFindOne.tgmCount += buyTgmDto.type ? packageReward : buyTgmDto.amount;
     }
+
+
+    const purchasedInstance= this.purchasedTgmRepo.create({
+      amount:buyTgmDto.type?String(packageReward):String(buyTgmDto.amount),
+      type:buyTgmDto.type?buyTgmDto.type:0,
+      user:userFindOne
+    })
+
+    await this.purchasedTgmRepo.save(purchasedInstance)
 
     return await this.userRepo.save(userFindOne);
   }
@@ -880,5 +892,19 @@ export class UsersService {
     })
 
     return findedUser.isBanned
+  }
+
+  async purchasedTgmPagination(paginationDto: PaginationDto): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
+    const { page, limit } = paginationDto;
+    const [data, count] = await this.purchasedTgmRepo.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      relations:{user:true}
+    });
+
+    // Calculate if there is a next page
+    const hasNextPage = page * limit < count;
+
+    return { data, count, hasNextPage };
   }
 }
