@@ -588,6 +588,30 @@ export class UsersService {
       findInitDatUser.referralRewardsCount = 0;
     }
 
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+    }
+
     const invitedUsers = await this.userRepo.find({
       where: {
         invitedBy: findInitDatUser.referralCode,
