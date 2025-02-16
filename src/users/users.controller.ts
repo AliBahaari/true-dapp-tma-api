@@ -172,7 +172,7 @@ export class UsersController {
     return await this.usersService.deleteUser(initData);
   }
 
-  @Post()
+  @Post("purchased/tgms/page")
   async purchasedTgmPagination(@Body() paginationDto: PaginationDto) {
     return this.usersService.purchasedTgmPagination(paginationDto);
   }
