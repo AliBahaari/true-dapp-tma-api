@@ -1,5 +1,10 @@
 // src/common/dto/pagination.dto.ts
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+
+export enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
 
 export class PaginationDto {
   @IsOptional()
@@ -11,4 +16,11 @@ export class PaginationDto {
   @IsNumber()
   @Min(1)
   limit: number = 10;
+
+  @IsOptional()
+  sortBy: string = 'createdAt'; // Default sort by createdAt
+
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortOrder: SortOrder = SortOrder.DESC; // Default sort order
 }

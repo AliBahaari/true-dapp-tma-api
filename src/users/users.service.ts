@@ -895,11 +895,14 @@ export class UsersService {
   }
 
   async purchasedTgmPagination(paginationDto: PaginationDto): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
-    const { page, limit } = paginationDto;
+    const { page, limit, sortBy, sortOrder } = paginationDto;
     const [data, count] = await this.purchasedTgmRepo.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
-      relations:{user:true}
+      relations:{user:true},
+      order: {
+        [sortBy]: sortOrder, // Apply sorting
+      },
     });
 
     // Calculate if there is a next page
