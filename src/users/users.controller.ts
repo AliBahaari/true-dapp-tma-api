@@ -173,7 +173,7 @@ export class UsersController {
   }
 
   @Post("purchased/tgms/page")
-  async purchasedTgmPagination(@Body() paginationDto: PaginationDto) {
+  async purchasedTgmPagination(@Body() paginationDto: PaginationDto<{type:number}>) {
     return this.usersService.purchasedTgmPagination(paginationDto);
   }
 }

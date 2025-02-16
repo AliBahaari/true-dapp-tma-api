@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
-import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { FindManyOptions, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -894,16 +894,31 @@ export class UsersService {
     return findedUser.isBanned
   }
 
-  async purchasedTgmPagination(paginationDto: PaginationDto): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
+  async purchasedTgmPagination(paginationDto: PaginationDto<{type:number}>): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
-    const [data, count] = await this.purchasedTgmRepo.findAndCount({
+    const queryObject:FindManyOptions<PurchasedTgmEntity>={
       skip: (page - 1) * limit,
       take: limit,
       relations:{user:true},
       order: {
         [sortBy]: sortOrder, // Apply sorting
       },
-    });
+      
+    }
+
+    if(paginationDto.filter)
+    {
+      if(paginationDto.filter.type)
+      {
+        Object.assign(queryObject,{
+          where:{
+            type:paginationDto.filter.type
+          }
+        })
+      }
+    }
+
+    const [data, count] = await this.purchasedTgmRepo.findAndCount(queryObject);
 
     // Calculate if there is a next page
     const hasNextPage = page * limit < count;

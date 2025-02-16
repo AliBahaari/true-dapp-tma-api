@@ -6,7 +6,7 @@ export enum SortOrder {
   DESC = 'DESC',
 }
 
-export class PaginationDto {
+export class PaginationDto<Filter> {
   @IsOptional()
   @IsNumber()
   @Min(1)
@@ -23,4 +23,7 @@ export class PaginationDto {
   @IsOptional()
   @IsEnum(SortOrder)
   sortOrder: SortOrder = SortOrder.DESC; // Default sort order
+
+  @IsOptional()
+  filter:Filter
 }
