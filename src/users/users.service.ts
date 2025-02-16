@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -549,6 +549,41 @@ export class UsersService {
     } else {
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
+  }
+
+  async claimAllRewards(initData:string):Promise<UserEntity>
+  {
+    const findInitDatUser=await this.userRepo.findOne({
+      where:{initData}
+    })
+
+    if(findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount>0)
+    {
+      findInitDatUser.tgmCount+=findInitDatUser.levelUpRewardsCount
+      findInitDatUser.levelUpRewardsCount=0
+    }
+
+    if(findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount>0)
+    {
+      findInitDatUser.tgmCount+=findInitDatUser.referralRewardsCount
+      findInitDatUser.referralRewardsCount=0
+    }
+
+    const invitedUsers=await this.userRepo.find({
+      where:{
+        invitedBy:findInitDatUser.referralCode,
+        invitedUserBuyTgmCommission:MoreThan(0)
+      }
+    })
+
+    for (let index = 0; index < invitedUsers.length; index++) {
+      const invitedUser = invitedUsers[index];
+      findInitDatUser.tgmCount+=invitedUser.invitedUserBuyTgmCommission
+      invitedUser.invitedUserBuyTgmCommission=0
+      await this.userRepo.save(invitedUser)
+    }
+
+    return await this.userRepo.save(findInitDatUser)
   }
 
   async updateClaimLevelUpReward(initData: string) {

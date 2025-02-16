@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -75,6 +76,13 @@ export class UsersController {
       initData,
     );
   }
+
+  @Patch("claim/all/rewards/:initData")
+  async claimAllRewards(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllRewards(initData)
+  }
+
 
   @Patch('updateClaimLevelUpReward/:initData')
   async updateClaimLevelUpReward(@Param('initData') initData: string) {
