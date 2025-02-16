@@ -59,6 +59,12 @@ export class UsersController {
     return await this.usersService.findAllUsersCount();
   }
 
+  @Patch("claim/reward/task/:initData/:taskName")
+  async claimRewardOfTask(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllRewards(initData)
+  }
+
   @Patch('updateReferralCode/:initData/:referralCode')
   async updateReferralCode(
     @Param('initData') initData: string,
@@ -78,6 +84,8 @@ export class UsersController {
     );
   }
 
+
+
   @Patch("claim/all/rewards/:initData")
   async claimAllRewards(@Param("initData") initData:string):Promise<UserEntity>
   {
@@ -93,6 +101,17 @@ export class UsersController {
   @Patch('updateClaimAll/:initData')
   async updateClaimAll(@Param('initData') initData: string) {
     return await this.usersService.updateClaimAll(initData);
+  }
+
+  @Patch('updateTaskReward/:initData/:taskName')
+  async updateTaskRewardByTask(
+    @Param('initData') initData: string,
+    @Param('taskName') taskName: string
+  ) {
+    return await this.usersService.updateTaskRewardByTask(
+      initData,
+      taskName
+    );
   }
 
   @Patch('updateTaskReward/:initData/:taskName/:taskReward')
