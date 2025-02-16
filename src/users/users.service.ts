@@ -303,17 +303,11 @@ export class UsersService {
   }
 
   async find(initData: string) {
-    console.log("----- init data -------");
-    console.log(initData);
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-
-    console.log("--------- finding user --------");
-    console.log(userFindOne);
-
     let whoInvitedUser = null;
 
 
@@ -801,7 +795,6 @@ export class UsersService {
 
     if (userFindOne.tgmCount < 0)
       throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH);
-
     await this.userRepo.save(userFindOne);
   }
 

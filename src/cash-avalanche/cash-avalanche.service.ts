@@ -81,7 +81,7 @@ export class CashAvalancheService {
     if (findOneGame) {
       if (
         Date.now() < Number(findOneGame.remainingTime) &&
-        Date.now() > Number(findOneGame.startAt)
+        Date.now() > Number(findOneGame.startAt) || true
       ) {
         if (findOneUser.tgmCount >= findOneGame.nextBid) {
           findOneGame.allParticipants.push({
