@@ -37,6 +37,9 @@ import { UserEntity } from './user.entity';
     @Column({nullable:true})
     invitedByMarketer:boolean
 
+    @Column({nullable:true})
+    inviterCommission:string
+
     @Column({type:"jsonb",nullable:true})
     inviter:UserEntity
 

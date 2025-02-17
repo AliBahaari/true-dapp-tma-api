@@ -261,6 +261,10 @@ export class UsersService {
           createPurchasedDto.headOfInviter=inviter
       }
 
+      createPurchasedDto.inviterCommission=String(Math.floor(
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
+      ))
+
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
         (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
       );
@@ -279,7 +283,7 @@ export class UsersService {
 
 
 
-    const purchasedInstance = this.purchasedTgmRepo.create();
+    const purchasedInstance = this.purchasedTgmRepo.create(createPurchasedDto);
 
     await this.purchasedTgmRepo.save(purchasedInstance);
 
