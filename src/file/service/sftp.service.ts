@@ -19,7 +19,7 @@ export class SftpService {
                 host: 'ec2-40-172-185-159.me-central-1.compute.amazonaws.com', // Backup server IP or hostname
                 port: 22, // SSH port
                 username: 'ubuntu', // SSH username
-                privateKey: fs.readFileSync(process.cwd() + '/home/ubuntu/backup/BkKey.pem'), // Path to your private key
+                privateKey: fs.readFileSync('/app/keys/BkKey.pem'), // Path to your private key
             });
 
             // Upload the file
