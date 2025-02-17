@@ -207,6 +207,11 @@ export class UsersController {
     return this.usersService.marketerUserPurchases(paginationDto);
   }
 
+  @Post("marketer/users")
+  async marketerUsers(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.marketerUsers(paginationDto);
+  }
+
   @Post("add/marketer")
   public async addMarketer(@Body() addMarketerDto:AddMarketerDto):Promise<UserEntity>
   {

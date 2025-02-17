@@ -1150,8 +1150,8 @@ export class UsersService {
     return { data, count, hasNextPage };
   }
 
-  /*
-  async marketerUserPurchases(
+  
+  async marketerUsers(
     paginationDto: PaginationDto<{ initData: string }>,
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
@@ -1179,7 +1179,7 @@ export class UsersService {
   
     return { data, count, hasNextPage };
   }
-  */
+  
 
   async marketerUserPurchases(
     paginationDto: PaginationDto<{ initData: string }>,
