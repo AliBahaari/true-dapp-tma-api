@@ -29,6 +29,9 @@ import { UserEntity } from './user.entity';
     type:number
 
     @Column({nullable:true})
+    txId:string
+
+    @Column({nullable:true})
     invitedByVip:boolean
 
     @Column({nullable:true})

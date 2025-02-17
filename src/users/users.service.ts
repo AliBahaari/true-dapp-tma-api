@@ -219,6 +219,7 @@ export class UsersService {
       amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
       type: buyTgmDto.type ? buyTgmDto.type : 0,
       user: userFindOne,
+      txId:buyTgmDto.txId
     }
 
     
@@ -231,21 +232,35 @@ export class UsersService {
         createPurchasedDto.invitedByVip=true
       }
 
-      if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING) || inviter.roles.includes(UserRoles.MARKETER))
-      {
-        if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
-        {
-          createPurchasedDto.invitedByMarketer=true
-          createPurchasedDto.headOfInviter=inviter
-        }
+      // if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING) || inviter.roles.includes(UserRoles.MARKETER))
+      // {
+      //   if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
+      //   {
+      //     createPurchasedDto.invitedByMarketer=true
+      //     createPurchasedDto.headOfInviter=inviter
+      //   }
 
-        if(inviter.roles.includes(UserRoles.MARKETER))
-        {
-          const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.invitedBy}})
+      //   if(inviter.roles.includes(UserRoles.MARKETER))
+      //   {
+      //     const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.invitedBy}})
+      //     createPurchasedDto.invitedByMarketer=true
+      //     createPurchasedDto.headOfInviter=findHeadOfMarketing
+      //   }
+      // }
+
+      if(inviter.getMarketerBy && inviter.roles.includes(UserRoles.MARKETER))
+      {
+               const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.getMarketerBy}})
           createPurchasedDto.invitedByMarketer=true
           createPurchasedDto.headOfInviter=findHeadOfMarketing
-        }
       }
+
+      if(!inviter.getMarketerBy && inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
+      {
+             createPurchasedDto.invitedByMarketer=false
+          createPurchasedDto.headOfInviter=inviter
+      }
+
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
         (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
       );
@@ -1018,52 +1033,101 @@ export class UsersService {
     return { data, count, hasNextPage };
   }
 
-  async headMarketers(paginationDto: PaginationDto<{initData:string}>): Promise<{ data: UserEntity[]; count:number, hasNextPage: boolean }> {
+  async headMarketers(
+    paginationDto: PaginationDto<{ initData: string }>,
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
-    const queryObject:FindManyOptions<UserEntity>={
+  
+    // Find head marketer and validate
+    const findHead = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!findHead || !findHead.roles.includes(UserRoles.HEAD_OF_MARKETING)) {
+      throw new ForbiddenException();
+    }
+  
+    // Build pagination query
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: {
+        getMarketerBy: findHead.referralCode,
+        roles: In([UserRoles.MARKETER]),
+      },
       skip: (page - 1) * limit,
       take: limit,
-      order: {
-        [sortBy]: sortOrder, // Apply sorting
-      },
-    
-    }
-    
-    if(paginationDto.filter)
-    {
-      if(paginationDto.filter.initData)
-      {
-        const findHead=await this.userRepo.findOne({where:{initData:paginationDto.filter.initData}})
-        Object.assign(queryObject,{
-          where:{
-            invitedBy:findHead.referralCode,
-            roles:In([UserRoles.MARKETER])
-          }
-        })
-      }
-    }
-
-    const [data, count] = await this.userRepo.findAndCount(queryObject);
-
-    // Calculate if there is a next page
+      order: { [sortBy]: sortOrder },
+    };
+  
+    // Get paginated marketers and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
     const hasNextPage = page * limit < count;
+  
+    // Efficiently fetch purchases for all marketers in the current page
+    if (data.length > 0) {
+      const referralCodes = data.map((marketer) => marketer.referralCode);
+      const purchasedTgms = await this.purchasedTgmRepo.find({
+        where: { user: { invitedBy: In(referralCodes) } },
+        relations: ['user'],
+      });
+  
+      // Group purchases by referral code
+      const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+      purchasedTgms.forEach((tgm) => {
+        const key = tgm.user.invitedBy;
+        purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+      });
+  
+      // Assign purchases to each marketer
+      data.forEach((marketer) => {
+        marketer["purchases"] = purchasesMap.get(marketer.referralCode) || [];
+      });
+    }
+  
+    return { data, count, hasNextPage };
+  }
 
+  
+  async marketerUserPurchases(
+    paginationDto: PaginationDto<{ initData: string }>,
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+  
+    // Find the marketer
+    const findMarketer = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!findMarketer) {
+      throw new NotFoundException('Marketer not found');
+    }
+  
+    // Build pagination query for users invited by the marketer
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: { invitedBy: findMarketer.referralCode },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+      relations: ['purchasedTgms'], // Include purchasedTgms relation
+    };
+  
+    // Get paginated users and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+  
     return { data, count, hasNextPage };
   }
 
   public async addMarketer(initData:string,referralCode:string):Promise<UserEntity>
   {
-    const findHead=await this.userRepo.findOne({where:{referralCode}})
+    const findHead=await this.userRepo.findOne({where:{initData}})
 
     if(!findHead)
-    throw new NotFoundException(ExceptionMessageEnum.USER_NOT_FOUND)
+    throw new NotFoundException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND)
 
-    if(!findHead.roles.includes(UserRoles.HEAD_OF_MARKETING))
+    if(!findHead.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
     throw new ForbiddenException()
 
-    const findMarketer=await this.userRepo.findOne({where:{initData}})
+    const findMarketer=await this.userRepo.findOne({where:{referralCode}})
     if(!findMarketer)
-    throw new NotFoundException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND)
+    throw new NotFoundException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND)
 
     if(findMarketer.getMarketerBy)
     throw new ConflictException("User Already is Marketer")
@@ -1072,7 +1136,7 @@ export class UsersService {
     if(findMarketer.roles.includes(UserRoles.MARKETER))
     throw new ConflictException("User Already is Marketer")
 
-    findMarketer.getMarketerBy=referralCode
+    findMarketer.getMarketerBy=findHead.referralCode  
     return  await this.userRepo.save(findMarketer)
   
   }

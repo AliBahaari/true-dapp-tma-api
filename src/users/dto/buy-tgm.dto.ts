@@ -10,4 +10,8 @@ export class BuyTgmDto {
 
   @IsNumber()
   amount?: number;
+
+  @IsString()
+  @IsNotEmpty()
+  txId:string
 }
