@@ -1225,7 +1225,7 @@ export class UsersService {
     if(!findMarketer)
     throw new NotFoundException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND)
 
-    if(findMarketer.getMarketerBy)
+    if(findMarketer.getMarketerBy && !findMarketer.deletedAtOfMarketers)
     throw new ConflictException("User Already is Marketer")
 
 
