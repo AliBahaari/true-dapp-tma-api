@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
+import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
@@ -1235,5 +1236,18 @@ export class UsersService {
     findMarketer.roles.push(UserRoles.MARKETER)
     return  await this.userRepo.save(findMarketer)
   
+  }
+
+  public async deleteMarketer(user:IUserToken,initData:string):Promise<UserEntity>
+  {
+    const findHead=await this.userRepo.findOne({where:{initData:user.initData}})
+    if(!findHead || !findHead?.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
+    throw new ForbiddenException()
+
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+
+    findMarketer.roles.splice(findMarketer.roles.findIndex(x=>x==UserRoles.MARKETER),1)
+    findMarketer.getMarketerBy=null
+    return await this.userRepo.save(findMarketer)
   }
 }

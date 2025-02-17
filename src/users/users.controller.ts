@@ -15,6 +15,8 @@ import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { UserEntity } from './entities/user.entity';
 import { PaginationDto } from './dto/pagination.dto';
 import { AddMarketerDto } from './dto/add-marketer.dto';
+import { IUserToken } from 'src/common/interfaces/user-token.interface';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -216,5 +218,11 @@ export class UsersController {
   public async addMarketer(@Body() addMarketerDto:AddMarketerDto):Promise<UserEntity>
   {
     return await this.usersService.addMarketer(addMarketerDto.initData,addMarketerDto.referralCode)
+  }
+
+  @Delete("delete/marketer/:initData")
+  public async deleteMarketer(@GetUser() user:IUserToken,@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.deleteMarketer(user,initData)
   }
 }
