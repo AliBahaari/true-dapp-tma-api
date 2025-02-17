@@ -1036,7 +1036,7 @@ export class UsersService {
 
     return { data, count, hasNextPage };
   }
-
+/*
   async headMarketers(
     paginationDto: PaginationDto<{ initData: string }>,
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
@@ -1083,6 +1083,67 @@ export class UsersService {
       // Assign purchases to each marketer
       data.forEach((marketer) => {
         marketer["purchases"] = purchasesMap.get(marketer.referralCode) || [];
+      });
+    }
+  
+    return { data, count, hasNextPage };
+  }
+  */
+
+  async headMarketers(
+    paginationDto: PaginationDto<{ initData: string }>,
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+  
+    // Find head marketer and validate
+    const findHead = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!findHead || !findHead.roles.find((x) => x === UserRoles.HEAD_OF_MARKETING)) {
+      throw new ForbiddenException();
+    }
+  
+    // Build pagination query
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: {
+        getMarketerBy: findHead.referralCode,
+        roles: In([UserRoles.MARKETER]),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+    };
+  
+    // Get paginated marketers and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+  
+    // Efficiently fetch purchases for all marketers in the current page
+    if (data.length > 0) {
+      const referralCodes = data.map((marketer) => marketer.referralCode);
+      const purchasedTgms = await this.purchasedTgmRepo.find({
+        where: { user: { invitedBy: In(referralCodes) } },
+        relations: ['user'],
+      });
+  
+      // Group purchases by referral code
+      const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+      purchasedTgms.forEach((tgm) => {
+        const key = tgm.user.invitedBy;
+        purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+      });
+  
+      // Assign purchases and calculate total inviterCommission for each marketer
+      data.forEach((marketer) => {
+        const marketerPurchases = purchasesMap.get(marketer.referralCode) || [];
+        marketer["purchases"] = marketerPurchases;
+  
+        // Calculate total inviterCommission
+        const purchaseCommissionCount = marketerPurchases.reduce(
+          (total, purchase) => total + (Number(purchase.inviterCommission) || 0),
+          0,
+        );
+        marketer["purchaseCommissionCount"] = purchaseCommissionCount;
       });
     }
   
