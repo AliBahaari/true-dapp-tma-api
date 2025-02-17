@@ -1099,7 +1099,7 @@ export class UsersService {
     const findHead = await this.userRepo.findOne({
       where: { initData: paginationDto.filter.initData },
     });
-    if (!findHead || !findHead.roles.find((x) => x === UserRoles.HEAD_OF_MARKETING)) {
+    if (!findHead || !findHead.roles.find((x) => x == UserRoles.HEAD_OF_MARKETING)) {
       throw new ForbiddenException();
     }
   
