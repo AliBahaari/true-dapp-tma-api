@@ -147,6 +147,9 @@ export class UserEntity {
   })
   userHasInvitedLink: boolean;
 
+  @Column({nullable:true})
+  getMarketerBy:string
+
   @CreateDateColumn()
   createdAt: string;
 

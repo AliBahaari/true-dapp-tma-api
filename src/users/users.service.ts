@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common/exceptions';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
@@ -1049,5 +1049,31 @@ export class UsersService {
     const hasNextPage = page * limit < count;
 
     return { data, count, hasNextPage };
+  }
+
+  public async addMarketer(initData:string,referralCode:string):Promise<UserEntity>
+  {
+    const findHead=await this.userRepo.findOne({where:{referralCode}})
+
+    if(!findHead)
+    throw new NotFoundException(ExceptionMessageEnum.USER_NOT_FOUND)
+
+    if(!findHead.roles.includes(UserRoles.HEAD_OF_MARKETING))
+    throw new ForbiddenException()
+
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+    if(!findMarketer)
+    throw new NotFoundException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND)
+
+    if(findMarketer.getMarketerBy)
+    throw new ConflictException("User Already is Marketer")
+
+
+    if(findMarketer.roles.includes(UserRoles.MARKETER))
+    throw new ConflictException("User Already is Marketer")
+
+    findMarketer.getMarketerBy=referralCode
+    return  await this.userRepo.save(findMarketer)
+  
   }
 }

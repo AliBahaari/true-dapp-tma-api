@@ -14,6 +14,7 @@ import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { UserEntity } from './entities/user.entity';
 import { PaginationDto } from './dto/pagination.dto';
+import { AddMarketerDto } from './dto/add-marketer.dto';
 
 @Controller('users')
 export class UsersController {
@@ -199,5 +200,11 @@ export class UsersController {
   @Post("head/marketers")
   async headMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
     return this.usersService.headMarketers(paginationDto);
+  }
+
+  @Post("add/marketer")
+  public async addMarketer(@Body() addMarketerDto:AddMarketerDto):Promise<UserEntity>
+  {
+    return await this.usersService.addMarketer(addMarketerDto.initData,addMarketerDto.referralCode)
   }
 }
