@@ -1058,7 +1058,7 @@ export class UsersService {
     if(!findHead)
     throw new NotFoundException(ExceptionMessageEnum.USER_NOT_FOUND)
 
-    if(!findHead.roles.includes(UserRoles.HEAD_OF_MARKETING))
+    if(!findHead.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
     throw new ForbiddenException()
 
     const findMarketer=await this.userRepo.findOne({where:{referralCode}})
