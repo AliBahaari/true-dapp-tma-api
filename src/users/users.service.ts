@@ -1245,6 +1245,9 @@ export class UsersService {
     throw new ForbiddenException()
 
     const findMarketer=await this.userRepo.findOne({where:{initData}})
+    
+    if(!findMarketer.roles.find(x=>x==UserRoles.MARKETER) || !findMarketer.getMarketerBy)
+    throw new BadRequestException()
 
     findMarketer.roles.splice(findMarketer.roles.findIndex(x=>x==UserRoles.MARKETER),1)
     findMarketer.getMarketerBy=null
