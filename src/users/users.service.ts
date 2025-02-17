@@ -1150,7 +1150,7 @@ export class UsersService {
     return { data, count, hasNextPage };
   }
 
-  
+  /*
   async marketerUserPurchases(
     paginationDto: PaginationDto<{ initData: string }>,
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
@@ -1175,6 +1175,36 @@ export class UsersService {
   
     // Get paginated users and total count
     const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+  
+    return { data, count, hasNextPage };
+  }
+  */
+
+  async marketerUserPurchases(
+    paginationDto: PaginationDto<{ initData: string }>,
+  ): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+  
+    // Find the marketer by initData
+    const marketer = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!marketer || !marketer.roles.find((x) => x == UserRoles.MARKETER)) {
+      throw new ForbiddenException('Marketer not found or invalid role');
+    }
+  
+    // Build pagination query for purchases
+    const queryOptions: FindManyOptions<PurchasedTgmEntity> = {
+      where: { user: { invitedBy: marketer.referralCode } }, // Filter purchases by marketer's referralCode
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+      relations: ['user'], // Include user relation if needed
+    };
+  
+    // Get paginated purchases and total count
+    const [data, count] = await this.purchasedTgmRepo.findAndCount(queryOptions);
     const hasNextPage = page * limit < count;
   
     return { data, count, hasNextPage };
