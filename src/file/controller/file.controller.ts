@@ -52,7 +52,7 @@ export class FileController {
         await this.fileService.create({
             ...file,
         });
-        await this.sftpService.uploadFile(`./public/images/${file.filename}`, '/var/www/files/backup_images');
+        await this.sftpService.uploadFile(`./public/images/${file.filename}`, `/var/www/files/backup_images/${file.filename}`);
         return { url: `/static/images/${file.filename}` };
     }
 }
