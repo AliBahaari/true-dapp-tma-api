@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
-import { FindManyOptions, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -215,7 +215,37 @@ export class UsersService {
       userFindOne.packageIds.push(buyTgmDto.type);
     }
 
+    const createPurchasedDto:Partial<PurchasedTgmEntity>={
+      amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
+      type: buyTgmDto.type ? buyTgmDto.type : 0,
+      user: userFindOne,
+    }
+
+    
+
     if (userFindOne.invitedBy) {
+      const inviter=await this.userRepo.findOne({where:{referralCode:userFindOne.invitedBy}})
+      createPurchasedDto.inviter=inviter
+      if(inviter.isVip)
+      {
+        createPurchasedDto.invitedByVip=true
+      }
+
+      if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING) || inviter.roles.includes(UserRoles.MARKETER))
+      {
+        if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
+        {
+          createPurchasedDto.invitedByMarketer=true
+          createPurchasedDto.headOfInviter=inviter
+        }
+
+        if(inviter.roles.includes(UserRoles.MARKETER))
+        {
+          const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.invitedBy}})
+          createPurchasedDto.invitedByMarketer=true
+          createPurchasedDto.headOfInviter=findHeadOfMarketing
+        }
+      }
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
         (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
       );
@@ -233,11 +263,8 @@ export class UsersService {
     }
 
 
-    const purchasedInstance = this.purchasedTgmRepo.create({
-      amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
-      type: buyTgmDto.type ? buyTgmDto.type : 0,
-      user: userFindOne
-    });
+
+    const purchasedInstance = this.purchasedTgmRepo.create();
 
     await this.purchasedTgmRepo.save(purchasedInstance);
 
@@ -984,6 +1011,39 @@ export class UsersService {
     }
 
     const [data, count] = await this.purchasedTgmRepo.findAndCount(queryObject);
+
+    // Calculate if there is a next page
+    const hasNextPage = page * limit < count;
+
+    return { data, count, hasNextPage };
+  }
+
+  async headMarketers(paginationDto: PaginationDto<{initData:string}>): Promise<{ data: UserEntity[]; count:number, hasNextPage: boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+    const queryObject:FindManyOptions<UserEntity>={
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        [sortBy]: sortOrder, // Apply sorting
+      },
+    
+    }
+    
+    if(paginationDto.filter)
+    {
+      if(paginationDto.filter.initData)
+      {
+        const findHead=await this.userRepo.findOne({where:{initData:paginationDto.filter.initData}})
+        Object.assign(queryObject,{
+          where:{
+            invitedBy:findHead.referralCode,
+            roles:In([UserRoles.MARKETER])
+          }
+        })
+      }
+    }
+
+    const [data, count] = await this.userRepo.findAndCount(queryObject);
 
     // Calculate if there is a next page
     const hasNextPage = page * limit < count;

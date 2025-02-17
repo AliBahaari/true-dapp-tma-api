@@ -28,6 +28,18 @@ import { UserEntity } from './user.entity';
     @Column()
     type:number
 
+    @Column({nullable:true})
+    invitedByVip:boolean
+
+    @Column({nullable:true})
+    invitedByMarketer:boolean
+
+    @Column({type:"jsonb",nullable:true})
+    inviter:UserEntity
+
+    @Column({type:"jsonb",nullable:true})
+    headOfInviter:UserEntity
+
     @ManyToOne(()=>UserEntity,(x)=>x.purchasedTgms)
     user:UserEntity
   }
