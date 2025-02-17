@@ -1073,6 +1073,7 @@ export class UsersService {
     throw new ConflictException("User Already is Marketer")
 
     findMarketer.getMarketerBy=findHead.referralCode
+    findMarketer.roles.push(UserRoles.MARKETER)
     return  await this.userRepo.save(findMarketer)
   
   }
