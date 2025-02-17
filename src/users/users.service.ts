@@ -1250,7 +1250,7 @@ export class UsersService {
     throw new BadRequestException()
 
     findMarketer.roles.splice(findMarketer.roles.findIndex(x=>x==UserRoles.MARKETER),1)
-    findMarketer.getMarketerBy=null
-    return await this.userRepo.save(findMarketer)
+    findMarketer.deletedAtOfMarketers=new Date()
+        return await this.userRepo.save(findMarketer)
   }
 }
