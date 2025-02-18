@@ -770,7 +770,7 @@ export class UsersService {
         const finalPurchasedTgms=invitedUser.purchasedTgms.filter(x=>x.marketerClaimedCommission==false)
         for (let index = 0; index < finalPurchasedTgms.length; index++) {
           const notClaimedPurchasedTgm = finalPurchasedTgms[index];
-          findInitDatUser.tgmCount+=Number(notClaimedPurchasedTgm.marketerCommission)
+          findInitDatUser.tgmCount=findInitDatUser.tgmCount+Number(notClaimedPurchasedTgm.marketerCommission)
           notClaimedPurchasedTgm.marketerClaimedCommission=true
           finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm)
         }
