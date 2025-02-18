@@ -775,6 +775,11 @@ export class UsersService {
           finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm)
         }
       }
+      console.log("--------- changed purchases --------")
+      console.log(finalNotClaimedPurchasedTgm.length)
+
+      console.log("------- user tgm count ----------")
+      console.log(findInitDatUser.tgmCount)
       await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
       return await this.userRepo.save(findInitDatUser);
         }else{
