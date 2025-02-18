@@ -359,8 +359,7 @@ export class UsersService {
         initData,
       },
     });
-    let whoInvitedUser:UserEntity | null = null;
-
+    let whoInvitedUser: UserEntity | null = null;
 
     if (userFindOne) {
       if (userFindOne.invitedBy) {
@@ -391,28 +390,15 @@ export class UsersService {
         usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
       const rowsCount = usersFindAll.length;
-      const currentDate = new Date();
-      const activePack = await this.packRepo
-        .createQueryBuilder('pack')
-        .where('pack.endDate > :currentDate', { currentDate })
-        .andWhere('pack.startDate < :currentDate', { currentDate })
-        .getOne();
-      let activeLongShotGame;
-      if (activePack) {
-        activeLongShotGame = await this.ticketRepo.find({
-          where: {
-            initData,
-            pack: {
-              id: activePack.id
-            },
-          },
-          relations: {
-            pack: true
-          }
-        });
-      } else {
-        activeLongShotGame = null;
-      }
+
+      const longShotGame = await this.ticketRepo.find({
+        where: {
+          initData,
+        },
+        relations: {
+          pack: true
+        }
+      });
 
       const cashAvalancheGamesFind = await this.cashAvalancheRepo.find({
         where: {
@@ -427,36 +413,42 @@ export class UsersService {
           }
         }
       }
-      let  isInvitedMarketer:boolean=false
-      let isInviterHeadOfMarketer=false
-      let marketerAddress:string
-      let headOfMarketerAddress:string
-      let isMarketerVip=false
-      let marketerCommission:number
+      let isInvitedMarketer: boolean = false;
+      let isInviterHeadOfMarketer = false;
+      let marketerAddress: string;
+      let headOfMarketerAddress: string;
+      let isMarketerVip = false;
+      let marketerCommission: number;
 
-      if(whoInvitedUser.roles.find(x=>x==UserRoles.MARKETER) && whoInvitedUser.getMarketerBy)
-        {
-          isInvitedMarketer=true
-          marketerAddress=whoInvitedUser.walletAddress
-          const findHeadOfMarketer=await this.userRepo.findOne({where:{referralCode:whoInvitedUser.getMarketerBy}})
-          headOfMarketerAddress=findHeadOfMarketer.walletAddress
-          isMarketerVip=whoInvitedUser.marketerVip?whoInvitedUser.marketerVip:false
-          marketerCommission=whoInvitedUser.marketerCommision?whoInvitedUser.marketerCommision:0
+      if (whoInvitedUser.roles.find(x => x == UserRoles.MARKETER) && whoInvitedUser.getMarketerBy) {
+        isInvitedMarketer = true;
+        marketerAddress = whoInvitedUser.walletAddress;
+        const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: whoInvitedUser.getMarketerBy } });
+        headOfMarketerAddress = findHeadOfMarketer.walletAddress;
+        isMarketerVip = whoInvitedUser.marketerVip ? whoInvitedUser.marketerVip : false;
+        marketerCommission = whoInvitedUser.marketerCommision ? whoInvitedUser.marketerCommision : 0;
+      }
+
+      if (whoInvitedUser.roles.find(x => x == UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy) {
+        isInviterHeadOfMarketer = true;
+        headOfMarketerAddress = whoInvitedUser.walletAddress;
+      }
+
+      const countOfReferral = this.userRepo.count({
+        where: {
+          invitedBy: userFindOne.referralCode
         }
-
-        if(whoInvitedUser.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy)
-        {
-          isInviterHeadOfMarketer=true
-          headOfMarketerAddress=whoInvitedUser.walletAddress
-        }
-
+      });
+      const currentDate = new Date();
       return {
         ...restProps,
         allEstimatedTgmPrices: Decimal.div(
           allEstimatedTgmPrices,
           rowsCount,
         ).toFixed(8),
-        activeLongShotGame,
+        activeLongShotGame: longShotGame.find(x => x.pack.endDate > currentDate.toISOString() && x.pack.startDate < currentDate.toISOString()),
+        longShotGame,
+        countOfReferral,
         activeCashAvalanche: participatedCashAvalancheGames,
         // allEstimatedTgmPrices: '0.0004',
         whoInvitedUser: {
