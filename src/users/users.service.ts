@@ -213,14 +213,14 @@ export class UsersService {
       if (buyTgmDto.type === 1) {
         packageReward = 10000;
       } else if (buyTgmDto.type === 2) {
-        packageReward = 1000000;
+        packageReward = 2000000;
       } else if (buyTgmDto.type === 3) {
         packageReward = 100000;
       } else if (buyTgmDto.type === 4) {
         packageReward = 1000000;
         userFindOne.isVip = true;
       } else if (buyTgmDto.type === 5) {
-        packageReward = 12000000;
+        packageReward = 24000000;
       }
       userFindOne.packageIds.push(buyTgmDto.type);
     }
@@ -1343,7 +1343,7 @@ export class UsersService {
 
   async marketerUsers(
     paginationDto: PaginationDto<{ initData: string; }>,
-  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; }> {
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean;claim:boolean }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
 
     // Find the marketer
@@ -1367,7 +1367,13 @@ export class UsersService {
     const [data, count] = await this.userRepo.findAndCount(queryOptions);
     const hasNextPage = page * limit < count;
 
-    return { data, count, hasNextPage };
+    const purchases=await this.purchasedTgmRepo.find({where:{inviter:{id:findMarketer.id}}})
+
+    let shouldCalimOrNot:boolean
+
+    const findClaimablePurchase=purchases.find(x=>x.marketerCommission && x.marketerClaimedCommission==false)
+
+    return { data, count, hasNextPage, claim:findClaimablePurchase?true:false };
   }
 
 
