@@ -420,7 +420,7 @@ export class UsersService {
       let isMarketerVip = false;
       let marketerCommission: number;
 
-      if (whoInvitedUser.roles.find(x => x == UserRoles.MARKETER) && whoInvitedUser.getMarketerBy) {
+      if (whoInvitedUser && whoInvitedUser.roles.find(x => x == UserRoles.MARKETER) && whoInvitedUser.getMarketerBy) {
         isInvitedMarketer = true;
         marketerAddress = whoInvitedUser.walletAddress;
         const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: whoInvitedUser.getMarketerBy } });
@@ -429,16 +429,17 @@ export class UsersService {
         marketerCommission = whoInvitedUser.marketerCommision ? whoInvitedUser.marketerCommision : 0;
       }
 
-      if (whoInvitedUser.roles.find(x => x == UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy) {
+      if (whoInvitedUser && whoInvitedUser.roles.find(x => x == UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy) {
         isInviterHeadOfMarketer = true;
         headOfMarketerAddress = whoInvitedUser.walletAddress;
       }
 
-      const countOfReferral = this.userRepo.count({
+      const countOfReferral = await this.userRepo.count({
         where: {
           invitedBy: userFindOne.referralCode
         }
       });
+
       const currentDate = new Date();
       return {
         ...restProps,
