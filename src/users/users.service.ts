@@ -714,7 +714,7 @@ export class UsersService {
     }
   }
 
-  /*
+  
   async claimAllRewards(initData: string): Promise<UserEntity> {
     const findInitDatUser = await this.userRepo.findOne({
       where: { initData }
@@ -794,8 +794,10 @@ export class UsersService {
       return await this.userRepo.save(findInitDatUser);
     }
   }
-  */
+  
 
+  // DEEP SEEK VERSION
+  /*
   async claimAllRewards(initData: string): Promise<UserEntity> {
     const findInitDatUser = await this.userRepo.findOne({
       where: { initData },
@@ -889,6 +891,7 @@ export class UsersService {
   
     return findInitDatUser;
   }
+  */
 
   async updateClaimLevelUpReward(initData: string) {
     const userFindOne = await this.userRepo.findOne({
