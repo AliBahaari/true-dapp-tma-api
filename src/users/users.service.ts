@@ -263,14 +263,23 @@ export class UsersService {
         const findHeadOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
         createPurchasedDto.headOfInviter = findHeadOfMarketing;
-        createPurchasedDto.invitedByVipMarketer=true
-        createPurchasedDto.marketerCommission= String(Math.floor(
-          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (inviter.marketerCommision / 100),
-        ));
-
-        percentOfRemainingForUser-=inviter.marketerCommision
         
-        createPurchasedDto.headOfMarketerCommission=String(Math.floor(
+        if(inviter.marketerVip)
+        {
+          createPurchasedDto.invitedByVipMarketer=true
+
+          createPurchasedDto.marketerCommission= String(Math.floor(
+            (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (inviter.marketerCommision / 100),
+          ));
+          percentOfRemainingForUser-=inviter.marketerCommision
+        }else{
+          createPurchasedDto.marketerCommission= String(Math.floor(
+            (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+          ));
+          percentOfRemainingForUser-=10
+        }
+      
+         createPurchasedDto.headOfMarketerCommission=String(Math.floor(
           (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
         ));
 
