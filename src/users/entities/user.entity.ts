@@ -130,6 +130,12 @@ export class UserEntity {
   })
   hourlyRewardTime: number;
 
+  @Column({nullable:true})
+  marketerVip:boolean
+
+  @Column({nullable:true})
+  marketerCommision:number
+
   @Column({
     default: 0,
   })

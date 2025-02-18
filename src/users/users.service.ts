@@ -431,6 +431,8 @@ export class UsersService {
       let isInviterHeadOfMarketer=false
       let marketerAddress:string
       let headOfMarketerAddress:string
+      let isMarketerVip=false
+      let marketerCommission:number
 
       if(whoInvitedUser.roles.find(x=>x==UserRoles.MARKETER) && whoInvitedUser.getMarketerBy)
         {
@@ -438,6 +440,8 @@ export class UsersService {
           marketerAddress=whoInvitedUser.walletAddress
           const findHeadOfMarketer=await this.userRepo.findOne({where:{referralCode:whoInvitedUser.getMarketerBy}})
           headOfMarketerAddress=findHeadOfMarketer.walletAddress
+          isMarketerVip=whoInvitedUser.marketerVip?whoInvitedUser.marketerVip:false
+          marketerCommission=whoInvitedUser.marketerCommision?whoInvitedUser.marketerCommision:0
         }
 
         if(whoInvitedUser.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy)
@@ -461,7 +465,9 @@ export class UsersService {
           isInvitedMarketer,
           isInviterHeadOfMarketer,
           marketerAddress,
-          headOfMarketerAddress
+          headOfMarketerAddress,
+          isMarketerVip,
+          marketerCommission
         },
       };
     } else {
