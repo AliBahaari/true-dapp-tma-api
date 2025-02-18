@@ -17,6 +17,7 @@ import { PaginationDto } from './dto/pagination.dto';
 import { AddMarketerDto } from './dto/add-marketer.dto';
 import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
+import { UpdateMarketerDto } from './dto/update-marketer.dto';
 
 @Controller('users')
 export class UsersController {
@@ -224,5 +225,11 @@ export class UsersController {
   public async deleteMarketer(@GetUser() user:IUserToken,@Param("initData") initData:string):Promise<UserEntity>
   {
     return await this.usersService.deleteMarketer(user,initData)
+  }
+
+  @Patch("update/marketer/:initData")
+  public async updateMarketerVipStatusAndCommission(@GetUser() user:IUserToken,@Param("initData") initData:string,@Body() updateMarketerDto:UpdateMarketerDto):Promise<UserEntity>
+  {
+    return await this.usersService.updateMarketerVipStatusAndCommission(user,initData,updateMarketerDto)
   }
 }

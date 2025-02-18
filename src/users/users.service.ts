@@ -22,6 +22,8 @@ import { fibonacciPosition } from './utils/fibonacciPosition';
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.entity';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
+import { UserInfo } from 'os';
+import { UpdateMarketerDto } from './dto/update-marketer.dto';
 var crypto = require('crypto');
 
 @Injectable()
@@ -1311,5 +1313,25 @@ export class UsersService {
     findMarketer.roles.splice(findMarketer.roles.findIndex(x => x == UserRoles.MARKETER), 1);
     findMarketer.deletedAtOfMarketers = new Date();
     return await this.userRepo.save(findMarketer);
+  }
+
+  public async updateMarketerVipStatusAndCommission(user:IUserToken,initData:string,updateMarketerDto:UpdateMarketerDto):Promise<UserEntity>
+  {
+    const findHead=await this.userRepo.findOne({where:{initData:user.initData}})
+    if(!findHead.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
+    throw new ForbiddenException()
+
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findMarketer.roles.find(x=>x==UserRoles.MARKETER))
+    throw new BadRequestException("Init Data is not for Marketer")
+  
+    if(updateMarketerDto.commission)
+    findMarketer.marketerCommision=updateMarketerDto.commission
+
+    if(updateMarketerDto.vip)
+    findMarketer.marketerVip=updateMarketerDto.vip
+
+    return await this.userRepo.save(findMarketer)
   }
 }
