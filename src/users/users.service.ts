@@ -9,7 +9,7 @@ import * as path from 'path';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
 import { IUserToken } from 'src/common/interfaces/user-token.interface';
-import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Raw, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -1331,7 +1331,8 @@ export class UsersService {
 
     const marketerIds:string[]=marketersOfThisHead.map(x=>x.id)
 
-    const purchases=await this.purchasedTgmRepo.find({where:{inviter:{id:In(marketerIds)}}})
+    let purchases=await this.purchasedTgmRepo.find()
+    purchases=purchases.filter(x=>marketerIds.includes(x.inviter?.id)==true)
 
     let shouldCalimOrNot:boolean
 
@@ -1367,8 +1368,18 @@ export class UsersService {
     const [data, count] = await this.userRepo.findAndCount(queryOptions);
     const hasNextPage = page * limit < count;
 
-    const purchases=await this.purchasedTgmRepo.find({where:{inviter:{id:findMarketer.id}}})
+    console.log(findMarketer)
 
+    // let purchases=await this.purchasedTgmRepo.find({where:{  inviter: Raw((alias) => `"${alias}"->>'id' = :marketerId`, {
+    //   marketerId:findMarketer.id,
+    // }),}})
+
+
+    let purchases=await this.purchasedTgmRepo.find()
+
+    purchases=purchases.filter(x=>x.inviter?.id=="1cbe73d9-112f-4345-91a7-359552e89ea8")
+
+    console.log(purchases.length)
     let shouldCalimOrNot:boolean
 
     const findClaimablePurchase=purchases.find(x=>x.marketerCommission && x.marketerClaimedCommission==false)
