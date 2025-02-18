@@ -359,7 +359,7 @@ export class UsersService {
         initData,
       },
     });
-    let whoInvitedUser = null;
+    let whoInvitedUser:UserEntity | null = null;
 
 
     if (userFindOne) {
@@ -427,6 +427,25 @@ export class UsersService {
           }
         }
       }
+      let  isInvitedMarketer:boolean=false
+      let isInviterHeadOfMarketer=false
+      let marketerAddress:string
+      let headOfMarketerAddress:string
+
+      if(whoInvitedUser.roles.find(x=>x==UserRoles.MARKETER) && whoInvitedUser.getMarketerBy)
+        {
+          isInvitedMarketer=true
+          marketerAddress=whoInvitedUser.walletAddress
+          const findHeadOfMarketer=await this.userRepo.findOne({where:{referralCode:whoInvitedUser.getMarketerBy}})
+          headOfMarketerAddress=findHeadOfMarketer.walletAddress
+        }
+
+        if(whoInvitedUser.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy)
+        {
+          isInviterHeadOfMarketer=true
+          headOfMarketerAddress=whoInvitedUser.walletAddress
+        }
+
       return {
         ...restProps,
         allEstimatedTgmPrices: Decimal.div(
@@ -439,6 +458,10 @@ export class UsersService {
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
           isVip: whoInvitedUser && whoInvitedUser.isVip,
+          isInvitedMarketer,
+          isInviterHeadOfMarketer,
+          marketerAddress,
+          headOfMarketerAddress
         },
       };
     } else {
