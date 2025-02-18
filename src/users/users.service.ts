@@ -714,6 +714,7 @@ export class UsersService {
     }
   }
 
+  /*
   async claimAllRewards(initData: string): Promise<UserEntity> {
     const findInitDatUser = await this.userRepo.findOne({
       where: { initData }
@@ -792,6 +793,101 @@ export class UsersService {
   
       return await this.userRepo.save(findInitDatUser);
     }
+  }
+  */
+
+  async claimAllRewards(initData: string): Promise<UserEntity> {
+    const findInitDatUser = await this.userRepo.findOne({
+      where: { initData },
+    });
+  
+    if (!findInitDatUser) {
+      throw new NotFoundException('User not found');
+    }
+  
+    if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
+      findInitDatUser.levelUpRewardsCount = 0;
+    }
+  
+    if (findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.referralRewardsCount;
+      findInitDatUser.referralRewardsCount = 0;
+    }
+  
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+    }
+  
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+    }
+  
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+    }
+  
+    if (findInitDatUser.roles.includes(UserRoles.MARKETER)) {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+        },
+        relations: { purchasedTgms: true },
+      });
+  
+      let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
+      for (const invitedUser of invitedUsers) {
+        const finalPurchasedTgms = invitedUser.purchasedTgms.filter(
+          (x) => x.marketerClaimedCommission === false,
+        );
+        for (const notClaimedPurchasedTgm of finalPurchasedTgms) {
+          findInitDatUser.tgmCount += Number(notClaimedPurchasedTgm.marketerCommission);
+          notClaimedPurchasedTgm.marketerClaimedCommission = true;
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
+        }
+      }
+  
+      // Save only if there are records to update
+      if (finalNotClaimedPurchasedTgm.length > 0) {
+        await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm);
+      }
+    } else {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          invitedUserBuyTgmCommission: MoreThan(0),
+        },
+      });
+      for (const invitedUser of invitedUsers) {
+        findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
+        invitedUser.invitedUserBuyTgmCommission = 0;
+        await this.userRepo.save(invitedUser);
+      }
+    }
+  
+    // Save only if there are changes
+    if (
+      findInitDatUser.levelUpRewardsCount !== 0 ||
+      findInitDatUser.referralRewardsCount !== 0 ||
+      findInitDatUser.claimedRewards.length > 0 ||
+      findInitDatUser.tgmCount > 0
+    ) {
+      return await this.userRepo.save(findInitDatUser);
+    }
+  
+    return findInitDatUser;
   }
 
   async updateClaimLevelUpReward(initData: string) {
