@@ -744,21 +744,43 @@ export class UsersService {
       findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
     }
 
-    const invitedUsers = await this.userRepo.find({
-      where: {
-        invitedBy: findInitDatUser.referralCode,
-        invitedUserBuyTgmCommission: MoreThan(0)
+
+
+    if(findInitDatUser.roles.find(x=>x==UserRoles.MARKETER)){
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          },
+          relations:{purchasedTgms:true}
+      });
+
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        const finalPurchasedTgms=invitedUser.purchasedTgms.filter(x=>x.marketerClaimedCommission==false)
+        for (let index = 0; index < finalPurchasedTgms.length; index++) {
+          const notClaimedPurchasedTgm = finalPurchasedTgms[index];
+          findInitDatUser.tgmCount+=Math.floor(Number(notClaimedPurchasedTgm.marketerCommission))
+          notClaimedPurchasedTgm.marketerClaimedCommission=true
+          await this.purchasedTgmRepo.save(notClaimedPurchasedTgm)
+        }
       }
-    });
-
-    for (let index = 0; index < invitedUsers.length; index++) {
-      const invitedUser = invitedUsers[index];
-      findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
-      invitedUser.invitedUserBuyTgmCommission = 0;
-      await this.userRepo.save(invitedUser);
+      return await this.userRepo.save(findInitDatUser);
+        }else{
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          invitedUserBuyTgmCommission: MoreThan(0)
+        }
+      });
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
+        invitedUser.invitedUserBuyTgmCommission = 0;
+        await this.userRepo.save(invitedUser);
+      }
+  
+      return await this.userRepo.save(findInitDatUser);
     }
-
-    return await this.userRepo.save(findInitDatUser);
   }
 
   async updateClaimLevelUpReward(initData: string) {
