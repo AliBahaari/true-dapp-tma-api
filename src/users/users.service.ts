@@ -225,6 +225,8 @@ export class UsersService {
       userFindOne.packageIds.push(buyTgmDto.type);
     }
 
+    let percentOfRemainingForUser=100
+
     const createPurchasedDto: Partial<PurchasedTgmEntity> = {
       amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
       type: buyTgmDto.type ? buyTgmDto.type : 0,
@@ -261,11 +263,29 @@ export class UsersService {
         const findHeadOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
         createPurchasedDto.headOfInviter = findHeadOfMarketing;
+        createPurchasedDto.invitedByVipMarketer=true
+        createPurchasedDto.marketerCommission= String(Math.floor(
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (inviter.marketerCommision / 100),
+        ));
+
+        percentOfRemainingForUser-=inviter.marketerCommision
+        
+        createPurchasedDto.headOfMarketerCommission=String(Math.floor(
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+        ));
+
+        percentOfRemainingForUser-=10
       }
 
       if (!inviter.getMarketerBy && inviter.roles.includes(UserRoles.HEAD_OF_MARKETING)) {
         createPurchasedDto.invitedByMarketer = false;
         createPurchasedDto.headOfInviter = inviter;
+
+        createPurchasedDto.headOfMarketerCommission=String(Math.floor(
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+        ));
+        
+        percentOfRemainingForUser-=10
       }
 
       createPurchasedDto.inviterCommission = String(Math.floor(
@@ -279,7 +299,7 @@ export class UsersService {
         ? packageReward
         : buyTgmDto.amount;
       userFindOne.tgmCount += Math.floor(
-        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (95 / 100),
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * ( percentOfRemainingForUser/ 100),
       );
     } else {
       userFindOne.boughtTgmCount += buyTgmDto.type
@@ -1154,6 +1174,68 @@ export class UsersService {
     }
     */
 
+    async ownerHeadMarketers(
+      paginationDto: PaginationDto<{}>, // No filter needed since we're fetching all head marketers
+    ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
+      const { page, limit, sortBy, sortOrder } = paginationDto;
+    
+      // Find all head marketers
+      const headMarketers = await this.userRepo.find({
+        where: { roles: In([UserRoles.HEAD_OF_MARKETING]) },
+      });
+    
+      // If no head marketers found, return empty response
+      if (headMarketers.length === 0) {
+        return { data: [], count: 0, hasNextPage: false };
+      }
+    
+      // Collect all head marketers' referral codes
+      const headReferralCodes = headMarketers.map(head => head.referralCode);
+    
+      // Build pagination query to get marketers for all head marketers
+      const queryOptions: FindManyOptions<UserEntity> = {
+        where: {
+          getMarketerBy: In(headReferralCodes),
+          roles: In([UserRoles.MARKETER]),
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { [sortBy]: sortOrder },
+      };
+    
+      // Get paginated marketers and total count
+      const [data, count] = await this.userRepo.findAndCount(queryOptions);
+      const hasNextPage = page * limit < count;
+    
+      // Efficiently fetch purchases for all marketers in the current page
+      if (data.length > 0) {
+        const referralCodes = data.map(marketer => marketer.referralCode);
+        const purchasedTgms = await this.purchasedTgmRepo.find({
+          where: { user: { invitedBy: In(referralCodes) } },
+          relations: ['user'],
+        });
+    
+        // Group purchases by referral code
+        const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+        purchasedTgms.forEach(tgm => {
+          const key = tgm.user.invitedBy;
+          purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+        });
+    
+        // Assign purchases and calculate total inviterCommission for each marketer
+        data.forEach(marketer => {
+          const marketerPurchases = purchasesMap.get(marketer.referralCode) || [];
+          marketer["purchases"] = marketerPurchases;
+          marketer["purchaseCommissionCount"] = marketerPurchases.reduce(
+            (total, purchase) => total + (Number(purchase.inviterCommission) || 0),
+            0,
+          );
+        });
+      }
+    
+      return { data, count, hasNextPage };
+    }
+
   async headMarketers(
     paginationDto: PaginationDto<{ initData: string; }>,
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; }> {
@@ -1333,5 +1415,49 @@ export class UsersService {
     findMarketer.marketerVip=updateMarketerDto.vip
 
     return await this.userRepo.save(findMarketer)
+  }
+
+  public async claimAllMarketerCommissions(initData:string):Promise<UserEntity>
+  {
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findMarketer.roles.find(x=>x==UserRoles.MARKETER))
+      throw new ForbiddenException()
+
+
+      const purchases=await this.purchasedTgmRepo.find({where:{inviter:{initData:initData},marketerClaimedCommission:false}})
+      let finalCommission:number
+      let purchaseIds:string[]=[]
+      
+      purchases.forEach(x=>{
+        finalCommission+=Math.floor(Number(x.marketerCommission)),
+        purchaseIds.push(x.id)
+      })
+
+      await this.purchasedTgmRepo.update(purchaseIds,{marketerClaimedCommission:true})
+      findMarketer.tgmCount+=finalCommission
+      return await this.userRepo.save(findMarketer)
+  }
+
+  public async claimAllHeadOfMarketerCommissions(initData:string):Promise<UserEntity>
+  {
+    const findHeadMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findHeadMarketer.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
+      throw new ForbiddenException()
+
+
+      const purchases=await this.purchasedTgmRepo.find({where:{headOfInviter:{initData:initData},headOfMarketerClaimedCommission:false}})
+      let finalCommission:number
+      let purchaseIds:string[]=[]
+      
+      purchases.forEach(x=>{
+        finalCommission+=Math.floor(Number(x.headOfMarketerCommission)),
+        purchaseIds.push(x.id)
+      })
+
+      await this.purchasedTgmRepo.update(purchaseIds,{headOfMarketerClaimedCommission:true})
+      findHeadMarketer.tgmCount+=finalCommission
+      return await this.userRepo.save(findHeadMarketer)
   }
 }

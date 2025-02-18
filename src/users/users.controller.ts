@@ -200,6 +200,11 @@ export class UsersController {
     return this.usersService.purchasedTgmPagination(paginationDto);
   }
 
+  @Post("owner/head/marketers")
+  async ownerheadMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.ownerHeadMarketers(paginationDto);
+  }
+
   @Post("head/marketers")
   async headMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
     return this.usersService.headMarketers(paginationDto);
@@ -231,5 +236,17 @@ export class UsersController {
   public async updateMarketerVipStatusAndCommission(@GetUser() user:IUserToken,@Param("initData") initData:string,@Body() updateMarketerDto:UpdateMarketerDto):Promise<UserEntity>
   {
     return await this.usersService.updateMarketerVipStatusAndCommission(user,initData,updateMarketerDto)
+  }
+
+  @Patch("marketer/commission/claim/all/:initData")
+  public async claimAllMarketerCommissions(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllMarketerCommissions(initData)
+  }
+
+  @Patch("head/marketer/commission/claim/all/:initData")
+  public async claimAllHeadOfMarketerCommissions(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllHeadOfMarketerCommissions(initData)
   }
 }
