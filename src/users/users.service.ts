@@ -1238,7 +1238,7 @@ export class UsersService {
 
   async headMarketers(
     paginationDto: PaginationDto<{ initData: string; }>,
-  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; }> {
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; claim:boolean }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
 
     // Find head marketer and validate
@@ -1293,7 +1293,20 @@ export class UsersService {
       });
     }
 
-    return { data, count, hasNextPage };
+    const marketersOfThisHead=await this.userRepo.find({where: {
+      getMarketerBy: findHead.referralCode,
+      roles: In([UserRoles.MARKETER]),
+    }})
+
+    const marketerIds:string[]=marketersOfThisHead.map(x=>x.id)
+
+    const purchases=await this.purchasedTgmRepo.find({where:{inviter:{id:In(marketerIds)}}})
+
+    let shouldCalimOrNot:boolean
+
+    const findClaimablePurchase=purchases.find(x=>x.headOfMarketerCommission && x.headOfMarketerClaimedCommission==false)
+
+    return { data, count, hasNextPage, claim:findClaimablePurchase?true:false };
   }
 
 
