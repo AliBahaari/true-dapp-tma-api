@@ -763,16 +763,18 @@ export class UsersService {
           relations:{purchasedTgms:true}
       });
 
+      let finalNotClaimedPurchasedTgm:PurchasedTgmEntity[]=[]
       for (let index = 0; index < invitedUsers.length; index++) {
         const invitedUser = invitedUsers[index];
         const finalPurchasedTgms=invitedUser.purchasedTgms.filter(x=>x.marketerClaimedCommission==false)
         for (let index = 0; index < finalPurchasedTgms.length; index++) {
           const notClaimedPurchasedTgm = finalPurchasedTgms[index];
-          findInitDatUser.tgmCount+=Math.floor(Number(notClaimedPurchasedTgm.marketerCommission))
+          findInitDatUser.tgmCount+=Number(notClaimedPurchasedTgm.marketerCommission)
           notClaimedPurchasedTgm.marketerClaimedCommission=true
-          await this.purchasedTgmRepo.save(notClaimedPurchasedTgm)
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm)
         }
       }
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
       return await this.userRepo.save(findInitDatUser);
         }else{
       const invitedUsers = await this.userRepo.find({
