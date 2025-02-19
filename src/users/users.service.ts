@@ -296,7 +296,7 @@ export class UsersService {
         createPurchasedDto.headOfInviter = inviter;
 
         createPurchasedDto.headOfMarketerCommission=String(Math.floor(
-          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (20 / 100),
         ));
 
         percentOfRemainingForUser-=10
@@ -1326,6 +1326,8 @@ export class UsersService {
         where: { roles: In([UserRoles.HEAD_OF_MARKETING]) },
       });
 
+      console.log(headMarketers)
+
       // If no head marketers found, return empty response
       if (headMarketers.length === 0) {
         return { data: [], count: 0, hasNextPage: false };
@@ -1348,6 +1350,7 @@ export class UsersService {
       // Get paginated marketers and total count
       const [data, count] = await this.userRepo.findAndCount(queryOptions);
       const hasNextPage = page * limit < count;
+      console.log(data)
 
       // Efficiently fetch purchases for all marketers in the current page
       if (data.length > 0) {
