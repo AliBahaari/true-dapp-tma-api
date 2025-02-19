@@ -734,7 +734,7 @@ export class UsersService {
       findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
     ) {
-      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.tgmCount += 2000;
       findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
     }
 
@@ -742,7 +742,7 @@ export class UsersService {
       findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
     ) {
-      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.tgmCount += 2000;
       findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
     }
 
@@ -750,7 +750,7 @@ export class UsersService {
       findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
     ) {
-      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.tgmCount += 2000;
       findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
     }
 
@@ -967,13 +967,13 @@ export class UsersService {
       } else if (userFindOne.completedTasks.includes(taskName)) {
         switch (taskName) {
           case TaskEnum.CONNNECT_WALLET:
-            userFindOne.tgmCount += Number(1000);
+            userFindOne.tgmCount += Number(2000);
             break;
           case TaskEnum.FIRST_CASH_AVALANCHE:
-            userFindOne.tgmCount += Number(1000);
+            userFindOne.tgmCount += Number(2000);
             break;
           case TaskEnum.FIRST_LONG_SHOT:
-            userFindOne.tgmCount += Number(1000);
+            userFindOne.tgmCount += Number(2000);
             break;
           default:
             break;
