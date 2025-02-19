@@ -1023,7 +1023,9 @@ export class LongShotService implements OnModuleInit {
       longShotGameTgmCount,
       ticketLevel,
       participatedLeagues: [],
-      packId,
+      pack: {
+        id: packId
+      },
     });
   }
 
