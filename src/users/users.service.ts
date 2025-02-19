@@ -1617,8 +1617,13 @@ export class UsersService {
     if(!findHeadMarketer.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
       throw new ForbiddenException()
 
+      // const purchases=await this.purchasedTgmRepo.find({where:{headOfInviter:{initData:initData},headOfMarketerClaimedCommission:false}})
 
-      const purchases=await this.purchasedTgmRepo.find({where:{headOfInviter:{initData:initData},headOfMarketerClaimedCommission:false}})
+      const purchases = await this.purchasedTgmRepo
+      .createQueryBuilder('pt')
+      .where(`pt."headOfInviter"->>'initData' = :initData`, { initData: initData })
+      .andWhere('pt."headOfMarketerClaimedCommission" = :claimed', { claimed: false })
+      .getMany();
       let finalCommission:number
       let purchaseIds:string[]=[]
 
