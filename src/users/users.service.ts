@@ -299,7 +299,7 @@ export class UsersService {
           (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (20 / 100),
         ));
 
-        percentOfRemainingForUser-=10
+        percentOfRemainingForUser-=20
       }
 
       createPurchasedDto.inviterCommission = String(Math.floor(
