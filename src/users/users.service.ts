@@ -264,7 +264,7 @@ export class UsersService {
       //   }
       // }
 
-      if (inviter.getMarketerBy && inviter.roles.includes(UserRoles.MARKETER)) {
+      if (inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.MARKETER)) {
         const findHeadOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
         createPurchasedDto.headOfInviter = findHeadOfMarketing;
@@ -291,7 +291,7 @@ export class UsersService {
         percentOfRemainingForUser-=10
       }
 
-      if (!inviter.getMarketerBy && inviter.roles.includes(UserRoles.HEAD_OF_MARKETING)) {
+      if (!inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING)) {
         createPurchasedDto.invitedByMarketer = false;
         createPurchasedDto.headOfInviter = inviter;
 
@@ -361,7 +361,7 @@ export class UsersService {
     if (!fromUser || !toUser)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
 
-    if (fromUser.roles.includes(UserRoles.OWNER)) {
+    if (fromUser.roles.find(x=>x==UserRoles.OWNER)) {
       toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
       return await this.userRepo.save(toUser);
     }
@@ -1549,7 +1549,7 @@ export class UsersService {
       throw new ConflictException("User Already is Marketer");
 
 
-    if (findMarketer.roles.includes(UserRoles.MARKETER))
+    if (findMarketer.roles.find(x=>x==UserRoles.MARKETER))
       throw new ConflictException("User Already is Marketer");
 
     findMarketer.getMarketerBy = findHead.referralCode;
