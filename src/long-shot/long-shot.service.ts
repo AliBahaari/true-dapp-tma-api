@@ -43,6 +43,7 @@ export class LongShotService implements OnModuleInit {
     @InjectRepository(LongShotTeamEntity)
     private readonly teamRepo: Repository<LongShotTeamEntity>,
     private readonly usersService: UsersService,
+    
   ) { }
   onModuleInit() {}
 
@@ -919,7 +920,7 @@ export class LongShotService implements OnModuleInit {
 
   // Ticket Buy
   async ticketBuy(initData: string, packId: string, ticketLevel: 1 | 2 | 3) {
-    const userFindOne = await this.usersService.find(initData);
+    const userFindOne = await this.usersService.findOneUser(initData);
     const findPack = await this.packsRepo.findOne({
       where: { id: packId }
     });

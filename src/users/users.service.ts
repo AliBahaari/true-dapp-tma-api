@@ -45,6 +45,11 @@ export class UsersService {
 
   ) { }
 
+  public async findOneUser(initData:string):Promise<UserEntity>
+  {
+    return  await this.userRepo.findOne({where:{initData}})
+  }
+
   private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
   private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
 
