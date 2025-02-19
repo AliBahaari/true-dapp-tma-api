@@ -43,7 +43,7 @@ export class LongShotService implements OnModuleInit {
     @InjectRepository(LongShotTeamEntity)
     private readonly teamRepo: Repository<LongShotTeamEntity>,
     private readonly usersService: UsersService,
-    
+
   ) { }
   onModuleInit() {}
 
@@ -880,14 +880,19 @@ export class LongShotService implements OnModuleInit {
     .where('pack.endDate > :currentDate', { currentDate })
     .andWhere('pack.startDate < :currentDate', { currentDate })
     .getOne();
-    return await this.ticketsRepo.find({
-      where: {
-        initData,
-        pack: {
-          id: pack.id
-        }
-      },
-    });
+    if (pack) {
+      return await this.ticketsRepo.find({
+        where: {
+          initData,
+          pack: {
+            id: pack.id
+          }
+        },
+      });
+    }
+    else {
+      return null
+    }
   }
 
 
