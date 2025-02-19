@@ -483,7 +483,7 @@ export class UsersService {
           allEstimatedTgmPrices,
           rowsCount,
         ).toFixed(8),
-        activeLongShotGame: longShotGame.find(x => x.pack.endDate > currentDate.toISOString() && x.pack.startDate < currentDate.toISOString()),
+        activeLongShotGame: longShotGame?.find(x => x.pack.endDate > currentDate.toISOString() && x.pack.startDate < currentDate.toISOString()),
         longShotGame,
         countOfReferral,
         activeCashAvalanche: participatedCashAvalancheGames,
