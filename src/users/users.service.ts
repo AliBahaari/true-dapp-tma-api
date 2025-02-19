@@ -1481,9 +1481,9 @@ export class UsersService {
     // }),}})
 
 
-    let purchases=await this.purchasedTgmRepo.find()
+    let purchases=await this.purchasedTgmRepo.find({where:{inviter:{id:findMarketer.id}}})
 
-    purchases=purchases.filter(x=>x.inviter?.id=="1cbe73d9-112f-4345-91a7-359552e89ea8")
+    purchases=purchases.filter(x=>x.inviter?.id==findMarketer.id)
 
     console.log(purchases.length)
     let shouldCalimOrNot:boolean
