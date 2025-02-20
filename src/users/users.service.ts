@@ -6,8 +6,12 @@ import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
+import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
+import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
+import { TonService } from 'src/utils/ton/service/ton-service';
 import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
@@ -30,7 +34,17 @@ export class UsersService {
 
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-  ) {}
+    @InjectRepository(LongShotTicketEntity) private ticketRepo: Repository<LongShotTicketEntity>,
+    @InjectRepository(LongShotPacksEntity) private packRepo: Repository<LongShotPacksEntity>,
+    @InjectRepository(CashAvalancheEntity) private cashAvalancheRepo: Repository<CashAvalancheEntity>,
+    private readonly tonService:TonService
+
+  ) { }
+
+  public async findOneUser(initData:string):Promise<UserEntity>
+  {
+    return  await this.userRepo.findOne({where:{initData}})
+  }
 
   private botToken = '8076475716:AAFoJwuUQShEQVFRQpSD-0ns1C62wRhS1a8';
   private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
@@ -172,6 +186,8 @@ export class UsersService {
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
+    const checkTxId=await this.tonService.txIdIsValid(buyTgmDto.txId)
+
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData: buyTgmDto.initData,
