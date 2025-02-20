@@ -190,8 +190,6 @@ export class UsersService {
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
-    const checkTxId=await this.tonService.txIdIsValid(buyTgmDto.txId)
-
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData: buyTgmDto.initData,
@@ -200,6 +198,9 @@ export class UsersService {
     if (!userFindOne) {
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
+
+    await this.tonService.txIdIsValid(buyTgmDto.txId,userFindOne.walletAddress)
+
     if (
       buyTgmDto.type &&
       buyTgmDto.type !== 1 &&
