@@ -6,7 +6,10 @@ import { AccountInfo } from "../interfaces/ton-account.interface";
 
 
 @Injectable()
-export class TonService{
+export class TonService implements OnModuleInit{
+    async onModuleInit() {
+        const isValid=await this.txIdIsValid("af1baacfd888e309ea406b919308a591faf43b0c6956f670d5dd6565c2f77075","UQCEX3wf3EkEUbYifjrtUTL3Sp1mE8x9OgTNcQ8JfahMEy7L")
+    }
 
 
     CHECK_TRANSACTION_URL="https://tonapi.io/v2/traces/"
@@ -41,7 +44,7 @@ export class TonService{
             const result: AccountInfo = data.data;
             return result;
         } catch (error) {
-            throw new Error(`Failed to fetch transaction data: ${error.message}`);
+            throw new Error(`Failed to fetch wallet address: ${error.message}`);
         }
     }
     
@@ -63,12 +66,12 @@ export class TonService{
                     timeDifference <= 300) {
                     return true; // Transaction is valid
                 } else {
-                    throw new BadRequestException("Transaction ID is not VALID")
+                    return false
                 }
             } catch (error) {
                 retryCount++; // Increment retry count on error
                 if (retryCount >= maxRetries) {
-                    console.error(`Failed to fetch transaction data after ${maxRetries} retries: ${error.message}`);
+                    console.error(`Failed to fetch transaction data or wallet address after ${maxRetries} retries: ${error.message}`);
                     return true; // Return true if API fails after retries
                 }
                 console.warn(`Retrying... Attempt ${retryCount} of ${maxRetries}`);
