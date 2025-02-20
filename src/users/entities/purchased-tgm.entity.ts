@@ -6,7 +6,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
-import { UserEntity } from './user.entity';
+import { UserEntity, UserRoles } from './user.entity';
   
   
   @Entity({
@@ -30,6 +30,11 @@ import { UserEntity } from './user.entity';
 
     @Column({nullable:true})
     txId:string
+
+    // type of inviter
+    @Column({enum:UserRoles,nullable:true})
+    inviterType: UserRoles
+  
 
     // the inviter is vip or not
     @Column({nullable:true})

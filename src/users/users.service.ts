@@ -264,6 +264,8 @@ export class UsersService {
       //   }
       // }
 
+      let inviterType=UserRoles.NORMAL
+
       if (inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.MARKETER)) {
         const findHeadOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
@@ -289,6 +291,8 @@ export class UsersService {
         ));
 
         percentOfRemainingForUser-=10
+
+        inviterType=UserRoles.MARKETER
       }
 
       if (!inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING)) {
@@ -300,7 +304,11 @@ export class UsersService {
         ));
 
         percentOfRemainingForUser-=20
+
+        inviterType=UserRoles.HEAD_OF_MARKETING
       }
+
+      createPurchasedDto.inviterType=inviterType
 
       createPurchasedDto.inviterCommission = String(Math.floor(
         (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
