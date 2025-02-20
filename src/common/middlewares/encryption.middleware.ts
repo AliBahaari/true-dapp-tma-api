@@ -4,7 +4,7 @@ import { EncryptionService } from 'src/utils/encryption/encryption.service';
 
 @Injectable()
 export class EncryptionMiddleware implements NestMiddleware {
-  constructor(private readonly encryptionService: EncryptionService) {}
+  constructor(private readonly encryptionService: EncryptionService) {  }
 
   async use(req: Request, res: Response, next: NextFunction) {
     // Decrypt request body

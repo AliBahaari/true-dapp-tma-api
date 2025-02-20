@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common/exceptions';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
@@ -9,15 +9,19 @@ import * as path from 'path';
 import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
+import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { TonService } from 'src/utils/ton/service/ton-service';
-import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NewCreateRedEnvelopeDto } from './dto/new-create-red-envelope.dto';
+import { PaginationDto } from './dto/pagination.dto';
+import { UpdateMarketerDto } from './dto/update-marketer.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
@@ -37,7 +41,8 @@ export class UsersService {
     @InjectRepository(LongShotTicketEntity) private ticketRepo: Repository<LongShotTicketEntity>,
     @InjectRepository(LongShotPacksEntity) private packRepo: Repository<LongShotPacksEntity>,
     @InjectRepository(CashAvalancheEntity) private cashAvalancheRepo: Repository<CashAvalancheEntity>,
-    private readonly tonService:TonService
+    private readonly tonService:TonService,
+    @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
 
   ) { }
 
@@ -50,139 +55,137 @@ export class UsersService {
   private apiUrl = `https://api.telegram.org/bot${this.botToken}`;
 
   async create(createUserDto: CreateUserDto) {
-   try {
-    let image = null;
-        let downloadedImage = '';
-
-
     try {
-      const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
-        params: { user_id: String(createUserDto.userId), limit: 1 },
-      });
+      let image = null;
+      let downloadedImage = '';
 
 
-      const photos = response.data.result.photos;
-
-
-      if(photos && photos.length>0)
-      {
-        console.log("-- im freaking here -------")
-        const fileId = photos[0][0].file_id;
-
-      const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
-        params: { file_id: fileId },
-      });
-
-      const filePath = fileResponse.data.result.file_path;
-
-      image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
-      }
-
-
-
-    if (!fs.existsSync(this.imageFolder)) {
-      fs.mkdirSync(this.imageFolder, { recursive: true });
-    }
-
-
-      if(photos && photos.length>0)
-      {
-        const response = await axios({
-          url: image,
-          method: 'GET',
-          responseType: 'stream',
+      try {
+        const response = await axios.get(`${this.apiUrl}/getUserProfilePhotos`, {
+          params: { user_id: String(createUserDto.userId), limit: 1 },
         });
 
-        const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
-        const filename = `${crypto.randomUUID()}${extension}`;
-        const filePath = path.join(this.imageFolder, filename);
+
+        const photos = response.data.result.photos;
 
 
-        const writer = fs.createWriteStream(filePath);
-        response.data.pipe(writer);
+        if (photos && photos.length > 0) {
+          console.log("-- im freaking here -------");
+          const fileId = photos[0][0].file_id;
 
-        await new Promise((resolve, reject) => {
-          writer.on('finish', resolve);
-          writer.on('error', reject);
-        });
+          const fileResponse = await axios.get(`${this.apiUrl}/getFile`, {
+            params: { file_id: fileId },
+          });
 
-        downloadedImage = `/static/images/${filename}`;
+          const filePath = fileResponse.data.result.file_path;
+
+          image = `https://api.telegram.org/file/bot${this.botToken}/${filePath}`;
+        }
+
+
+
+        if (!fs.existsSync(this.imageFolder)) {
+          fs.mkdirSync(this.imageFolder, { recursive: true });
+        }
+
+
+        if (photos && photos.length > 0) {
+          const response = await axios({
+            url: image,
+            method: 'GET',
+            responseType: 'stream',
+          });
+
+          const extension = path.extname(image) || '.jpg'; // Default to .jpg if no extension
+          const filename = `${crypto.randomUUID()}${extension}`;
+          const filePath = path.join(this.imageFolder, filename);
+
+
+          const writer = fs.createWriteStream(filePath);
+          response.data.pipe(writer);
+
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+
+          downloadedImage = `/static/images/${filename}`;
+        }
+      } catch (error) {
+        console.log(error);
+        // throw new HttpException(
+        //   `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
+        //   HttpStatus.INTERNAL_SERVER_ERROR,
+        // );
       }
+
+      const referralCode = Math.random().toString(36).substring(2, 7);
+      const privateCode = Math.random().toString(36).substring(2, 7);
+      const initData = createUserDto.initData;
+      const secretCodeHash = CryptoJS.SHA256(
+        initData + privateCode.toString(),
+      ).toString();
+      const hourlyRewardTime = Date.now() + 3600000;
+
+      await this.userRepo.save({
+        initData,
+        fullName: createUserDto.fullName,
+        image: downloadedImage,
+        walletAddress: '',
+        tgmCount: 0,
+        tapCoinCount: 0,
+        level: 1,
+        referralCount: 0,
+        referralCode,
+        completedTasks: [],
+        claimedRewards: [],
+        lastOnline: '',
+        privateCode,
+        userHasInvitedLink: createUserDto.invitedBy ? true : false,
+        isVip: false,
+        referralRewardsCount: 0,
+        levelUpRewardsCount: 0,
+        boughtTgmCount: 0,
+        roles: createUserDto.roles,
+        hourlyRewardTime,
+        invitedUserBuyTgmCommission: 0,
+        packageIds: [],
+        redEnvelopeCount: 0,
+        isBanned: false,
+        secretCode: secretCodeHash,
+      });
+
+      return {
+        initData,
+        fullName: createUserDto.fullName,
+        image: downloadedImage,
+        walletAddress: '',
+        tgmCount: 0,
+        tapCoinCount: 0,
+        level: 1,
+        referralCount: 0,
+        referralCode,
+        completedTasks: [],
+        claimedRewards: [],
+        lastOnline: '',
+        privateCode,
+        estimatedTgmPrice: '0',
+        isVip: false,
+        referralRewardsCount: 0,
+        levelUpRewardsCount: 0,
+        boughtTgmCount: 0,
+        roles: createUserDto.roles,
+        hourlyRewardTime,
+        invitedUserBuyTgmCommission: 0,
+        packageIds: [],
+        redEnvelopeCount: 0,
+        isBanned: false,
+        userHasInvitedLink: createUserDto.invitedBy ? true : false,
+      };
     } catch (error) {
+      console.log("------- catch ------");
       console.log(error);
-      // throw new HttpException(
-      //   `${ExceptionMessageEnum.FAILED_TO_DOWNLOAD_IMAGE} ${error.message}`,
-      //   HttpStatus.INTERNAL_SERVER_ERROR,
-      // );
     }
-
-    const referralCode = Math.random().toString(36).substring(2, 7);
-    const privateCode = Math.random().toString(36).substring(2, 7);
-    const initData = createUserDto.initData;
-    const secretCodeHash = CryptoJS.SHA256(
-      initData + privateCode.toString(),
-    ).toString();
-    const hourlyRewardTime = Date.now() + 3600000;
-
-    await this.userRepo.save({
-      initData,
-      fullName: createUserDto.fullName,
-      image: downloadedImage,
-      walletAddress: '',
-      tgmCount: 0,
-      tapCoinCount: 0,
-      level: 1,
-      referralCount: 0,
-      referralCode,
-      completedTasks: [],
-      claimedRewards: [],
-      lastOnline: '',
-      privateCode,
-      userHasInvitedLink:createUserDto.invitedBy?true:false,
-      isVip: false,
-      referralRewardsCount: 0,
-      levelUpRewardsCount: 0,
-      boughtTgmCount: 0,
-      roles: createUserDto.roles,
-      hourlyRewardTime,
-      invitedUserBuyTgmCommission: 0,
-      packageIds: [],
-      redEnvelopeCount: 0,
-      isBanned: false,
-      secretCode: secretCodeHash,
-    });
-
-    return {
-      initData,
-      fullName: createUserDto.fullName,
-      image: downloadedImage,
-      walletAddress: '',
-      tgmCount: 0,
-      tapCoinCount: 0,
-      level: 1,
-      referralCount: 0,
-      referralCode,
-      completedTasks: [],
-      claimedRewards: [],
-      lastOnline: '',
-      privateCode,
-      estimatedTgmPrice: '0',
-      isVip: false,
-      referralRewardsCount: 0,
-      levelUpRewardsCount: 0,
-      boughtTgmCount: 0,
-      roles: createUserDto.roles,
-      hourlyRewardTime,
-      invitedUserBuyTgmCommission: 0,
-      packageIds: [],
-      redEnvelopeCount: 0,
-      isBanned: false,
-      userHasInvitedLink:createUserDto.invitedBy?true:false,
-    };
-   } catch (error) {
-    console.log("------- catch ------")
-    console.log(error)
-   }
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
@@ -230,7 +233,90 @@ export class UsersService {
       userFindOne.packageIds.push(buyTgmDto.type);
     }
 
+    let percentOfRemainingForUser=100
+
+    const createPurchasedDto: Partial<PurchasedTgmEntity> = {
+      amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
+      type: buyTgmDto.type ? buyTgmDto.type : 0,
+      user: userFindOne,
+      txId: buyTgmDto.txId
+    };
+
+
+
     if (userFindOne.invitedBy) {
+      const inviter = await this.userRepo.findOne({ where: { referralCode: userFindOne.invitedBy } });
+      createPurchasedDto.inviter = inviter;
+      if (inviter.isVip) {
+        createPurchasedDto.invitedByVip = true;
+      }
+
+      // if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING) || inviter.roles.includes(UserRoles.MARKETER))
+      // {
+      //   if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
+      //   {
+      //     createPurchasedDto.invitedByMarketer=true
+      //     createPurchasedDto.headOfInviter=inviter
+      //   }
+
+      //   if(inviter.roles.includes(UserRoles.MARKETER))
+      //   {
+      //     const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.invitedBy}})
+      //     createPurchasedDto.invitedByMarketer=true
+      //     createPurchasedDto.headOfInviter=findHeadOfMarketing
+      //   }
+      // }
+
+      let inviterType=UserRoles.NORMAL
+
+      if (inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.MARKETER)) {
+        const findHeadOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
+        createPurchasedDto.invitedByMarketer = true;
+        createPurchasedDto.headOfInviter = findHeadOfMarketing;
+
+        if(inviter.marketerVip)
+        {
+          createPurchasedDto.invitedByVipMarketer=true
+
+          createPurchasedDto.marketerCommission= String(Math.floor(
+            (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (inviter.marketerCommision / 100),
+          ));
+          percentOfRemainingForUser-=inviter.marketerCommision
+        }else{
+          createPurchasedDto.marketerCommission= String(Math.floor(
+            (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+          ));
+          percentOfRemainingForUser-=10
+        }
+
+         createPurchasedDto.headOfMarketerCommission=String(Math.floor(
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (10 / 100),
+        ));
+
+        percentOfRemainingForUser-=10
+
+        inviterType=UserRoles.MARKETER
+      }
+
+      if (!inviter.getMarketerBy && inviter.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING)) {
+        createPurchasedDto.invitedByMarketer = false;
+        createPurchasedDto.headOfInviter = inviter;
+
+        createPurchasedDto.headOfMarketerCommission=String(Math.floor(
+          (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (20 / 100),
+        ));
+
+        percentOfRemainingForUser-=20
+
+        inviterType=UserRoles.HEAD_OF_MARKETING
+      }
+
+      createPurchasedDto.inviterType=inviterType
+
+      createPurchasedDto.inviterCommission = String(Math.floor(
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
+      ));
+
       userFindOne.invitedUserBuyTgmCommission += Math.floor(
         (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (5 / 100),
       );
@@ -238,7 +324,7 @@ export class UsersService {
         ? packageReward
         : buyTgmDto.amount;
       userFindOne.tgmCount += Math.floor(
-        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * (95 / 100),
+        (buyTgmDto.type ? packageReward : buyTgmDto.amount) * ( percentOfRemainingForUser/ 100),
       );
     } else {
       userFindOne.boughtTgmCount += buyTgmDto.type
@@ -246,6 +332,12 @@ export class UsersService {
         : buyTgmDto.amount;
       userFindOne.tgmCount += buyTgmDto.type ? packageReward : buyTgmDto.amount;
     }
+
+
+
+    const purchasedInstance = this.purchasedTgmRepo.create(createPurchasedDto);
+
+    await this.purchasedTgmRepo.save(purchasedInstance);
 
     return await this.userRepo.save(userFindOne);
   }
@@ -263,13 +355,13 @@ export class UsersService {
     userFindOne.redEnvelopeCount += createRedEnvelopeDto.amount;
     await this.userRepo.save(userFindOne);
 
-    return true
+    return true;
   }
 
   async newCreateRedEnvelope(createRedEnvelopeDto: NewCreateRedEnvelopeDto) {
-    const fromUser=await this.userRepo.findOne({
-      where:{initData:createRedEnvelopeDto.initData}
-    })
+    const fromUser = await this.userRepo.findOne({
+      where: { initData: createRedEnvelopeDto.initData }
+    });
 
     const toUser = await this.userRepo.findOne({
       where: {
@@ -280,21 +372,20 @@ export class UsersService {
     if (!fromUser || !toUser)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
 
-      if(fromUser.roles.includes(UserRoles.OWNER))
-      {
-        toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
-        return await this.userRepo.save(toUser)
-      }
-
-      if(fromUser.tgmCount<createRedEnvelopeDto.amount)
-      throw new BadRequestException(ExceptionMessageEnum.TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE)
-
-      fromUser.tgmCount-=createRedEnvelopeDto.amount
+    if (fromUser.roles.find(x=>x==UserRoles.OWNER)) {
       toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+      return await this.userRepo.save(toUser);
+    }
 
-    await this.userRepo.save([fromUser,toUser]);
+    if (fromUser.tgmCount < createRedEnvelopeDto.amount)
+      throw new BadRequestException(ExceptionMessageEnum.TGM_COUNT_NOT_ENOOUGH_FOR_RED_ENVELOPE);
 
-    return true
+    fromUser.tgmCount -= createRedEnvelopeDto.amount;
+    toUser.redEnvelopeCount += createRedEnvelopeDto.amount;
+
+    await this.userRepo.save([fromUser, toUser]);
+
+    return true;
   }
 
   async findAll() {
@@ -310,19 +401,12 @@ export class UsersService {
   }
 
   async find(initData: string) {
-    console.log("----- init data -------")
-    console.log(initData)
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-
-    console.log("--------- finding user --------")
-    console.log(userFindOne)
-
-    let whoInvitedUser = null;
-
+    let whoInvitedUser: UserEntity | null = null;
 
     if (userFindOne) {
       if (userFindOne.invitedBy) {
@@ -352,18 +436,78 @@ export class UsersService {
       userFindOne['rank'] =
         usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
       const { secretCode, ...restProps } = userFindOne;
-      const rowsCount = usersFindAll.length
+      const rowsCount = usersFindAll.length;
 
+      const longShotGame = await this.ticketRepo.find({
+        where: {
+          initData,
+        },
+        relations: {
+          pack: true
+        }
+      });
+
+      const cashAvalancheGamesFind = await this.cashAvalancheRepo.find({
+        where: {
+          remainingTime: MoreThan(Date.now()),
+        },
+      });
+      const participatedCashAvalancheGames = [];
+      if (cashAvalancheGamesFind.length > 0) {
+        for (const i of cashAvalancheGamesFind) {
+          if (i.allParticipants.find((i) => i.initData === initData)) {
+            participatedCashAvalancheGames.push(i);
+          }
+        }
+      }
+      let isInvitedMarketer: boolean = false;
+      let isInviterHeadOfMarketer = false;
+      let marketerAddress: string;
+      let headOfMarketerAddress: string;
+      let isMarketerVip = false;
+      let marketerCommission: number;
+
+      if (whoInvitedUser && whoInvitedUser.roles.find(x => x == UserRoles.MARKETER) && whoInvitedUser.getMarketerBy) {
+        isInvitedMarketer = true;
+        marketerAddress = whoInvitedUser.walletAddress;
+        const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: whoInvitedUser.getMarketerBy } });
+        headOfMarketerAddress = findHeadOfMarketer.walletAddress;
+        isMarketerVip = whoInvitedUser.marketerVip ? whoInvitedUser.marketerVip : false;
+        marketerCommission = whoInvitedUser.marketerCommision ? whoInvitedUser.marketerCommision : 0;
+      }
+
+      if (whoInvitedUser && whoInvitedUser.roles.find(x => x == UserRoles.HEAD_OF_MARKETING) && !whoInvitedUser.getMarketerBy) {
+        isInviterHeadOfMarketer = true;
+        headOfMarketerAddress = whoInvitedUser.walletAddress;
+      }
+
+      const countOfReferral = await this.userRepo.count({
+        where: {
+          invitedBy: userFindOne.referralCode
+        }
+      });
+
+      const currentDate = new Date();
       return {
         ...restProps,
         allEstimatedTgmPrices: Decimal.div(
           allEstimatedTgmPrices,
           rowsCount,
         ).toFixed(8),
+        activeLongShotGame: longShotGame?.find(x => x.pack.endDate > currentDate.toISOString() && x.pack.startDate < currentDate.toISOString()),
+        longShotGame,
+        countOfReferral,
+        activeCashAvalanche: participatedCashAvalancheGames,
         // allEstimatedTgmPrices: '0.0004',
         whoInvitedUser: {
           walletAddress: whoInvitedUser && whoInvitedUser.walletAddress,
           isVip: whoInvitedUser && whoInvitedUser.isVip,
+          isInvitedMarketer,
+          isInviterHeadOfMarketer,
+          marketerAddress,
+          headOfMarketerAddress,
+          isMarketerVip,
+          marketerCommission
         },
       };
     } else {
@@ -466,73 +610,92 @@ export class UsersService {
     };
   }
 
-  async updateReferralCode(initData: string, referralCode: string) {
-    try {
-      const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
-    const referralCodeUserFindOne = await this.userRepo.findOne({
-      where: {
-        referralCode,
-      },
-    });
-    if (!referralCodeUserFindOne) {
-      throw new HttpException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    const initDataUserFindOne = await this.userRepo.findOne({
+  async addTask(initData: string, taskName: string) {
+    const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-    if (!initDataUserFindOne) {
-      throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
-    if(initDataUserFindOne.initData == referralCodeUserFindOne.initData)
-    throw new BadRequestException(ExceptionMessageEnum.CANT_REFERRAL_YOUR_SELF)
-
-    if(!initDataUserFindOne.userHasInvitedLink)
-    throw new BadRequestException(ExceptionMessageEnum.YOU_REGESTERED_WITHOUT_INVITED_LINK)
-
-    if (
-      initDataUserFindOne.invitedBy &&
-      initDataUserFindOne.invitedBy.length > 0
-    ) {
-      throw new HttpException(
-        ExceptionMessageEnum.USER_HAS_BEEN_INVITED_PREVIOUSLY,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
-      referralCodeUserFindOne.completedTasks.push(
-        `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
-      );
-    }
-    if (
-      referralCodeUserFindOne.level !==
-      fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
-    ) {
-      referralCodeUserFindOne.levelUpRewardsCount += 1000;
-    }
-    referralCodeUserFindOne.level = fibonacciPosition(
-      referralCodeUserFindOne.referralCount + 1,
-    );
-    referralCodeUserFindOne.referralCount += 1;
-
-    if (referralCodeUserFindOne.isVip) {
-      referralCodeUserFindOne.referralRewardsCount += 2000;
+    if (userFindOne) {
+      if (userFindOne.completedTasks.includes(taskName)) {
+        return true;
+      } else {
+        userFindOne.completedTasks.push(taskName);
+        await this.userRepo.save(userFindOne);
+        return true;
+      }
     } else {
-      referralCodeUserFindOne.referralRewardsCount += 1000;
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
-    initDataUserFindOne.invitedBy = referralCode;
+  }
 
-    await this.userRepo.save(referralCodeUserFindOne);
-    await this.userRepo.save(initDataUserFindOne);
+  async updateReferralCode(initData: string, referralCode: string) {
+    try {
+      const fibonacciNumbers = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+      const referralCodeUserFindOne = await this.userRepo.findOne({
+        where: {
+          referralCode,
+        },
+      });
+      if (!referralCodeUserFindOne) {
+        throw new HttpException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
 
-    const { secretCode, ...restProps } = initDataUserFindOne;
-    return restProps;
+      const initDataUserFindOne = await this.userRepo.findOne({
+        where: {
+          initData,
+        },
+      });
+      if (!initDataUserFindOne) {
+        throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      if (initDataUserFindOne.initData == referralCodeUserFindOne.initData)
+        throw new BadRequestException(ExceptionMessageEnum.CANT_REFERRAL_YOUR_SELF);
+
+      if (!initDataUserFindOne.userHasInvitedLink)
+        throw new BadRequestException(ExceptionMessageEnum.YOU_REGESTERED_WITHOUT_INVITED_LINK);
+
+      if (
+        initDataUserFindOne.invitedBy &&
+        initDataUserFindOne.invitedBy.length > 0
+      ) {
+        throw new HttpException(
+          ExceptionMessageEnum.USER_HAS_BEEN_INVITED_PREVIOUSLY,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
+        referralCodeUserFindOne.completedTasks.push(
+          `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
+        );
+      }
+      if (
+        referralCodeUserFindOne.level !==
+        fibonacciPosition(referralCodeUserFindOne.referralCount + 1)
+      ) {
+        referralCodeUserFindOne.levelUpRewardsCount += 1000;
+      }
+      referralCodeUserFindOne.level = fibonacciPosition(
+        referralCodeUserFindOne.referralCount + 1,
+      );
+      referralCodeUserFindOne.referralCount += 1;
+
+      if (referralCodeUserFindOne.isVip) {
+        referralCodeUserFindOne.referralRewardsCount += 2000;
+      } else {
+        referralCodeUserFindOne.referralRewardsCount += 1000;
+      }
+      initDataUserFindOne.invitedBy = referralCode;
+
+      await this.userRepo.save(referralCodeUserFindOne);
+      await this.userRepo.save(initDataUserFindOne);
+
+      const { secretCode, ...restProps } = initDataUserFindOne;
+      return restProps;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -567,40 +730,189 @@ export class UsersService {
     }
   }
 
-  async claimAllRewards(initData:string):Promise<UserEntity>
-  {
-    const findInitDatUser=await this.userRepo.findOne({
-      where:{initData}
-    })
 
-    if(findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount>0)
-    {
-      findInitDatUser.tgmCount+=findInitDatUser.levelUpRewardsCount
-      findInitDatUser.levelUpRewardsCount=0
+  async claimAllRewards(initData: string): Promise<UserEntity> {
+    const findInitDatUser = await this.userRepo.findOne({
+      where: { initData }
+    });
+
+    if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
+      findInitDatUser.levelUpRewardsCount = 0;
     }
 
-    if(findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount>0)
-    {
-      findInitDatUser.tgmCount+=findInitDatUser.referralRewardsCount
-      findInitDatUser.referralRewardsCount=0
+    if (findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.referralRewardsCount;
+      findInitDatUser.referralRewardsCount = 0;
     }
 
-    const invitedUsers=await this.userRepo.find({
-      where:{
-        invitedBy:findInitDatUser.referralCode,
-        invitedUserBuyTgmCommission:MoreThan(0)
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
+    ) {
+      findInitDatUser.tgmCount += 2000;
+      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+    ) {
+      findInitDatUser.tgmCount += 2000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT)
+      && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
+    ) {
+      findInitDatUser.tgmCount += 2000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+    }
+
+
+
+    if(findInitDatUser.roles.find(x=>x==UserRoles.MARKETER)){
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          },
+          relations:{purchasedTgms:true}
+      });
+
+      let finalNotClaimedPurchasedTgm:PurchasedTgmEntity[]=[]
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        const finalPurchasedTgms=invitedUser.purchasedTgms.filter(x=>x.marketerClaimedCommission==false)
+        for (let index = 0; index < finalPurchasedTgms.length; index++) {
+          const notClaimedPurchasedTgm = finalPurchasedTgms[index];
+          findInitDatUser.tgmCount=findInitDatUser.tgmCount+Number(notClaimedPurchasedTgm.marketerCommission)
+          notClaimedPurchasedTgm.marketerClaimedCommission=true
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm)
+        }
       }
-    })
+      console.log("--------- changed purchases --------")
+      console.log(finalNotClaimedPurchasedTgm.length)
 
-    for (let index = 0; index < invitedUsers.length; index++) {
-      const invitedUser = invitedUsers[index];
-      findInitDatUser.tgmCount+=invitedUser.invitedUserBuyTgmCommission
-      invitedUser.invitedUserBuyTgmCommission=0
-      await this.userRepo.save(invitedUser)
+      console.log("------- user tgm count ----------")
+      console.log(findInitDatUser.tgmCount)
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
+      return await this.userRepo.save(findInitDatUser);
+        }else{
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          invitedUserBuyTgmCommission: MoreThan(0)
+        }
+      });
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
+        invitedUser.invitedUserBuyTgmCommission = 0;
+        await this.userRepo.save(invitedUser);
+      }
+
+      return await this.userRepo.save(findInitDatUser);
+    }
+  }
+
+
+  // DEEP SEEK VERSION
+  /*
+  async claimAllRewards(initData: string): Promise<UserEntity> {
+    const findInitDatUser = await this.userRepo.findOne({
+      where: { initData },
+    });
+
+    if (!findInitDatUser) {
+      throw new NotFoundException('User not found');
     }
 
-    return await this.userRepo.save(findInitDatUser)
+    if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
+      findInitDatUser.levelUpRewardsCount = 0;
+    }
+
+    if (findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount > 0) {
+      findInitDatUser.tgmCount += findInitDatUser.referralRewardsCount;
+      findInitDatUser.referralRewardsCount = 0;
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+    }
+
+    if (
+      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT) &&
+      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
+    ) {
+      findInitDatUser.tgmCount += 1000;
+      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+    }
+
+    if (findInitDatUser.roles.includes(UserRoles.MARKETER)) {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+        },
+        relations: { purchasedTgms: true },
+      });
+
+      let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
+      for (const invitedUser of invitedUsers) {
+        const finalPurchasedTgms = invitedUser.purchasedTgms.filter(
+          (x) => x.marketerClaimedCommission === false,
+        );
+        for (const notClaimedPurchasedTgm of finalPurchasedTgms) {
+          findInitDatUser.tgmCount += Number(notClaimedPurchasedTgm.marketerCommission);
+          notClaimedPurchasedTgm.marketerClaimedCommission = true;
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
+        }
+      }
+
+      // Save only if there are records to update
+      if (finalNotClaimedPurchasedTgm.length > 0) {
+        await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm);
+      }
+    } else {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+          invitedUserBuyTgmCommission: MoreThan(0),
+        },
+      });
+      for (const invitedUser of invitedUsers) {
+        findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
+        invitedUser.invitedUserBuyTgmCommission = 0;
+        await this.userRepo.save(invitedUser);
+      }
+    }
+
+    // Save only if there are changes
+    if (
+      findInitDatUser.levelUpRewardsCount !== 0 ||
+      findInitDatUser.referralRewardsCount !== 0 ||
+      findInitDatUser.claimedRewards.length > 0 ||
+      findInitDatUser.tgmCount > 0
+    ) {
+      return await this.userRepo.save(findInitDatUser);
+    }
+
+    return findInitDatUser;
   }
+  */
 
   async updateClaimLevelUpReward(initData: string) {
     const userFindOne = await this.userRepo.findOne({
@@ -650,6 +962,45 @@ export class UsersService {
       return restProps;
     } else {
       throw new HttpException(ExceptionMessageEnum.NO_REWARD_REMAINED, HttpStatus.FORBIDDEN);
+    }
+  }
+
+  async updateTaskRewardByTask(
+    initData: string,
+    taskName: string
+  ) {
+    const userFindOne = await this.userRepo.findOne({
+      where: {
+        initData,
+      },
+    });
+    if (userFindOne) {
+      if (userFindOne.claimedRewards.includes(taskName)) {
+        throw new HttpException(
+          ExceptionMessageEnum.TASK_HAS_BEEN_CLAIMED_BEFORE,
+          HttpStatus.NOT_FOUND,
+        );
+      } else if (userFindOne.completedTasks.includes(taskName)) {
+        switch (taskName) {
+          case TaskEnum.CONNNECT_WALLET:
+            userFindOne.tgmCount += Number(2000);
+            break;
+          case TaskEnum.FIRST_CASH_AVALANCHE:
+            userFindOne.tgmCount += Number(2000);
+            break;
+          case TaskEnum.FIRST_LONG_SHOT:
+            userFindOne.tgmCount += Number(2000);
+            break;
+          default:
+            break;
+        }
+        userFindOne.claimedRewards.push(taskName);
+        await this.userRepo.save(userFindOne);
+        const { secretCode, ...restProps } = userFindOne;
+        return restProps;
+      }
+    } else {
+      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -751,22 +1102,18 @@ export class UsersService {
     }
 
 
-    if(userFindOne.tgmCount<0)
-    throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH)
-
+    if (userFindOne.tgmCount < 0)
+      throw new BadRequestException(ExceptionMessageEnum.TGM_IS_NOT_ENOUGH);
     await this.userRepo.save(userFindOne);
   }
 
   async updateUserWalletAddress(initData: string, walletAddress: string) {
+    const x = await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
       },
     });
-    if (!userFindOne) {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
-
     userFindOne.walletAddress = walletAddress;
     await this.userRepo.save(userFindOne);
 
@@ -828,26 +1175,26 @@ export class UsersService {
   async updateUserHourlyReward(initData: string) {
     try {
       const hourlyRewardTime = Date.now() + 3600000;
-    const hourlyRewardCount = 100;
+      const hourlyRewardCount = 100;
 
-    const userFindOne = await this.userRepo.findOne({
-      where: {
-        initData,
-      },
-    });
-    if (!userFindOne) {
-      throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
+      const userFindOne = await this.userRepo.findOne({
+        where: {
+          initData,
+        },
+      });
+      if (!userFindOne) {
+        throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
 
-    if (Date.now() > userFindOne.hourlyRewardTime) {
-      userFindOne.hourlyRewardTime = hourlyRewardTime;
-      await this.userRepo.save(userFindOne);
-      return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
-    } else {
-      throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
-    }
+      if (Date.now() > userFindOne.hourlyRewardTime) {
+        userFindOne.hourlyRewardTime = hourlyRewardTime;
+        await this.userRepo.save(userFindOne);
+        return await this.updateUserTgmCount(initData, hourlyRewardCount, 'ADD');
+      } else {
+        throw new HttpException(ExceptionMessageEnum.TIME_HAS_NOT_BEEN_PASSED, HttpStatus.FORBIDDEN);
+      }
     } catch (error) {
-     console.log(error)
+      console.log(error);
     }
   }
 
@@ -889,12 +1236,423 @@ export class UsersService {
     });
   }
 
-  public async userBannedStatus(secretCode:string):Promise<boolean>
-  {
-    const findedUser=await this.userRepo.findOne({
-      where:{secretCode}
-    })
+  public async userBannedStatus(secretCode: string): Promise<boolean> {
+    const findedUser = await this.userRepo.findOne({
+      where: { secretCode }
+    });
 
-    return findedUser.isBanned
+    return findedUser.isBanned;
+  }
+
+  async purchasedTgmPagination(paginationDto: PaginationDto<{ type: number; }>): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean; }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+    const queryObject: FindManyOptions<PurchasedTgmEntity> = {
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: { user: true },
+      order: {
+        [sortBy]: sortOrder, // Apply sorting
+      },
+
+    };
+
+    if (paginationDto.filter) {
+      if (paginationDto.filter.type || paginationDto.filter.type == 0) {
+        Object.assign(queryObject, {
+          where: {
+            type: paginationDto.filter.type
+          }
+        });
+      }
+    }
+
+    const [data, count] = await this.purchasedTgmRepo.findAndCount(queryObject);
+
+    // Calculate if there is a next page
+    const hasNextPage = page * limit < count;
+
+    return { data, count, hasNextPage };
+  }
+  /*
+    async headMarketers(
+      paginationDto: PaginationDto<{ initData: string }>,
+    ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
+      const { page, limit, sortBy, sortOrder } = paginationDto;
+
+      // Find head marketer and validate
+      const findHead = await this.userRepo.findOne({
+        where: { initData: paginationDto.filter.initData },
+      });
+      if (!findHead || !findHead.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING)) {
+        throw new ForbiddenException();
+      }
+
+      // Build pagination query
+      const queryOptions: FindManyOptions<UserEntity> = {
+        where: {
+          getMarketerBy: findHead.referralCode,
+          roles: In([UserRoles.MARKETER]),
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { [sortBy]: sortOrder },
+      };
+
+      // Get paginated marketers and total count
+      const [data, count] = await this.userRepo.findAndCount(queryOptions);
+      const hasNextPage = page * limit < count;
+
+      // Efficiently fetch purchases for all marketers in the current page
+      if (data.length > 0) {
+        const referralCodes = data.map((marketer) => marketer.referralCode);
+        const purchasedTgms = await this.purchasedTgmRepo.find({
+          where: { user: { invitedBy: In(referralCodes) } },
+          relations: ['user'],
+        });
+
+        // Group purchases by referral code
+        const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+        purchasedTgms.forEach((tgm) => {
+          const key = tgm.user.invitedBy;
+          purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+        });
+
+        // Assign purchases to each marketer
+        data.forEach((marketer) => {
+          marketer["purchases"] = purchasesMap.get(marketer.referralCode) || [];
+        });
+      }
+
+      return { data, count, hasNextPage };
+    }
+    */
+
+    async ownerHeadMarketers(
+      paginationDto: PaginationDto<{}>, // No filter needed since we're fetching all head marketers
+    ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean }> {
+      const { page, limit, sortBy, sortOrder } = paginationDto;
+
+      // Find all head marketers
+      const headMarketers = await this.userRepo.find({
+        where: { roles: In([UserRoles.HEAD_OF_MARKETING]) },
+      });
+
+      console.log(headMarketers)
+
+      // If no head marketers found, return empty response
+      if (headMarketers.length === 0) {
+        return { data: [], count: 0, hasNextPage: false };
+      }
+
+      // Collect all head marketers' referral codes
+      const headReferralCodes = headMarketers.map(head => head.referralCode);
+
+      // Build pagination query to get marketers for all head marketers
+      const queryOptions: FindManyOptions<UserEntity> = {
+        where: {
+          getMarketerBy: In(headReferralCodes),
+          roles: In([UserRoles.MARKETER]),
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { [sortBy]: sortOrder },
+      };
+
+      // Get paginated marketers and total count
+      const [data, count] = await this.userRepo.findAndCount(queryOptions);
+      const hasNextPage = page * limit < count;
+      console.log(data)
+
+      // Efficiently fetch purchases for all marketers in the current page
+      if (data.length > 0) {
+        const referralCodes = data.map(marketer => marketer.referralCode);
+        const purchasedTgms = await this.purchasedTgmRepo.find({
+          where: { user: { invitedBy: In(referralCodes) } },
+          relations: ['user'],
+        });
+
+        // Group purchases by referral code
+        const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+        purchasedTgms.forEach(tgm => {
+          const key = tgm.user.invitedBy;
+          purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+        });
+
+        // Assign purchases and calculate total inviterCommission for each marketer
+        data.forEach(marketer => {
+          const marketerPurchases = purchasesMap.get(marketer.referralCode) || [];
+          marketer["purchases"] = marketerPurchases;
+          marketer["purchaseCommissionCount"] = marketerPurchases.reduce(
+            (total, purchase) => total + (Number(purchase.inviterCommission) || 0),
+            0,
+          );
+        });
+      }
+
+      return { data, count, hasNextPage };
+    }
+
+  async headMarketers(
+    paginationDto: PaginationDto<{ initData: string; }>,
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; claim:boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+
+    // Find head marketer and validate
+    const findHead = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!findHead || !findHead.roles.find((x) => x == UserRoles.HEAD_OF_MARKETING)) {
+      throw new ForbiddenException();
+    }
+
+    // Build pagination query
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: {
+        getMarketerBy: findHead.referralCode,
+        roles: In([UserRoles.MARKETER]),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+    };
+
+    // Get paginated marketers and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+
+    // Efficiently fetch purchases for all marketers in the current page
+    if (data.length > 0) {
+      const referralCodes = data.map((marketer) => marketer.referralCode);
+      const purchasedTgms = await this.purchasedTgmRepo.find({
+        where: { user: { invitedBy: In(referralCodes) } },
+        relations: ['user'],
+      });
+
+      // Group purchases by referral code
+      const purchasesMap = new Map<string, PurchasedTgmEntity[]>();
+      purchasedTgms.forEach((tgm) => {
+        const key = tgm.user.invitedBy;
+        purchasesMap.set(key, [...(purchasesMap.get(key) || []), tgm]);
+      });
+
+      // Assign purchases and calculate total inviterCommission for each marketer
+      data.forEach((marketer) => {
+        const marketerPurchases = purchasesMap.get(marketer.referralCode) || [];
+        marketer["purchases"] = marketerPurchases;
+
+        // Calculate total inviterCommission
+        const purchaseCommissionCount = marketerPurchases.reduce(
+          (total, purchase) => total + (Number(purchase.inviterCommission) || 0),
+          0,
+        );
+        marketer["purchaseCommissionCount"] = purchaseCommissionCount;
+      });
+    }
+
+    const marketersOfThisHead=await this.userRepo.find({where: {
+      getMarketerBy: findHead.referralCode,
+      roles: In([UserRoles.MARKETER]),
+    }})
+
+    const marketerIds:string[]=marketersOfThisHead.map(x=>x.id)
+
+    // let purchases=await this.purchasedTgmRepo.find()
+
+    const purchases = await this.purchasedTgmRepo
+    .createQueryBuilder('pt')
+    .where("pt.inviter->>'id' IN (:...ids)", { ids: ['09437688-f2af-4556-b869-63f3e8ba5aed'] })
+    .getMany();
+    // purchases=purchases.filter(x=>marketerIds.includes(x.inviter?.id)==true)
+
+    let shouldCalimOrNot:boolean
+
+    const findClaimablePurchase=purchases.find(x=>x.headOfMarketerCommission && x.headOfMarketerClaimedCommission==false)
+
+    return { data, count, hasNextPage, claim:findClaimablePurchase?true:false };
+  }
+
+
+  async marketerUsers(
+    paginationDto: PaginationDto<{ initData: string; }>,
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean;claim:boolean }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+
+    // Find the marketer
+    const findMarketer = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!findMarketer) {
+      throw new NotFoundException('Marketer not found');
+    }
+
+    // Build pagination query for users invited by the marketer
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: { invitedBy: findMarketer.referralCode },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+      relations: ['purchasedTgms'], // Include purchasedTgms relation
+    };
+
+    // Get paginated users and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+
+    // let purchases=await this.purchasedTgmRepo.find({where:{  inviter: Raw((alias) => `"${alias}"->>'id' = :marketerId`, {
+    //   marketerId:findMarketer.id,
+    // }),}})
+
+    //TODO
+    let purchases = await this.purchasedTgmRepo.createQueryBuilder('pt')
+    .where("pt.inviter->>'id' = :id", { id: findMarketer.id })
+    .getMany();
+
+    // purchases=purchases.filter(x=>x.inviter?.id==findMarketer.id)
+
+    let shouldCalimOrNot:boolean
+
+    const findClaimablePurchase=purchases.find(x=>x.marketerCommission && x.marketerClaimedCommission==false)
+    return { data, count, hasNextPage, claim:findClaimablePurchase?true:false };
+
+  }
+
+
+  async marketerUserPurchases(
+    paginationDto: PaginationDto<{ initData: string; }>,
+  ): Promise<{ data: PurchasedTgmEntity[]; count: number; hasNextPage: boolean; }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+
+    // Find the marketer by initData
+    const marketer = await this.userRepo.findOne({
+      where: { initData: paginationDto.filter.initData },
+    });
+    if (!marketer || !marketer.roles.find((x) => x == UserRoles.MARKETER)) {
+      throw new ForbiddenException('Marketer not found or invalid role');
+    }
+
+    // Build pagination query for purchases
+    const queryOptions: FindManyOptions<PurchasedTgmEntity> = {
+      where: { user: { invitedBy: marketer.referralCode } }, // Filter purchases by marketer's referralCode
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+      relations: ['user'], // Include user relation if needed
+    };
+
+    // Get paginated purchases and total count
+    const [data, count] = await this.purchasedTgmRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+
+    return { data, count, hasNextPage };
+  }
+
+  public async addMarketer(initData: string, referralCode: string): Promise<UserEntity> {
+    const findHead = await this.userRepo.findOne({ where: { initData } });
+
+    if (!findHead)
+      throw new NotFoundException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND);
+
+    if (!findHead.roles.find(x => x == UserRoles.HEAD_OF_MARKETING))
+      throw new ForbiddenException();
+
+    const findMarketer = await this.userRepo.findOne({ where: { referralCode } });
+    if (!findMarketer)
+      throw new NotFoundException(ExceptionMessageEnum.REFERRAL_CODE_NOT_FOUND);
+
+    if (findMarketer.getMarketerBy && !findMarketer.deletedAtOfMarketers)
+      throw new ConflictException("User Already is Marketer");
+
+
+    if (findMarketer.roles.find(x=>x==UserRoles.MARKETER))
+      throw new ConflictException("User Already is Marketer");
+
+    findMarketer.getMarketerBy = findHead.referralCode;
+    findMarketer.roles.push(UserRoles.MARKETER);
+    return await this.userRepo.save(findMarketer);
+
+  }
+
+  public async deleteMarketer(user: IUserToken, initData: string): Promise<UserEntity> {
+    const findHead = await this.userRepo.findOne({ where: { initData: user.initData } });
+    if (!findHead || !findHead?.roles.find(x => x == UserRoles.HEAD_OF_MARKETING))
+      throw new ForbiddenException();
+
+    const findMarketer = await this.userRepo.findOne({ where: { initData } });
+
+    if (!findMarketer.roles.find(x => x == UserRoles.MARKETER) || !findMarketer.getMarketerBy)
+      throw new BadRequestException();
+
+    findMarketer.roles.splice(findMarketer.roles.findIndex(x => x == UserRoles.MARKETER), 1);
+    findMarketer.deletedAtOfMarketers = new Date();
+    return await this.userRepo.save(findMarketer);
+  }
+
+  public async updateMarketerVipStatusAndCommission(user:IUserToken,initData:string,updateMarketerDto:UpdateMarketerDto):Promise<UserEntity>
+  {
+    const findHead=await this.userRepo.findOne({where:{initData:user.initData}})
+    if(!findHead.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
+    throw new ForbiddenException()
+
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findMarketer.roles.find(x=>x==UserRoles.MARKETER))
+    throw new BadRequestException("Init Data is not for Marketer")
+
+    if(updateMarketerDto.commission)
+    findMarketer.marketerCommision=updateMarketerDto.commission
+
+    if(updateMarketerDto.vip)
+    findMarketer.marketerVip=updateMarketerDto.vip
+
+    return await this.userRepo.save(findMarketer)
+  }
+
+  public async claimAllMarketerCommissions(initData:string):Promise<UserEntity>
+  {
+    const findMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findMarketer.roles.find(x=>x==UserRoles.MARKETER))
+      throw new ForbiddenException()
+
+
+      const purchases=await this.purchasedTgmRepo.find({where:{inviter:{initData:initData},marketerClaimedCommission:false}})
+      let finalCommission:number
+      let purchaseIds:string[]=[]
+
+      purchases.forEach(x=>{
+        finalCommission+=Math.floor(Number(x.marketerCommission)),
+        purchaseIds.push(x.id)
+      })
+
+      await this.purchasedTgmRepo.update(purchaseIds,{marketerClaimedCommission:true})
+      findMarketer.tgmCount+=finalCommission
+      return await this.userRepo.save(findMarketer)
+  }
+
+  public async claimAllHeadOfMarketerCommissions(initData:string):Promise<UserEntity>
+  {
+    const findHeadMarketer=await this.userRepo.findOne({where:{initData}})
+
+    if(!findHeadMarketer.roles.find(x=>x==UserRoles.HEAD_OF_MARKETING))
+      throw new ForbiddenException()
+
+      // const purchases=await this.purchasedTgmRepo.find({where:{headOfInviter:{initData:initData},headOfMarketerClaimedCommission:false}})
+
+      const purchases = await this.purchasedTgmRepo
+      .createQueryBuilder('pt')
+      .where(`pt."headOfInviter"->>'initData' = :initData`, { initData: initData })
+      .andWhere('pt."headOfMarketerClaimedCommission" = :claimed', { claimed: false })
+      .getMany();
+      let finalCommission:number
+      let purchaseIds:string[]=[]
+
+      purchases.forEach(x=>{
+        finalCommission+=Math.floor(Number(x.headOfMarketerCommission)),
+        purchaseIds.push(x.id)
+      })
+
+      await this.purchasedTgmRepo.update(purchaseIds,{headOfMarketerClaimedCommission:true})
+      findHeadMarketer.tgmCount+=finalCommission
+      return await this.userRepo.save(findHeadMarketer)
   }
 }

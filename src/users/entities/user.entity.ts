@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PurchasedTgmEntity } from './purchased-tgm.entity';
 
 export enum UserRoles {
   ADMIN = 1,
@@ -128,6 +130,12 @@ export class UserEntity {
   })
   hourlyRewardTime: number;
 
+  @Column({nullable:true})
+  marketerVip:boolean
+
+  @Column({nullable:true})
+  marketerCommision:number
+
   @Column({
     default: 0,
   })
@@ -145,6 +153,15 @@ export class UserEntity {
   })
   userHasInvitedLink: boolean;
 
+  @Column({nullable:true})
+  deletedAtOfMarketers:Date
+
+  @Column({nullable:true})
+  getMarketerBy:string
+
   @CreateDateColumn()
   createdAt: string;
+
+  @OneToMany(()=>PurchasedTgmEntity,(x)=>x.user)
+  purchasedTgms:PurchasedTgmEntity[]
 }

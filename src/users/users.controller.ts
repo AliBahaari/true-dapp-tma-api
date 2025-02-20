@@ -13,6 +13,11 @@ import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { UserEntity } from './entities/user.entity';
+import { PaginationDto } from './dto/pagination.dto';
+import { AddMarketerDto } from './dto/add-marketer.dto';
+import { IUserToken } from 'src/common/interfaces/user-token.interface';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
+import { UpdateMarketerDto } from './dto/update-marketer.dto';
 
 @Controller('users')
 export class UsersController {
@@ -58,6 +63,12 @@ export class UsersController {
     return await this.usersService.findAllUsersCount();
   }
 
+  @Patch("claim/reward/task/:initData/:taskName")
+  async claimRewardOfTask(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllRewards(initData)
+  }
+
   @Patch('updateReferralCode/:initData/:referralCode')
   async updateReferralCode(
     @Param('initData') initData: string,
@@ -77,6 +88,8 @@ export class UsersController {
     );
   }
 
+
+
   @Patch("claim/all/rewards/:initData")
   async claimAllRewards(@Param("initData") initData:string):Promise<UserEntity>
   {
@@ -92,6 +105,17 @@ export class UsersController {
   @Patch('updateClaimAll/:initData')
   async updateClaimAll(@Param('initData') initData: string) {
     return await this.usersService.updateClaimAll(initData);
+  }
+
+  @Patch('updateTaskReward/:initData/:taskName')
+  async updateTaskRewardByTask(
+    @Param('initData') initData: string,
+    @Param('taskName') taskName: string
+  ) {
+    return await this.usersService.updateTaskRewardByTask(
+      initData,
+      taskName
+    );
   }
 
   @Patch('updateTaskReward/:initData/:taskName/:taskReward')
@@ -169,5 +193,60 @@ export class UsersController {
   @Delete('deleteUser/:initData')
   async deleteUser(@Param('initData') initData: string) {
     return await this.usersService.deleteUser(initData);
+  }
+
+  @Post("purchased/tgms/page")
+  async purchasedTgmPagination(@Body() paginationDto: PaginationDto<{type:number}>) {
+    return this.usersService.purchasedTgmPagination(paginationDto);
+  }
+
+  @Post("owner/head/marketers")
+  async ownerheadMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.ownerHeadMarketers(paginationDto);
+  }
+
+  @Post("head/marketers")
+  async headMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.headMarketers(paginationDto);
+  }
+
+  @Post("marketer/user/purchases")
+  async marketerUserPurchases(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.marketerUserPurchases(paginationDto);
+  }
+
+  @Post("marketer/users")
+  async marketerUsers(@Body() paginationDto: PaginationDto<{initData:string}>) {
+    return this.usersService.marketerUsers(paginationDto);
+  }
+
+  @Post("add/marketer")
+  public async addMarketer(@Body() addMarketerDto:AddMarketerDto):Promise<UserEntity>
+  {
+    return await this.usersService.addMarketer(addMarketerDto.initData,addMarketerDto.referralCode)
+  }
+
+  @Delete("delete/marketer/:initData")
+  public async deleteMarketer(@GetUser() user:IUserToken,@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.deleteMarketer(user,initData)
+  }
+
+  @Patch("update/marketer/:initData")
+  public async updateMarketerVipStatusAndCommission(@GetUser() user:IUserToken,@Param("initData") initData:string,@Body() updateMarketerDto:UpdateMarketerDto):Promise<UserEntity>
+  {
+    return await this.usersService.updateMarketerVipStatusAndCommission(user,initData,updateMarketerDto)
+  }
+
+  @Patch("marketer/commission/claim/all/:initData")
+  public async claimAllMarketerCommissions(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllMarketerCommissions(initData)
+  }
+
+  @Patch("head/marketer/commission/claim/all/:initData")
+  public async claimAllHeadOfMarketerCommissions(@Param("initData") initData:string):Promise<UserEntity>
+  {
+    return await this.usersService.claimAllHeadOfMarketerCommissions(initData)
   }
 }

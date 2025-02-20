@@ -19,6 +19,7 @@ import { LongShotTicketEntity } from './entities/long-shot-tickets.entity';
 import { CreateLongShotParticipateLeagueWeeklyDto } from './dto/create-long-shot-participate-league-weekly.dto';
 import { LongShotLeagueWeeklyFilterDto } from './dto/long-shot-league-weekly-filter.dto';
 import * as util from 'util'
+import { TaskEnum } from 'src/common/enum/tasks.enum';
 
 const matchesCount = {
   1: 1,
@@ -42,6 +43,7 @@ export class LongShotService implements OnModuleInit {
     @InjectRepository(LongShotTeamEntity)
     private readonly teamRepo: Repository<LongShotTeamEntity>,
     private readonly usersService: UsersService,
+
   ) { }
   onModuleInit() {}
 
@@ -878,14 +880,19 @@ export class LongShotService implements OnModuleInit {
     .where('pack.endDate > :currentDate', { currentDate })
     .andWhere('pack.startDate < :currentDate', { currentDate })
     .getOne();
-    return await this.ticketsRepo.find({
-      where: {
-        initData,
-        pack: {
-          id: pack.id
-        }
-      },
-    });
+    if (pack) {
+      return await this.ticketsRepo.find({
+        where: {
+          initData,
+          pack: {
+            id: pack.id
+          }
+        },
+      });
+    }
+    else {
+      return null
+    }
   }
 
 
@@ -918,7 +925,7 @@ export class LongShotService implements OnModuleInit {
 
   // Ticket Buy
   async ticketBuy(initData: string, packId: string, ticketLevel: 1 | 2 | 3) {
-    const userFindOne = await this.usersService.find(initData);
+    const userFindOne = await this.usersService.findOneUser(initData);
     const findPack = await this.packsRepo.findOne({
       where: { id: packId }
     });
@@ -949,6 +956,7 @@ export class LongShotService implements OnModuleInit {
       await this.usersService.updateUserTgmCount(initData, 10, 'SUBTRACT');
       await this.createTicket(initData, packId, 10, 1, 1);
 
+      await this.usersService.addTask(initData, TaskEnum.FIRST_LONG_SHOT)
       return {
         status: HttpStatus.OK,
         message: 'You Bought Level 1 Ticket',
@@ -962,6 +970,7 @@ export class LongShotService implements OnModuleInit {
         );
         await this.createTicket(initData, packId, 1000, 2, 3);
 
+        await this.usersService.addTask(initData, TaskEnum.FIRST_LONG_SHOT)
         return {
           status: HttpStatus.OK,
           message: 'You Bought Level 2 Ticket',
@@ -982,6 +991,7 @@ export class LongShotService implements OnModuleInit {
           );
           await this.createTicket(initData, packId, 100000, 3, 5);
 
+          await this.usersService.addTask(initData, TaskEnum.FIRST_LONG_SHOT)
           return {
             status: HttpStatus.OK,
             message: 'You Bought Level 3 Ticket',
@@ -1013,7 +1023,9 @@ export class LongShotService implements OnModuleInit {
       longShotGameTgmCount,
       ticketLevel,
       participatedLeagues: [],
-      packId,
+      pack: {
+        id: packId
+      },
     });
   }
 
@@ -1088,7 +1100,7 @@ export class LongShotService implements OnModuleInit {
       const checkIfUserIsWinner=deActiveTicket.pack.winner.find(x=>x==initData)
       if(checkIfUserIsWinner)
           deActiveTicket.pack["winninStatus"]=true
-        
+
 
         if(!checkIfUserIsWinner)
           deActiveTicket.pack["winninStatus"]=false

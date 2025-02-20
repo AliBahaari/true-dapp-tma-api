@@ -3,21 +3,27 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { FileService } from '../service/file.service';
+import { SftpService } from '../service/sftp.service';
 
 @Controller('upload')
 export class FileController {
+    constructor(
+        private fileService: FileService,
+        private sftpService: SftpService
+    ) { }
     @Post('image')
     @ApiConsumes('multipart/form-data')
     @ApiBody({
-      schema: {
-        type: 'object',
-        properties: {
-          file: {
-            type: 'string',
-            format: 'binary',
-          },
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
         },
-      },
     })
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
@@ -39,10 +45,14 @@ export class FileController {
             // fileSize: 1024 * 1024 * 5, // 5MB
         },
     }))
-    uploadImage(@UploadedFile() file: Express.Multer.File) {
+    async uploadImage(@UploadedFile() file: Express.Multer.File) {
         if (!file) {
             throw new BadRequestException('File upload failed');
         }
+        await this.fileService.create({
+            ...file,
+        });
+        await this.sftpService.uploadFile(`./public/images/${file.filename}`, `/var/www/files/backup_images/${file.filename}`);
         return { url: `/static/images/${file.filename}` };
     }
 }

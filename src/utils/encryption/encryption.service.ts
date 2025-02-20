@@ -4,10 +4,10 @@ import * as CryptoJS from 'crypto-js';
 @Injectable()
 export class EncryptionService {
   private readonly secretKey = process.env.ENCRYPTION_KEY
-  
-  
+
+
   constructor() {
-    console.log(this.decrypt("U2FsdGVkX18WHq/SGFrDvzrqjaU9jQ2A022NsLpoKaSg01H2KGRNHwEL+1NUKvjwYK2gDE0r7iTIXzoBB6fD2YvU741PpNzuC1XNN07GaajMUBtS632FoX4t2GtKUltt"))
+    console.log(JSON.parse(this.decrypt("U2FsdGVkX19w4NUSfiS4Tqa8yyk9jnKCzBQmaguRSJC5AVCgDGk5WfWNk1X3NMCKlkwi7kul/bb6GwL0tF4OPw==")))
   }
   encrypt(text: string): string {
     return CryptoJS.AES.encrypt(text, this.secretKey).toString();
