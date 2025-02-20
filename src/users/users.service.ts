@@ -24,6 +24,7 @@ import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
+import { WalletLogEntity } from './entities/wallet-log.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
 
@@ -45,6 +46,7 @@ export class UsersService {
     private readonly tonService:TonService,
     @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
     @InjectRepository(RedEnvelopeLogEntity) private redEnvelopeLogRepo: Repository<RedEnvelopeLogEntity>,
+    @InjectRepository(WalletLogEntity) private walletLogRepo: Repository<WalletLogEntity>,
 
   ) { }
 
@@ -1120,7 +1122,7 @@ export class UsersService {
   }
 
   async updateUserWalletAddress(initData: string, walletAddress: string) {
-    const x = await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
+    await this.addTask(initData, TaskEnum.CONNNECT_WALLET);
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData,
@@ -1128,7 +1130,12 @@ export class UsersService {
     });
     userFindOne.walletAddress = walletAddress;
     await this.userRepo.save(userFindOne);
-
+    await this.walletLogRepo.save(this.walletLogRepo.create({
+      user: {
+        id: userFindOne.id
+      },
+      walletAddress: walletAddress
+    }))
     const { secretCode, ...restProps } = userFindOne;
     return restProps;
   }

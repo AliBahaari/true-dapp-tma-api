@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { PurchasedTgmEntity } from './purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './red-envelope-log.entity';
+import { WalletLogEntity } from './wallet-log.entity';
 
 export enum UserRoles {
   ADMIN = 1,
@@ -172,4 +173,7 @@ export class UserEntity {
 
   @OneToMany(() => RedEnvelopeLogEntity, (x) => x.receiver)
   receivedRedEnvelope: RedEnvelopeLogEntity[];
+
+  @OneToMany(() => WalletLogEntity, (x) => x.user)
+  wallets: WalletLogEntity[];
 }

@@ -30,6 +30,7 @@ import { LongShotTeamEntity } from './long-shot/entities/long-shot-teams.entity'
 import { TonModule } from './utils/ton/ton-module';
 import { PurchasedTgmEntity } from './users/entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './users/entities/red-envelope-log.entity';
+import { WalletLogEntity } from './users/entities/wallet-log.entity';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------")
@@ -56,7 +57,8 @@ console.log(process.env.PSQL_DB)
         TreasuryEntity,
         FileEntity,
         RedEnvelopeLogEntity,
-        PurchasedTgmEntity
+        PurchasedTgmEntity,
+        WalletLogEntity
       ],
       synchronize: true,
       logging: false
