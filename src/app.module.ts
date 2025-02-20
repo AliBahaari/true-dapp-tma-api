@@ -27,6 +27,7 @@ import { TreasuryController } from './treasury/controllers/treasury.controller';
 import { FileEntity } from './file/entities/file.entity';
 import { FileModule } from './file/file.module';
 import { LongShotTeamEntity } from './long-shot/entities/long-shot-teams.entity';
+import { TonModule } from './utils/ton/ton-module';
 import { PurchasedTgmEntity } from './users/entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './users/entities/red-envelope-log.entity';
 console.log(join(__dirname, '..', 'public'))
@@ -71,7 +72,8 @@ console.log(process.env.PSQL_DB)
     LongShotModule,
     FileModule,
     EncryptionModule,
-    TreasuryModule
+    TreasuryModule,
+    TonModule
   ],
   controllers: [],
   providers: [],

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -6,25 +6,25 @@ import * as CryptoJS from 'crypto-js';
 import Decimal from 'decimal.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.entity';
 import { ExceptionMessageEnum } from 'src/common/enum/exception-messages.enum';
 import { TaskEnum } from 'src/common/enum/tasks.enum';
 import { IUserToken } from 'src/common/interfaces/user-token.interface';
-import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Raw, Repository } from 'typeorm';
+import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
+import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
+import { TonService } from 'src/utils/ton/service/ton-service';
+import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NewCreateRedEnvelopeDto } from './dto/new-create-red-envelope.dto';
 import { PaginationDto } from './dto/pagination.dto';
+import { UpdateMarketerDto } from './dto/update-marketer.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
+import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
-import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
-import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.entity';
-import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
-import { UserInfo } from 'os';
-import { UpdateMarketerDto } from './dto/update-marketer.dto';
-import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 var crypto = require('crypto');
 
 @Injectable()
@@ -42,6 +42,7 @@ export class UsersService {
     @InjectRepository(LongShotTicketEntity) private ticketRepo: Repository<LongShotTicketEntity>,
     @InjectRepository(LongShotPacksEntity) private packRepo: Repository<LongShotPacksEntity>,
     @InjectRepository(CashAvalancheEntity) private cashAvalancheRepo: Repository<CashAvalancheEntity>,
+    private readonly tonService:TonService,
     @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
     @InjectRepository(RedEnvelopeLogEntity) private redEnvelopeLogRepo: Repository<RedEnvelopeLogEntity>,
 
@@ -189,6 +190,8 @@ export class UsersService {
   }
 
   async buyTgm(buyTgmDto: BuyTgmDto) {
+    const checkTxId=await this.tonService.txIdIsValid(buyTgmDto.txId)
+
     const userFindOne = await this.userRepo.findOne({
       where: {
         initData: buyTgmDto.initData,
