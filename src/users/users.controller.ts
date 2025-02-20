@@ -34,8 +34,8 @@ export class UsersController {
   }
 
   @Post('createRedEnvelope')
-  async createRedEnvelope(@Body() createRedEnvelopeDto: CreateRedEnvelopeDto) {
-    return await this.usersService.createRedEnvelope(createRedEnvelopeDto);
+  async createRedEnvelope(@GetUser() user: IUserToken,@Body() createRedEnvelopeDto: CreateRedEnvelopeDto) {
+    return await this.usersService.createRedEnvelope(createRedEnvelopeDto,user);
   }
 
   @Get('findAll')

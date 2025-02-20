@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PurchasedTgmEntity } from './purchased-tgm.entity';
+import { RedEnvelopeLogEntity } from './red-envelope-log.entity';
 
 export enum UserRoles {
   ADMIN = 1,
@@ -130,11 +131,11 @@ export class UserEntity {
   })
   hourlyRewardTime: number;
 
-  @Column({nullable:true})
-  marketerVip:boolean
+  @Column({ nullable: true })
+  marketerVip: boolean;
 
-  @Column({nullable:true})
-  marketerCommision:number
+  @Column({ nullable: true })
+  marketerCommision: number;
 
   @Column({
     default: 0,
@@ -153,15 +154,22 @@ export class UserEntity {
   })
   userHasInvitedLink: boolean;
 
-  @Column({nullable:true})
-  deletedAtOfMarketers:Date
+  @Column({ nullable: true })
+  deletedAtOfMarketers: Date;
 
-  @Column({nullable:true})
-  getMarketerBy:string
+  @Column({ nullable: true })
+  getMarketerBy: string;
 
   @CreateDateColumn()
   createdAt: string;
 
-  @OneToMany(()=>PurchasedTgmEntity,(x)=>x.user)
-  purchasedTgms:PurchasedTgmEntity[]
+  @OneToMany(() => PurchasedTgmEntity, (x) => x.user)
+  purchasedTgms: PurchasedTgmEntity[];
+
+
+  @OneToMany(() => RedEnvelopeLogEntity, (x) => x.creator)
+  createdRedEnvelope: RedEnvelopeLogEntity[];
+
+  @OneToMany(() => RedEnvelopeLogEntity, (x) => x.receiver)
+  receivedRedEnvelope: RedEnvelopeLogEntity[];
 }
