@@ -206,8 +206,11 @@ export class UsersService {
     if(txIdIsValidOrNot==false)
     throw new BadRequestException("Transaction Id is Not Valid")
 
+    if(buyTgmDto.type && buyTgmDto.amount)
+    throw new BadRequestException("Somethings Wrong")
+
+   if(buyTgmDto.type && !buyTgmDto.amount){
     if (
-      buyTgmDto.type &&
       buyTgmDto.type !== 1 &&
       buyTgmDto.type !== 2 &&
       buyTgmDto.type !== 3 &&
@@ -224,7 +227,6 @@ export class UsersService {
     }
 
     let packageReward = 0;
-    if (buyTgmDto.type) {
       if (buyTgmDto.type === 1) {
         packageReward = 10000;
       } else if (buyTgmDto.type === 2) {
@@ -238,17 +240,15 @@ export class UsersService {
         packageReward = 24000000;
       }
       userFindOne.packageIds.push(buyTgmDto.type);
-    }
 
     let percentOfRemainingForUser = 100;
 
     const createPurchasedDto: Partial<PurchasedTgmEntity> = {
-      amount: buyTgmDto.type ? String(packageReward) : String(buyTgmDto.amount),
+      amount: String(packageReward) ,
       type: buyTgmDto.type ? buyTgmDto.type : 0,
       user: userFindOne,
       txId: buyTgmDto.txId
     };
-
 
 
     if (userFindOne.invitedBy) {
@@ -257,22 +257,6 @@ export class UsersService {
       if (inviter.isVip) {
         createPurchasedDto.invitedByVip = true;
       }
-
-      // if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING) || inviter.roles.includes(UserRoles.MARKETER))
-      // {
-      //   if(inviter.roles.includes(UserRoles.HEAD_OF_MARKETING))
-      //   {
-      //     createPurchasedDto.invitedByMarketer=true
-      //     createPurchasedDto.headOfInviter=inviter
-      //   }
-
-      //   if(inviter.roles.includes(UserRoles.MARKETER))
-      //   {
-      //     const findHeadOfMarketing=await this.userRepo.findOne({where:{referralCode:inviter.invitedBy}})
-      //     createPurchasedDto.invitedByMarketer=true
-      //     createPurchasedDto.headOfInviter=findHeadOfMarketing
-      //   }
-      // }
 
       let inviterType = UserRoles.NORMAL;
 
@@ -346,6 +330,27 @@ export class UsersService {
     await this.purchasedTgmRepo.save(purchasedInstance);
 
     return await this.userRepo.save(userFindOne);
+   }
+
+   if(buyTgmDto.amount && !buyTgmDto.type)
+   {
+    const createPurchasedDto: Partial<PurchasedTgmEntity> = {
+      amount: String(buyTgmDto.amount),
+      type: null,
+      user: userFindOne,
+      txId: buyTgmDto.txId
+    };
+    
+      userFindOne.boughtTgmCount += buyTgmDto.amount;
+
+      userFindOne.tgmCount += buyTgmDto.amount;
+
+    const purchasedInstance = this.purchasedTgmRepo.create(createPurchasedDto);
+
+    await this.purchasedTgmRepo.save(purchasedInstance);
+
+    return await this.userRepo.save(userFindOne);
+   }
   }
 
   async createRedEnvelope(createRedEnvelopeDto: CreateRedEnvelopeDto, user: IUserToken) {
