@@ -63,7 +63,8 @@ export class TonService implements OnModuleInit{
                 if (transactionDetail.transaction.aborted == false && 
                     transactionDetail.transaction.success == true && 
                     transactionDetail.transaction.account.address==walletAddressDetail.address && 
-                    timeDifference <= 300) {
+                    timeDifference <= 300 && 
+                    transactionDetail.transaction.action_phase.skipped_actions==0) {
                     return true; // Transaction is valid
                 } else {
                     return false

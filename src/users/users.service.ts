@@ -199,6 +199,9 @@ export class UsersService {
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
+    if(!buyTgmDto.txId)
+    throw new BadRequestException("TxId NOT EXist") 
+
     const txIdIsValidOrNot=await this.tonService.txIdIsValid(buyTgmDto.txId,userFindOne.walletAddress)
     if(txIdIsValidOrNot==false)
     throw new BadRequestException("Transaction Id is Not Valid")
