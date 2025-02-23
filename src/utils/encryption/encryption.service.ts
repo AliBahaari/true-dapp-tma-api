@@ -7,7 +7,7 @@ export class EncryptionService {
 
 
   constructor() {
-    console.log(JSON.parse(this.decrypt("U2FsdGVkX19w4NUSfiS4Tqa8yyk9jnKCzBQmaguRSJC5AVCgDGk5WfWNk1X3NMCKlkwi7kul/bb6GwL0tF4OPw==")))
+    console.log(JSON.parse(this.decrypt("U2FsdGVkX18Y3gYnj1Hv2SNcBHqdI6DImGDMJ+HyDGkNtRrAyzAvIYwuJxAAxiiIjPfuhInvXXwQVZwW1v+RRnBUjcaiVnmNKsgyY7/ro5+ndb7KD8PvTibjnU5O9u7a")))
   }
   encrypt(text: string): string {
     return CryptoJS.AES.encrypt(text, this.secretKey).toString();

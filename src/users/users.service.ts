@@ -609,28 +609,60 @@ export class UsersService {
     };
   }
 
-  async findAllUsersCount() {
-    const findAllUsers = await this.userRepo.find();
+//   async findAllUsersCount() {
+//     const findAllUsers = await this.userRepo.find();
 
-    let tgmCount = 0;
-    findAllUsers.forEach((i) => {
-      tgmCount += i.tgmCount;
-    });
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
-    const todayUsers = await this.userRepo.find({
-      where: {
-        lastOnline: MoreThanOrEqual(twentyFourHoursAgoString),
-      },
-    });
+//     let tgmCount = 0;
+//     findAllUsers.forEach((i) => {
+//       tgmCount += i.tgmCount;
+//     });
+//     // const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+//     // const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
+//     const startOfToday = new Date();
+// startOfToday.setHours(0, 0, 0, 0); // Set to the start of the day (midnight)
+// const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
+//     const todayUsers = await this.userRepo.find({
+//       where: {
+//         lastOnline: MoreThanOrEqual(startOfTodayString),
+//       },
+//     });
 
-    return {
-      allUsers: await this.userRepo.count(),
-      todayUsers: todayUsers.length,
-      tapCount: 0,
-      tgmCount,
-    };
-  }
+//     return {
+//       allUsers: await this.userRepo.count(),
+//       todayUsers: todayUsers.length,
+//       tapCount: 0,
+//       tgmCount,
+//     };
+//   }
+
+async findAllUsersCount() {
+  // Get all users
+  const findAllUsers = await this.userRepo.find();
+
+  // Calculate total tgmCount
+  let tgmCount = 0;
+  findAllUsers.forEach((i) => {
+    tgmCount += i.tgmCount;
+  });
+
+  // Get the start of today in ISO format
+  // const startOfToday = new Date();
+  // startOfToday.setHours(0, 0, 0, 0); // Set to the start of the day (midnight)
+  // const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
+
+  // Find users who were online today
+  const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
+  FROM users u
+  WHERE u."lastOnline"::date = CURRENT_DATE;`)
+
+
+  return {
+    allUsers: await this.userRepo.count(), // Total number of users
+    todayUsers: todayUsers.length, // Number of users online today
+    tapCount: 0, // Placeholder for tapCount
+    tgmCount, // Total tgmCount
+  };
+}
 
   async addTask(initData: string, taskName: string) {
     const userFindOne = await this.userRepo.findOne({
