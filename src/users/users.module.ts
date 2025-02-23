@@ -9,6 +9,8 @@ import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.e
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
+import { CompleteTaskLogEntity } from './entities/complete-task-log.entity';
+import { ClaimedRewardLogEntity } from './entities/claimed-reward-log.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -18,7 +20,9 @@ import { WalletLogEntity } from './entities/wallet-log.entity';
     LongShotTicketEntity,
     LongShotPacksEntity,
     RedEnvelopeLogEntity,
-    WalletLogEntity
+    WalletLogEntity,
+    CompleteTaskLogEntity,
+    ClaimedRewardLogEntity
   ])],
   controllers: [UsersController],
   providers: [UsersService],
