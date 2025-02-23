@@ -13,7 +13,7 @@ import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { TonService } from 'src/utils/ton/service/ton-service';
-import { FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,6 +21,8 @@ import { NewCreateRedEnvelopeDto } from './dto/new-create-red-envelope.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateMarketerDto } from './dto/update-marketer.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { ClaimedRewardLogEntity } from './entities/claimed-reward-log.entity';
+import { CompleteTaskLogEntity } from './entities/complete-task-log.entity';
 import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
@@ -47,6 +49,8 @@ export class UsersService {
     @InjectRepository(PurchasedTgmEntity) private purchasedTgmRepo: Repository<PurchasedTgmEntity>,
     @InjectRepository(RedEnvelopeLogEntity) private redEnvelopeLogRepo: Repository<RedEnvelopeLogEntity>,
     @InjectRepository(WalletLogEntity) private walletLogRepo: Repository<WalletLogEntity>,
+    @InjectRepository(CompleteTaskLogEntity) private completeTaskLogRepo:Repository<CompleteTaskLogEntity>,
+    @InjectRepository(ClaimedRewardLogEntity) private claimedRewardRepo:Repository<ClaimedRewardLogEntity>
 
   ) { }
 
@@ -677,6 +681,12 @@ async findAllUsersCount() {
       } else {
         userFindOne.completedTasks.push(taskName);
         await this.userRepo.save(userFindOne);
+        await this.completeTaskLogRepo.save(this.completeTaskLogRepo.create({
+          taskName,
+          user:{
+            id:userFindOne.id
+          }
+        }))
         return true;
       }
     } else {
@@ -721,10 +731,12 @@ async findAllUsersCount() {
         );
       }
 
+      let taskLog
       if (fibonacciNumbers.includes(referralCodeUserFindOne.referralCount + 1)) {
         referralCodeUserFindOne.completedTasks.push(
           `${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`,
         );
+        taskLog=`${TaskEnum.REFERRAL}${referralCodeUserFindOne.referralCount + 1}`
       }
       if (
         referralCodeUserFindOne.level !==
@@ -746,6 +758,15 @@ async findAllUsersCount() {
 
       await this.userRepo.save(referralCodeUserFindOne);
       await this.userRepo.save(initDataUserFindOne);
+      if(taskLog && taskLog!=="")
+      {
+        await this.completeTaskLogRepo.save(this.completeTaskLogRepo.create({
+        taskName:taskLog,
+        user:{
+          id:referralCodeUserFindOne.id
+        }
+      }))
+    }
 
       const { secretCode, ...restProps } = initDataUserFindOne;
       return restProps;
@@ -791,6 +812,8 @@ async findAllUsersCount() {
       where: { initData }
     });
 
+    let createClaimedRewardLog:DeepPartial<ClaimedRewardLogEntity>[]=[]
+
     if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
       findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
       findInitDatUser.levelUpRewardsCount = 0;
@@ -805,26 +828,49 @@ async findAllUsersCount() {
       findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
     ) {
-      findInitDatUser.tgmCount += 2000;
+      const reward=2000
+      findInitDatUser.tgmCount += reward;
       findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
+      createClaimedRewardLog.push({
+        amount:String(reward),
+        taskName:TaskEnum.CONNNECT_WALLET,
+        user:{
+          id:findInitDatUser.id
+        }
+      })
     }
 
     if (
       findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
     ) {
-      findInitDatUser.tgmCount += 2000;
+      const reward=2000
+      findInitDatUser.tgmCount += reward;
       findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
+         createClaimedRewardLog.push({
+        amount:String(reward),
+        taskName:TaskEnum.FIRST_CASH_AVALANCHE,
+        user:{
+          id:findInitDatUser.id
+        }
+      })
     }
 
     if (
       findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT)
       && !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
     ) {
-      findInitDatUser.tgmCount += 2000;
+      const reward=2000
+      findInitDatUser.tgmCount += reward;
       findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
+      createClaimedRewardLog.push({
+        amount:String(reward),
+        taskName:TaskEnum.FIRST_LONG_SHOT,
+        user:{
+          id:findInitDatUser.id
+        }
+      })
     }
-
 
 
     if (findInitDatUser.roles.find(x => x == UserRoles.MARKETER)) {
@@ -1036,20 +1082,49 @@ async findAllUsersCount() {
           HttpStatus.NOT_FOUND,
         );
       } else if (userFindOne.completedTasks.includes(taskName)) {
+        let createClaimedRewardLog:DeepPartial<ClaimedRewardLogEntity>[]=[]
+
         switch (taskName) {
           case TaskEnum.CONNNECT_WALLET:
             userFindOne.tgmCount += Number(2000);
+            createClaimedRewardLog.push({
+              amount:String(2000),
+              user:{
+                id:userFindOne.id
+              },
+              taskName:TaskEnum.CONNNECT_WALLET
+            })
             break;
           case TaskEnum.FIRST_CASH_AVALANCHE:
             userFindOne.tgmCount += Number(2000);
+
+            createClaimedRewardLog.push({
+              amount:String(2000),
+              user:{
+                id:userFindOne.id
+              },
+              taskName:TaskEnum.FIRST_CASH_AVALANCHE
+            })
             break;
           case TaskEnum.FIRST_LONG_SHOT:
             userFindOne.tgmCount += Number(2000);
+
+            createClaimedRewardLog.push({
+              amount:String(2000),
+              user:{
+                id:userFindOne.id
+              },
+              taskName:TaskEnum.FIRST_LONG_SHOT
+            })
             break;
           default:
             break;
         }
+
         userFindOne.claimedRewards.push(taskName);
+
+        await this.claimedRewardRepo.save(this.claimedRewardRepo.create(createClaimedRewardLog))
+
         await this.userRepo.save(userFindOne);
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
@@ -1078,6 +1153,13 @@ async findAllUsersCount() {
       } else if (userFindOne.completedTasks.includes(taskName)) {
         userFindOne.tgmCount += Number(taskReward);
         userFindOne.claimedRewards.push(taskName);
+        await this.claimedRewardRepo.save(this.claimedRewardRepo.create({
+          amount:taskReward,
+          taskName:taskName,
+          user:{
+            id:userFindOne.id
+          }
+        }))
         await this.userRepo.save(userFindOne);
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
@@ -1103,6 +1185,12 @@ async findAllUsersCount() {
         userFindOne.estimatedTgmPrice = estimatedPrice;
         userFindOne.completedTasks.push(TaskEnum.TGM_PRICE_ESTIMATION);
         await this.userRepo.save(userFindOne);
+        await this.completeTaskLogRepo.save(this.completeTaskLogRepo.create({
+          taskName:TaskEnum.TGM_PRICE_ESTIMATION,
+          user:{
+            id:userFindOne.id
+          }
+        }))
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
       }
@@ -1126,6 +1214,14 @@ async findAllUsersCount() {
       } else {
         userFindOne.completedTasks.push(taskName);
         await this.userRepo.save(userFindOne);
+
+        await this.completeTaskLogRepo.save(this.completeTaskLogRepo.create({
+          taskName,
+          user:{
+            id:userFindOne.id
+          }
+        }))
+
         const { secretCode, ...restProps } = userFindOne;
         return restProps;
       }

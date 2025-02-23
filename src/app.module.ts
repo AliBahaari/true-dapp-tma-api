@@ -35,6 +35,9 @@ import { RequestLoggerModule } from './logger/logger.module';
 import { RequestLoggerEntity } from './logger/entities/logger.entity';
 import { RequestLoggerMiddleware } from './common/middlewares/logger.middleware';
 console.log(join(__dirname, '..', 'public'));
+import { ClaimedRewardLogEntity } from './users/entities/claimed-reward-log.entity';
+import { CompleteTaskLogEntity } from './users/entities/complete-task-log.entity';
+console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------");
 console.log(process.env.PSQL_DB);
@@ -62,7 +65,9 @@ console.log(process.env.PSQL_DB);
         RedEnvelopeLogEntity,
         RequestLoggerEntity,
         PurchasedTgmEntity,
-        WalletLogEntity
+        WalletLogEntity,
+        CompleteTaskLogEntity,
+        ClaimedRewardLogEntity
       ],
       synchronize: true,
       logging: false

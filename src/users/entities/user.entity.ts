@@ -5,6 +5,8 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ClaimedRewardLogEntity } from './claimed-reward-log.entity';
+import { CompleteTaskLogEntity } from './complete-task-log.entity';
 import { PurchasedTgmEntity } from './purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './red-envelope-log.entity';
 import { WalletLogEntity } from './wallet-log.entity';
@@ -176,4 +178,10 @@ export class UserEntity {
 
   @OneToMany(() => WalletLogEntity, (x) => x.user)
   wallets: WalletLogEntity[];
+
+  @OneToMany(()=>CompleteTaskLogEntity,(x)=>x.user)
+  ref_complete_tasks:CompleteTaskLogEntity[]
+
+  @OneToMany(()=>ClaimedRewardLogEntity,(x)=>x.user)
+  ref_claimed_rewards:ClaimedRewardLogEntity[]
 }
