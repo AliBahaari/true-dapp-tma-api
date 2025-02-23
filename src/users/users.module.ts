@@ -8,6 +8,7 @@ import { CashAvalancheEntity } from 'src/cash-avalanche/entities/cash-avalanche.
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
+import { WalletLogEntity } from './entities/wallet-log.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -16,7 +17,8 @@ import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
     CashAvalancheEntity,
     LongShotTicketEntity,
     LongShotPacksEntity,
-    RedEnvelopeLogEntity
+    RedEnvelopeLogEntity,
+    WalletLogEntity
   ])],
   controllers: [UsersController],
   providers: [UsersService],
