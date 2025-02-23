@@ -213,9 +213,7 @@ export class UsersService {
 
    if(buyTgmDto.type && !buyTgmDto.amount){
     if (
-      buyTgmDto.type !== 1 &&
       buyTgmDto.type !== 2 &&
-      buyTgmDto.type !== 3 &&
       buyTgmDto.type !== 4 &&
       buyTgmDto.type !== 5
     ) {
