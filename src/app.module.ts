@@ -31,10 +31,13 @@ import { TonModule } from './utils/ton/ton-module';
 import { PurchasedTgmEntity } from './users/entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './users/entities/red-envelope-log.entity';
 import { WalletLogEntity } from './users/entities/wallet-log.entity';
-console.log(join(__dirname, '..', 'public'))
+import { RequestLoggerModule } from './logger/logger.module';
+import { RequestLoggerEntity } from './logger/entities/logger.entity';
+import { RequestLoggerMiddleware } from './common/middlewares/logger.middleware';
+console.log(join(__dirname, '..', 'public'));
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
-console.log("------- db -------")
-console.log(process.env.PSQL_DB)
+console.log("------- db -------");
+console.log(process.env.PSQL_DB);
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -57,6 +60,7 @@ console.log(process.env.PSQL_DB)
         TreasuryEntity,
         FileEntity,
         RedEnvelopeLogEntity,
+        RequestLoggerEntity,
         PurchasedTgmEntity,
         WalletLogEntity
       ],
@@ -72,6 +76,7 @@ console.log(process.env.PSQL_DB)
     LanguagesModule,
     CashAvalancheModule,
     LongShotModule,
+    RequestLoggerModule,
     FileModule,
     EncryptionModule,
     TreasuryModule,
@@ -97,6 +102,8 @@ export class AppModule {
           method: RequestMethod.GET,
         },
       )
-      .forRoutes(UsersController, TreasuryController);
+      .forRoutes(UsersController, TreasuryController)
+      .apply(RequestLoggerMiddleware)
+      .forRoutes('*');
   }
 }
