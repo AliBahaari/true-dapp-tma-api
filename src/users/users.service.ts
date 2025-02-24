@@ -1809,7 +1809,7 @@ export class UsersService {
         createPurchasedDto.headOfInviter = inviter;
         createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
         percentOfRemainingForUser -= 20;
-        inviterType = UserRoles.HEAD_OF_MARKETING;
+        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
 
       } else if (inviter.getMarketerBy && inviter.roles.find(x => x == UserRoles.MARKETER)) {
 
@@ -1836,7 +1836,7 @@ export class UsersService {
         createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 10);
         percentOfRemainingForUser -= 10;
 
-        inviterType = UserRoles.MARKETER;
+        createPurchasedDto.inviterType = UserRoles.MARKETER;
 
       } else {
         if (inviter.isVip) createPurchasedDto.invitedByVip = true;
