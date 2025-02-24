@@ -1719,7 +1719,7 @@ export class UsersService {
 
   async findInviterOrThrow(invitedBy: string) {
     const inviter = await this.userRepo.findOne({ where: { referralCode: invitedBy } });
-    if (inviter)
+    if (!inviter)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     return inviter
   }
