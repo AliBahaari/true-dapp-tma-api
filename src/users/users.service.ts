@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -31,7 +31,7 @@ import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
 
 @Injectable()
-export class UsersService {
+export class UsersService  {
   private readonly imageFolder = path.join(
     __dirname,
     '..',
@@ -53,6 +53,66 @@ export class UsersService {
     @InjectRepository(ClaimedRewardLogEntity) private claimedRewardRepo: Repository<ClaimedRewardLogEntity>
 
   ) { }
+
+  async samad() {
+    const users = await this.userRepo.createQueryBuilder('s')
+      .where('s.invitedUserBuyTgmCommission > 0').getMany();
+    console.log(users.length);
+
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+
+      const createPurchasedDto: Partial<PurchasedTgmEntity> = {
+        amount: String(user.invitedUserBuyTgmCommission),
+        type: null,
+        user: user,
+        txId: 'txid' + ' ' + i
+      };
+
+      const inviter = await this.findInviterOrThrow(user.invitedBy);
+      createPurchasedDto.inviter = inviter;
+
+      let inviterType = UserRoles.NORMAL;
+
+      if (!inviter.getMarketerBy && inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+
+        createPurchasedDto.invitedByMarketer = false;
+        createPurchasedDto.headOfInviter = inviter;
+        createPurchasedDto.headOfMarketerCommission = String(user.invitedUserBuyTgmCommission);
+        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
+
+      } else if (inviter.getMarketerBy && inviter.roles.find(x => x == UserRoles.MARKETER)) {
+
+        const headOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
+        createPurchasedDto.invitedByMarketer = true;
+        createPurchasedDto.headOfInviter = headOfMarketing;
+
+        if (inviter.marketerVip) {
+
+          createPurchasedDto.invitedByVipMarketer = true;
+
+          createPurchasedDto.marketerCommission = String(user.invitedUserBuyTgmCommission);
+
+        } else {
+
+          createPurchasedDto.marketerCommission = String(user.invitedUserBuyTgmCommission);
+
+        }
+
+        createPurchasedDto.headOfMarketerCommission = '0'
+
+        createPurchasedDto.inviterType = UserRoles.MARKETER;
+
+      } else {
+        if (inviter.isVip) createPurchasedDto.invitedByVip = true;
+        createPurchasedDto.inviterType = inviterType;
+        createPurchasedDto.inviterCommission = String(user.invitedUserBuyTgmCommission);
+      }
+
+      await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));
+      console.log('user ' + i ,  'DONE');
+    }
+  }
 
   public async findOneUser(initData: string): Promise<UserEntity> {
     return await this.userRepo.findOne({ where: { initData } });
@@ -750,10 +810,9 @@ export class UsersService {
     }
       */
 
-     let updatedUser:UserEntity
+    let updatedUser: UserEntity;
 
-    if(findInitDatUser.roles.find(x=>x==UserRoles.MARKETER))
-    {
+    if (findInitDatUser.roles.find(x => x == UserRoles.MARKETER)) {
       const invitedUsers = await this.userRepo.find({
         where: {
           invitedBy: findInitDatUser.referralCode,
@@ -764,8 +823,8 @@ export class UsersService {
       let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
       for (let index = 0; index < invitedUsers.length; index++) {
         const invitedUser = invitedUsers[index];
-        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.marketerCommission!==null);
-        finalPurchasedTgms=finalPurchasedTgms.filter(x=>x.marketerClaimedCommission==false)
+        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.marketerCommission !== null);
+        finalPurchasedTgms = finalPurchasedTgms.filter(x => x.marketerClaimedCommission == false);
 
         for (let index = 0; index < finalPurchasedTgms.length; index++) {
           const notClaimedPurchasedTgm = finalPurchasedTgms[index];
@@ -774,12 +833,11 @@ export class UsersService {
           finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
         }
       }
-      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
-      updatedUser=await this.userRepo.save(findInitDatUser)
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm);
+      updatedUser = await this.userRepo.save(findInitDatUser);
     }
 
-    if(findInitDatUser.roles.find(x=>x==UserRoles.NORMAL))
-    {
+    if (findInitDatUser.roles.find(x => x == UserRoles.NORMAL)) {
       const invitedUsers = await this.userRepo.find({
         where: {
           invitedBy: findInitDatUser.referralCode,
@@ -790,8 +848,8 @@ export class UsersService {
       let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
       for (let index = 0; index < invitedUsers.length; index++) {
         const invitedUser = invitedUsers[index];
-        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.inviterCommission!==null);
-        finalPurchasedTgms=finalPurchasedTgms.filter(x=>x.inviterClaimedCommission==false)
+        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.inviterCommission !== null);
+        finalPurchasedTgms = finalPurchasedTgms.filter(x => x.inviterClaimedCommission == false);
 
         for (let index = 0; index < finalPurchasedTgms.length; index++) {
           const notClaimedPurchasedTgm = finalPurchasedTgms[index];
@@ -801,11 +859,11 @@ export class UsersService {
         }
       }
 
-      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
-      updatedUser=await this.userRepo.save(findInitDatUser)
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm);
+      updatedUser = await this.userRepo.save(findInitDatUser);
     }
 
-    return updatedUser
+    return updatedUser;
   }
 
   async updateClaimLevelUpReward(initData: string) {
@@ -1620,7 +1678,7 @@ export class UsersService {
     const inviter = await this.userRepo.findOne({ where: { referralCode: invitedBy } });
     if (!inviter)
       throw new HttpException(ExceptionMessageEnum.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-    return inviter
+    return inviter;
   }
 
   async validateTraansaction(txId: string, walletAddress: string) {
@@ -1654,17 +1712,17 @@ export class UsersService {
   async buyTgm(buyTgmDto: BuyTgmDto) {
     try {
       this.validateBuyTypeAndAmount(buyTgmDto.type, buyTgmDto.amount);
-    const user = await this.findUserOrThrow(buyTgmDto.initData);
-    // await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
+      const user = await this.findUserOrThrow(buyTgmDto.initData);
+      // await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
 
-    if (buyTgmDto.amount && !buyTgmDto.type)
-      // BUY TGM WITHOUT TYPE
-      return await this.buyTgmAmount(buyTgmDto, user);
+      if (buyTgmDto.amount && !buyTgmDto.type)
+        // BUY TGM WITHOUT TYPE
+        return await this.buyTgmAmount(buyTgmDto, user);
 
-    // BUY TGM WITH TYPE
-    return await this.buyTgmType(buyTgmDto, user);
+      // BUY TGM WITH TYPE
+      return await this.buyTgmType(buyTgmDto, user);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -1725,7 +1783,7 @@ export class UsersService {
           createPurchasedDto.invitedByVipMarketer = true;
 
           createPurchasedDto.marketerCommission =
-          this.commissionCalculater(packageReward, inviter.marketerCommision);
+            this.commissionCalculater(packageReward, inviter.marketerCommision);
 
           percentOfRemainingForUser -= inviter.marketerCommision;
 
@@ -1748,7 +1806,7 @@ export class UsersService {
       }
     }
 
-    user.boughtTgmCount += packageReward
+    user.boughtTgmCount += packageReward;
     user.tgmCount += Number(this.commissionCalculater(packageReward, percentOfRemainingForUser));
 
     await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));

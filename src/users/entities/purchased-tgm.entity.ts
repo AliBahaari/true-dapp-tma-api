@@ -7,15 +7,15 @@ import {
     UpdateDateColumn,
   } from 'typeorm';
 import { UserEntity, UserRoles } from './user.entity';
-  
-  
+
+
   @Entity({
     name: 'purchased_tgm',
   })
   export class PurchasedTgmEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-  
+
     @CreateDateColumn()
     createdAt: string;
 
@@ -25,7 +25,7 @@ import { UserEntity, UserRoles } from './user.entity';
     @Column()
     amount:string
 
-    @Column()
+    @Column({ nullable: true })
     type:number
 
     @Column({nullable:true})
@@ -34,7 +34,7 @@ import { UserEntity, UserRoles } from './user.entity';
     // type of inviter
     @Column({enum:UserRoles,nullable:true})
     inviterType: UserRoles
-  
+
 
     // the inviter is vip or not
     @Column({nullable:true})
@@ -67,7 +67,7 @@ import { UserEntity, UserRoles } from './user.entity';
     // is marketer claimed his commission
     @Column({default:false})
     marketerClaimedCommission:boolean
-    
+
     // head of marketer claimed his commission
     @Column({default:false})
     headOfMarketerClaimedCommission:boolean
@@ -80,8 +80,7 @@ import { UserEntity, UserRoles } from './user.entity';
     @Column({type:"jsonb",nullable:true})
     headOfInviter:UserEntity
 
-    // who was the user 
+    // who was the user
     @ManyToOne(()=>UserEntity,(x)=>x.purchasedTgms)
     user:UserEntity
   }
-  
