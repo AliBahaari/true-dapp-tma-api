@@ -1741,9 +1741,6 @@ export class UsersService {
     if (user.invitedBy) {
       const inviter = await this.findInviterOrThrow(user.invitedBy);
       createPurchasedDto.inviter = inviter;
-      if (inviter.isVip) {
-        createPurchasedDto.invitedByVip = true;
-      }
 
       let inviterType = UserRoles.NORMAL;
 
@@ -1783,8 +1780,8 @@ export class UsersService {
         inviterType = UserRoles.MARKETER;
 
       } else {
+        if (inviter.isVip) createPurchasedDto.invitedByVip = true;
         createPurchasedDto.inviterType = inviterType;
-
         createPurchasedDto.inviterCommission = this.commissionCalculater(packageReward, 5);
       }
     }
