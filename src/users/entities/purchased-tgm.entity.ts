@@ -60,6 +60,10 @@ import { UserEntity, UserRoles } from './user.entity';
     @Column({nullable:true})
     headOfMarketerCommission:string
 
+    // is inviter claimed his commission
+    @Column({default:false})
+    inviterClaimedCommission:boolean
+
     // is marketer claimed his commission
     @Column({default:false})
     marketerClaimedCommission:boolean

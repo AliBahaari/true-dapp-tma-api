@@ -706,7 +706,7 @@ export class UsersService {
       });
     }
 
-
+    /*
     if (findInitDatUser.roles.find(x => x == UserRoles.MARKETER)) {
       const invitedUsers = await this.userRepo.find({
         where: {
@@ -747,8 +747,67 @@ export class UsersService {
         await this.userRepo.save(invitedUser);
       }
 
-      return await this.userRepo.save(findInitDatUser);
+      // return await this.userRepo.save(findInitDatUser);
     }
+      */
+
+     let updatedUser:UserEntity
+
+    if(findInitDatUser.roles.find(x=>x==UserRoles.MARKETER))
+    {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+        },
+        relations: { purchasedTgms: true }
+      });
+
+      let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.marketerCommission!==null);
+        finalPurchasedTgms=finalPurchasedTgms.filter(x=>x.marketerClaimedCommission==false)
+
+        for (let index = 0; index < finalPurchasedTgms.length; index++) {
+          const notClaimedPurchasedTgm = finalPurchasedTgms[index];
+          findInitDatUser.tgmCount = findInitDatUser.tgmCount + Number(notClaimedPurchasedTgm.marketerCommission);
+          notClaimedPurchasedTgm.marketerClaimedCommission = true;
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
+        }
+      }
+
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
+      updatedUser=await this.userRepo.save(findInitDatUser)
+    }
+
+    if(findInitDatUser.roles.find(x=>x==UserRoles.NORMAL))
+    {
+      const invitedUsers = await this.userRepo.find({
+        where: {
+          invitedBy: findInitDatUser.referralCode,
+        },
+        relations: { purchasedTgms: true }
+      });
+
+      let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
+      for (let index = 0; index < invitedUsers.length; index++) {
+        const invitedUser = invitedUsers[index];
+        let finalPurchasedTgms = invitedUser.purchasedTgms.filter(x => x.inviterCommission!==null);
+        finalPurchasedTgms=finalPurchasedTgms.filter(x=>x.inviterClaimedCommission==false)
+
+        for (let index = 0; index < finalPurchasedTgms.length; index++) {
+          const notClaimedPurchasedTgm = finalPurchasedTgms[index];
+          findInitDatUser.tgmCount = findInitDatUser.tgmCount + Number(notClaimedPurchasedTgm.inviterCommission);
+          notClaimedPurchasedTgm.inviterClaimedCommission = true;
+          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
+        }
+      }
+
+      await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
+      updatedUser=await this.userRepo.save(findInitDatUser)
+    }
+
+    return updatedUser
   }
 
 
