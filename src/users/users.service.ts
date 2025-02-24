@@ -640,7 +640,6 @@ export class UsersService {
     }
   }
 
-
   async claimAllRewards(initData: string): Promise<UserEntity> {
     const findInitDatUser = await this.userRepo.findOne({
       where: { initData }
@@ -775,7 +774,6 @@ export class UsersService {
           finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
         }
       }
-
       await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm)
       updatedUser=await this.userRepo.save(findInitDatUser)
     }
@@ -809,104 +807,6 @@ export class UsersService {
 
     return updatedUser
   }
-
-
-  // DEEP SEEK VERSION
-  /*
-  async claimAllRewards(initData: string): Promise<UserEntity> {
-    const findInitDatUser = await this.userRepo.findOne({
-      where: { initData },
-    });
-
-    if (!findInitDatUser) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (findInitDatUser.levelUpRewardsCount && findInitDatUser.levelUpRewardsCount > 0) {
-      findInitDatUser.tgmCount += findInitDatUser.levelUpRewardsCount;
-      findInitDatUser.levelUpRewardsCount = 0;
-    }
-
-    if (findInitDatUser.referralRewardsCount && findInitDatUser.referralRewardsCount > 0) {
-      findInitDatUser.tgmCount += findInitDatUser.referralRewardsCount;
-      findInitDatUser.referralRewardsCount = 0;
-    }
-
-    if (
-      findInitDatUser.completedTasks.includes(TaskEnum.CONNNECT_WALLET) &&
-      !findInitDatUser.claimedRewards.includes(TaskEnum.CONNNECT_WALLET)
-    ) {
-      findInitDatUser.tgmCount += 1000;
-      findInitDatUser.claimedRewards.push(TaskEnum.CONNNECT_WALLET);
-    }
-
-    if (
-      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_CASH_AVALANCHE) &&
-      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_CASH_AVALANCHE)
-    ) {
-      findInitDatUser.tgmCount += 1000;
-      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_CASH_AVALANCHE);
-    }
-
-    if (
-      findInitDatUser.completedTasks.includes(TaskEnum.FIRST_LONG_SHOT) &&
-      !findInitDatUser.claimedRewards.includes(TaskEnum.FIRST_LONG_SHOT)
-    ) {
-      findInitDatUser.tgmCount += 1000;
-      findInitDatUser.claimedRewards.push(TaskEnum.FIRST_LONG_SHOT);
-    }
-
-    if (findInitDatUser.roles.includes(UserRoles.MARKETER)) {
-      const invitedUsers = await this.userRepo.find({
-        where: {
-          invitedBy: findInitDatUser.referralCode,
-        },
-        relations: { purchasedTgms: true },
-      });
-
-      let finalNotClaimedPurchasedTgm: PurchasedTgmEntity[] = [];
-      for (const invitedUser of invitedUsers) {
-        const finalPurchasedTgms = invitedUser.purchasedTgms.filter(
-          (x) => x.marketerClaimedCommission === false,
-        );
-        for (const notClaimedPurchasedTgm of finalPurchasedTgms) {
-          findInitDatUser.tgmCount += Number(notClaimedPurchasedTgm.marketerCommission);
-          notClaimedPurchasedTgm.marketerClaimedCommission = true;
-          finalNotClaimedPurchasedTgm.push(notClaimedPurchasedTgm);
-        }
-      }
-
-      // Save only if there are records to update
-      if (finalNotClaimedPurchasedTgm.length > 0) {
-        await this.purchasedTgmRepo.save(finalNotClaimedPurchasedTgm);
-      }
-    } else {
-      const invitedUsers = await this.userRepo.find({
-        where: {
-          invitedBy: findInitDatUser.referralCode,
-          invitedUserBuyTgmCommission: MoreThan(0),
-        },
-      });
-      for (const invitedUser of invitedUsers) {
-        findInitDatUser.tgmCount += invitedUser.invitedUserBuyTgmCommission;
-        invitedUser.invitedUserBuyTgmCommission = 0;
-        await this.userRepo.save(invitedUser);
-      }
-    }
-
-    // Save only if there are changes
-    if (
-      findInitDatUser.levelUpRewardsCount !== 0 ||
-      findInitDatUser.referralRewardsCount !== 0 ||
-      findInitDatUser.claimedRewards.length > 0 ||
-      findInitDatUser.tgmCount > 0
-    ) {
-      return await this.userRepo.save(findInitDatUser);
-    }
-
-    return findInitDatUser;
-  }
-  */
 
   async updateClaimLevelUpReward(initData: string) {
     const userFindOne = await this.userRepo.findOne({
@@ -1513,17 +1413,15 @@ export class UsersService {
 
     const purchases = await this.purchasedTgmRepo
       .createQueryBuilder('pt')
-      .where("pt.inviter->>'id' IN (:...ids)", { ids: ['09437688-f2af-4556-b869-63f3e8ba5aed'] })
+      .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
+      .andWhere("pt.marketerCommission is not null")
       .getMany();
     // purchases=purchases.filter(x=>marketerIds.includes(x.inviter?.id)==true)
-
-    let shouldCalimOrNot: boolean;
 
     const findClaimablePurchase = purchases.find(x => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false);
 
     return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
   }
-
 
   async marketerUsers(
     paginationDto: PaginationDto<{ initData: string; }>,
@@ -1558,6 +1456,7 @@ export class UsersService {
     //TODO
     let purchases = await this.purchasedTgmRepo.createQueryBuilder('pt')
       .where("pt.inviter->>'id' = :id", { id: findMarketer.id })
+      .andWhere("pt.marketerCommission is not null")
       .getMany();
 
     // purchases=purchases.filter(x=>x.inviter?.id==findMarketer.id)
@@ -1568,7 +1467,6 @@ export class UsersService {
     return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
 
   }
-
 
   async marketerUserPurchases(
     paginationDto: PaginationDto<{ initData: string; }>,
@@ -1692,6 +1590,7 @@ export class UsersService {
       .createQueryBuilder('pt')
       .where(`pt."headOfInviter"->>'initData' = :initData`, { initData: initData })
       .andWhere('pt."headOfMarketerClaimedCommission" = :claimed', { claimed: false })
+      .andWhere("pt.headOfMarketerCommission is not null")
       .getMany();
     let finalCommission: number;
     let purchaseIds: string[] = [];
@@ -1753,9 +1652,10 @@ export class UsersService {
 
   // TODO REFACTOR
   async buyTgm(buyTgmDto: BuyTgmDto) {
-    this.validateBuyTypeAndAmount(buyTgmDto.type, buyTgmDto.amount);
+    try {
+      this.validateBuyTypeAndAmount(buyTgmDto.type, buyTgmDto.amount);
     const user = await this.findUserOrThrow(buyTgmDto.initData);
-    await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
+    // await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
 
     if (buyTgmDto.amount && !buyTgmDto.type)
       // BUY TGM WITHOUT TYPE
@@ -1763,6 +1663,9 @@ export class UsersService {
 
     // BUY TGM WITH TYPE
     return await this.buyTgmType(buyTgmDto, user);
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async buyTgmType(buyTgmDto: BuyTgmDto, user: UserEntity) {
