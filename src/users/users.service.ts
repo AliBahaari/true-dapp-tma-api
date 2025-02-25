@@ -28,6 +28,7 @@ import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
+import * as util from 'util';
 var crypto = require('crypto');
 
 @Injectable()
@@ -559,14 +560,19 @@ export class UsersService  {
     });
 
     // Get the start of today in ISO format
-    // const startOfToday = new Date();
-    // startOfToday.setHours(0, 0, 0, 0); // Set to the start of the day (midnight)
-    // const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0); // Set to the start of the day (midnight)
+    const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
 
     // Find users who were online today
-    const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
-  FROM users u
-  WHERE u."lastOnline"::date = CURRENT_DATE;`);
+  //   const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
+  // FROM users u
+  // WHERE u."lastOnline"::date = CURRENT_DATE;`);
+  const todayUsers = await this.userRepo.find({
+          where: {
+            lastOnline: MoreThanOrEqual(startOfTodayString),
+          },
+        });
 
 
     return {
@@ -1541,12 +1547,12 @@ export class UsersService  {
     let purchases = await this.purchasedTgmRepo.createQueryBuilder('pt')
       .where("pt.inviter->>'id' = :id", { id: findMarketer.id })
       .andWhere("pt.marketerCommission is not null")
+      .andWhere('pt."marketerCommission"::int > 0')
+      .andWhere('pt."invitedByMarketer" is true')
       .getMany();
-
     // purchases=purchases.filter(x=>x.inviter?.id==findMarketer.id)
 
     let shouldCalimOrNot: boolean;
-
     const findClaimablePurchase = purchases.find(x => x.marketerCommission && x.marketerClaimedCommission == false);
     return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
 
