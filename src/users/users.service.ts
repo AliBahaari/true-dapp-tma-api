@@ -1960,17 +1960,16 @@ export class UsersService {
 
     user.boughtTgmCount += packageReward;
     user.tgmCount += Number(this.commissionCalculater(packageReward, percentOfRemainingForUser));
-    if (buyTgmDto.type)
-      await this.createMarketer(user);
+    if (buyTgmDto.type === 2)
+      user = await this.createMarketer(user);
     await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));
     return await this.userRepo.save(user);
   }
 
   async createMarketer(user: UserEntity): Promise<UserEntity> {
-    if (!user.roles.find(x => x == UserRoles.MARKETER)) {
-      user.roles.push(UserRoles.MARKETER);
+    if (!user.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+      user.roles.push(UserRoles.HEAD_OF_MARKETING);
     }
-    user.getMarketerBy = (await this.findHeadMarketingOwner())?.referralCode;
     return user;
   }
 
