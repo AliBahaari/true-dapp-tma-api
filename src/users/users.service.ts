@@ -32,7 +32,7 @@ import * as util from 'util';
 var crypto = require('crypto');
 
 @Injectable()
-export class UsersService  {
+export class UsersService {
   private readonly imageFolder = path.join(
     __dirname,
     '..',
@@ -100,7 +100,7 @@ export class UsersService  {
 
         }
 
-        createPurchasedDto.headOfMarketerCommission = '0'
+        createPurchasedDto.headOfMarketerCommission = '0';
 
         createPurchasedDto.inviterType = UserRoles.MARKETER;
 
@@ -111,7 +111,7 @@ export class UsersService  {
       }
 
       await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));
-      console.log('user ' + i ,  'DONE');
+      console.log('user ' + i, 'DONE');
     }
   }
 
@@ -447,11 +447,11 @@ export class UsersService  {
     for (let i = 0; i < allInvitedByUser.length; i++) {
       const invitedUser = allInvitedByUser[i];
       const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
-      .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', {userId: invitedUser.id})
-      .getMany()
+        .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', { userId: invitedUser.id })
+        .getMany();
       if (havePurchase && havePurchase.length > 0) {
         invitedUser["inviterClaimCount"] =
-        havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0)
+          havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0);
         invitedUser["canInviterClaim"] = true;
       } else {
         invitedUser["canInviterClaim"] = false;
@@ -565,14 +565,14 @@ export class UsersService  {
     const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
 
     // Find users who were online today
-  //   const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
-  // FROM users u
-  // WHERE u."lastOnline"::date = CURRENT_DATE;`);
-  const todayUsers = await this.userRepo.find({
-          where: {
-            lastOnline: MoreThanOrEqual(startOfTodayString),
-          },
-        });
+    //   const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
+    // FROM users u
+    // WHERE u."lastOnline"::date = CURRENT_DATE;`);
+    const todayUsers = await this.userRepo.find({
+      where: {
+        lastOnline: MoreThanOrEqual(startOfTodayString),
+      },
+    });
 
 
     return {
@@ -1182,8 +1182,8 @@ export class UsersService  {
     // }
 
     const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
-    .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', {userId: invitedUserId})
-    .getMany()
+      .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', { userId: invitedUserId })
+      .getMany();
 
     const initDataUserFindOne = await this.userRepo.findOne({
       where: {
@@ -1195,7 +1195,7 @@ export class UsersService  {
     }
     if (havePurchase && havePurchase.length > 0) {
       initDataUserFindOne.tgmCount +=
-      havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0)
+        havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0);
       for (let i = 0; i < havePurchase.length; i++) {
         const purchase = havePurchase[i];
         await this.purchasedTgmRepo.update(purchase.id, {
@@ -1437,7 +1437,7 @@ export class UsersService  {
     paginationDto: PaginationDto<{}>, // No filter needed since we're fetching all head marketers
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; }> {
     const { page, limit, sortBy, sortOrder } = paginationDto;
-  
+
     // Find all head marketers
     const headMarketers = await this.userRepo
       .createQueryBuilder("user")
@@ -1446,30 +1446,30 @@ export class UsersService  {
       .take(limit)
       .orderBy(`user.${sortBy}`, sortOrder)
       .getMany();
-    
+
     // If no head marketers found, return empty response
     if (headMarketers.length === 0) {
       return { data: [], count: 0, hasNextPage: false };
     }
-  
+
     // Get the total count of head marketers
     const totalCount = await this.userRepo
       .createQueryBuilder("user")
       .where(`:role = ANY (string_to_array(user.roles, ','))`, { role: UserRoles.HEAD_OF_MARKETING.toString() }) // Convert roles to array and check if it includes the role
       .getCount();
-  
+
     const hasNextPage = page * limit < totalCount;
-  
+
     // Fetch purchases for each head marketer
     for (let index = 0; index < headMarketers.length; index++) {
       const headMarketer = headMarketers[index];
       const purchases = await this.purchasedTgmRepo.createQueryBuilder("pt")
         .where(`pt."headOfInviter"->>'id' = :headId`, { headId: headMarketer.id }) // Access JSONB property correctly
         .getMany();
-  
+
       headMarketer["purchases"] = purchases;
     }
-  
+
     return { data: headMarketers, count: totalCount, hasNextPage };
   }
 
@@ -1542,10 +1542,10 @@ export class UsersService  {
     // let purchases=await this.purchasedTgmRepo.find()
     if (marketerIds?.length > 0) {
       const purchases = await this.purchasedTgmRepo
-      .createQueryBuilder('pt')
-      .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
-      .andWhere("pt.marketerCommission is not null")
-      .getMany();
+        .createQueryBuilder('pt')
+        .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
+        .andWhere("pt.marketerCommission is not null")
+        .getMany();
 
       const findClaimablePurchase = purchases.find(x => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false);
       return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
@@ -1557,17 +1557,17 @@ export class UsersService  {
 
 
   public async newHeadMarketers(
-    paginationDto: PaginationDto<{initData:string}>, // No filter needed since we're fetching marketers for a specific head
+    paginationDto: PaginationDto<{ initData: string; }>, // No filter needed since we're fetching marketers for a specific head
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; claim: boolean; }> {
-  let headId=paginationDto.filter.initData
+    let headId = paginationDto.filter.initData;
     const { page, limit, sortBy, sortOrder } = paginationDto;
-  
+
     // Find head marketer and validate
     const findHead = await this.userRepo.findOne({ where: { initData: headId } });
     if (!findHead || !findHead.roles.find((x) => x == UserRoles.HEAD_OF_MARKETING)) {
       throw new ForbiddenException();
     }
-  
+
     // Build pagination query
     const queryOptions: FindManyOptions<UserEntity> = {
       where: {
@@ -1577,11 +1577,11 @@ export class UsersService  {
       take: limit,
       order: { [sortBy]: sortOrder },
     };
-  
+
     // Get paginated marketers and total count
     const [data, count] = await this.userRepo.findAndCount(queryOptions);
     const hasNextPage = page * limit < count;
-  
+
     // Fetch purchases for each marketer in the current page
     if (data.length > 0) {
       for (let index = 0; index < data.length; index++) {
@@ -1593,7 +1593,7 @@ export class UsersService  {
         marketer["purchases"] = purchases;
       }
     }
-  
+
     // Check if there are any claimable purchases for the head marketer
     const marketersOfThisHead = await this.userRepo.find({
       where: {
@@ -1601,9 +1601,9 @@ export class UsersService  {
         roles: In([UserRoles.MARKETER]),
       },
     });
-  
+
     const marketerIds: string[] = marketersOfThisHead.map((x) => x.id);
-  
+
     let claim = false;
     if (marketerIds?.length > 0) {
       const purchases = await this.purchasedTgmRepo
@@ -1611,13 +1611,13 @@ export class UsersService  {
         .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
         .andWhere("pt.marketerCommission IS NOT NULL")
         .getMany();
-  
+
       const findClaimablePurchase = purchases.find(
         (x) => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false,
       );
       claim = findClaimablePurchase ? true : false;
     }
-  
+
     return { data, count, hasNextPage, claim };
   }
 
@@ -1867,7 +1867,7 @@ export class UsersService  {
   }
 
   async buyTgmType(buyTgmDto: BuyTgmDto, user: UserEntity) {
-    if (user.packageIds.includes(buyTgmDto.type))
+    if (user.packageIds.find(x => x == buyTgmDto.type))
       throw new HttpException(
         ExceptionMessageEnum.THE_PACKAGE_ID_HAS_BEEN_BOUGHT_PREVIOUSLY,
         HttpStatus.FORBIDDEN,
@@ -1898,16 +1898,27 @@ export class UsersService  {
     };
 
 
-    let inviterType 
+    let inviterType;
 
-    if (user.invitedBy) {
+    if (user.getMarketerBy) {
+      const inviter = await this.findInviterOrThrow(user.getMarketerBy);
+      createPurchasedDto.inviter = inviter;
+
+      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+        createPurchasedDto.invitedByMarketer = false;
+        createPurchasedDto.headOfInviter = inviter;
+        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
+        percentOfRemainingForUser -= 20;
+        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
+      }
+    } else if (user.invitedBy) {
       const inviter = await this.findInviterOrThrow(user.invitedBy);
       createPurchasedDto.inviter = inviter;
 
-     inviterType = UserRoles.NORMAL;
+      inviterType = UserRoles.NORMAL;
 
       if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
-        console.log("-------- im here ---------")
+        console.log("-------- im here ---------");
         createPurchasedDto.invitedByMarketer = false;
         createPurchasedDto.headOfInviter = inviter;
         createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
@@ -1946,25 +1957,29 @@ export class UsersService  {
         createPurchasedDto.inviterType = inviterType;
         createPurchasedDto.inviterCommission = this.commissionCalculater(packageReward, 5);
       }
-    }else if(user.getMarketerBy)
-    {
-      const inviter = await this.findInviterOrThrow(user.getMarketerBy);
-      createPurchasedDto.inviter = inviter;
-
-      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
-        createPurchasedDto.invitedByMarketer = false;
-        createPurchasedDto.headOfInviter = inviter;
-        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
-        percentOfRemainingForUser -= 20;
-        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
-      }
     }
 
     user.boughtTgmCount += packageReward;
     user.tgmCount += Number(this.commissionCalculater(packageReward, percentOfRemainingForUser));
-
+    if (buyTgmDto.type)
+      await this.createMarketer(user);
     await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));
     return await this.userRepo.save(user);
+  }
+
+  async createMarketer(user: UserEntity): Promise<UserEntity> {
+    if (!user.roles.find(x => x == UserRoles.MARKETER)) {
+      user.roles.push(UserRoles.MARKETER);
+    }
+    user.getMarketerBy = (await this.findHeadMarketingOwner())?.referralCode;
+    return user;
+  }
+
+  async findHeadMarketingOwner(): Promise<UserEntity> {
+    return await this.userRepo.createQueryBuilder("user")
+      .where(`:role = ANY (string_to_array(user.roles, ','))`, { role: UserRoles.HEAD_OF_MARKETING.toString() })
+      .where(`:role = ANY (string_to_array(user.roles, ','))`, { role: UserRoles.OWNER.toString() })
+      .getOne();
   }
 
   async buyTgmAmount(buyTgmDto: BuyTgmDto, user: UserEntity) {
