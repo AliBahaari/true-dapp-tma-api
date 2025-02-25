@@ -448,8 +448,10 @@ export class UsersService  {
       const invitedUser = allInvitedByUser[i];
       const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
       .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', {userId: invitedUser.id})
-      .getCount()
-      if (havePurchase && havePurchase > 0) {
+      .getMany()
+      if (havePurchase && havePurchase.length > 0) {
+        invitedUser["inviterClaimCount"] =
+        havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0)
         invitedUser["canInviterClaim"] = true;
       } else {
         invitedUser["canInviterClaim"] = false;
