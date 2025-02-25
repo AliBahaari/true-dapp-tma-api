@@ -1899,19 +1899,7 @@ export class UsersService {
 
 
     let inviterType;
-
-    if (user.getMarketerBy) {
-      const inviter = await this.findInviterOrThrow(user.getMarketerBy);
-      createPurchasedDto.inviter = inviter;
-
-      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
-        createPurchasedDto.invitedByMarketer = false;
-        createPurchasedDto.headOfInviter = inviter;
-        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
-        percentOfRemainingForUser -= 20;
-        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
-      }
-    } else if (user.invitedBy) {
+    if (user.invitedBy) {
       const inviter = await this.findInviterOrThrow(user.invitedBy);
       createPurchasedDto.inviter = inviter;
 
@@ -1956,6 +1944,17 @@ export class UsersService {
         if (inviter.isVip) createPurchasedDto.invitedByVip = true;
         createPurchasedDto.inviterType = inviterType;
         createPurchasedDto.inviterCommission = this.commissionCalculater(packageReward, 5);
+      }
+    } else if (user.getMarketerBy) {
+      const inviter = await this.findInviterOrThrow(user.getMarketerBy);
+      createPurchasedDto.inviter = inviter;
+
+      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+        createPurchasedDto.invitedByMarketer = false;
+        createPurchasedDto.headOfInviter = inviter;
+        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
+        percentOfRemainingForUser -= 20;
+        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
       }
     }
 
