@@ -1500,17 +1500,19 @@ export class UsersService  {
     const marketerIds: string[] = marketersOfThisHead.map(x => x.id);
 
     // let purchases=await this.purchasedTgmRepo.find()
-
-    const purchases = await this.purchasedTgmRepo
+    if (marketerIds?.length > 0) {
+      const purchases = await this.purchasedTgmRepo
       .createQueryBuilder('pt')
       .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
       .andWhere("pt.marketerCommission is not null")
       .getMany();
+
+      const findClaimablePurchase = purchases.find(x => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false);
+      return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
+    }
     // purchases=purchases.filter(x=>marketerIds.includes(x.inviter?.id)==true)
 
-    const findClaimablePurchase = purchases.find(x => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false);
-
-    return { data, count, hasNextPage, claim: findClaimablePurchase ? true : false };
+    return { data, count, hasNextPage, claim: false };
   }
 
   async marketerUsers(
