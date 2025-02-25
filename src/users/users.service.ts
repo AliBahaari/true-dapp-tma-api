@@ -443,6 +443,18 @@ export class UsersService  {
         invitedBy: referralCode,
       },
     });
+
+    for (let i = 0; i < allInvitedByUser.length; i++) {
+      const invitedUser = allInvitedByUser[i];
+      const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
+      .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', {userId: invitedUser.id})
+      .getCount()
+      if (havePurchase && havePurchase > 0) {
+        invitedUser["canInviterClaim"] = true;
+      } else {
+        invitedUser["canInviterClaim"] = false;
+      }
+    }
     return allInvitedByUser.map((i) => {
       const { secretCode, ...restProps } = i;
       return restProps;
