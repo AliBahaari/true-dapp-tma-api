@@ -443,7 +443,6 @@ export class UsersService  {
         invitedBy: referralCode,
       },
     });
-
     for (let i = 0; i < allInvitedByUser.length; i++) {
       const invitedUser = allInvitedByUser[i];
       const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
@@ -1172,9 +1171,13 @@ export class UsersService  {
         HttpStatus.FORBIDDEN,
       );
     }
-    if (invitedUserFindOne.invitedUserBuyTgmCommission === 0) {
-      throw new HttpException(ExceptionMessageEnum.NO_COMMISSION_REMAINED, HttpStatus.FORBIDDEN);
-    }
+    // if (invitedUserFindOne.invitedUserBuyTgmCommission === 0) {
+    //   throw new HttpException(ExceptionMessageEnum.NO_COMMISSION_REMAINED, HttpStatus.FORBIDDEN);
+    // }
+
+    const havePurchase = await this.purchasedTgmRepo.createQueryBuilder('a')
+    .where('a."inviterClaimedCommission" = false AND a."inviterCommission"::int > 0 AND a."userId" = :userId', {userId: invitedUserId})
+    .getMany()
 
     const initDataUserFindOne = await this.userRepo.findOne({
       where: {
@@ -1184,9 +1187,18 @@ export class UsersService  {
     if (!initDataUserFindOne) {
       throw new HttpException(ExceptionMessageEnum.INIT_DATA_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
-
-    initDataUserFindOne.tgmCount +=
-      invitedUserFindOne.invitedUserBuyTgmCommission;
+    if (havePurchase && havePurchase.length > 0) {
+      initDataUserFindOne.tgmCount +=
+      havePurchase.reduce((accumulator, currentValue) => accumulator + Number(currentValue.inviterCommission), 0)
+      for (let i = 0; i < havePurchase.length; i++) {
+        const purchase = havePurchase[i];
+        await this.purchasedTgmRepo.update(purchase.id, {
+          inviterClaimedCommission: true
+        });
+      }
+    }
+    // initDataUserFindOne.tgmCount +=
+    //   invitedUserFindOne.invitedUserBuyTgmCommission;
     invitedUserFindOne.invitedUserBuyTgmCommission = 0;
 
     await this.userRepo.save(invitedUserFindOne);
