@@ -202,12 +202,12 @@ export class UsersController {
 
   @Post("owner/head/marketers")
   async ownerheadMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
-    return this.usersService.ownerHeadMarketers(paginationDto);
+    return this.usersService.newOwnerHeadMarketers(paginationDto);
   }
 
   @Post("head/marketers")
   async headMarketers(@Body() paginationDto: PaginationDto<{initData:string}>) {
-    return this.usersService.headMarketers(paginationDto);
+    return this.usersService.newHeadMarketers(paginationDto);
   }
 
   @Post("marketer/user/purchases")

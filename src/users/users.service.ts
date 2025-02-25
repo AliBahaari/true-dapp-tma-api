@@ -13,7 +13,7 @@ import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { TonService } from 'src/utils/ton/service/ton-service';
-import { DeepPartial, FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Any, DeepPartial, FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -1433,6 +1433,46 @@ export class UsersService  {
     return { data, count, hasNextPage };
   }
 
+  public async newOwnerHeadMarketers(
+    paginationDto: PaginationDto<{}>, // No filter needed since we're fetching all head marketers
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; }> {
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+  
+    // Find all head marketers
+    const headMarketers = await this.userRepo
+      .createQueryBuilder("user")
+      .where(`:role = ANY (string_to_array(user.roles, ','))`, { role: UserRoles.HEAD_OF_MARKETING.toString() }) // Convert roles to array and check if it includes the role
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy(`user.${sortBy}`, sortOrder)
+      .getMany();
+    
+    // If no head marketers found, return empty response
+    if (headMarketers.length === 0) {
+      return { data: [], count: 0, hasNextPage: false };
+    }
+  
+    // Get the total count of head marketers
+    const totalCount = await this.userRepo
+      .createQueryBuilder("user")
+      .where(`:role = ANY (string_to_array(user.roles, ','))`, { role: UserRoles.HEAD_OF_MARKETING.toString() }) // Convert roles to array and check if it includes the role
+      .getCount();
+  
+    const hasNextPage = page * limit < totalCount;
+  
+    // Fetch purchases for each head marketer
+    for (let index = 0; index < headMarketers.length; index++) {
+      const headMarketer = headMarketers[index];
+      const purchases = await this.purchasedTgmRepo.createQueryBuilder("pt")
+        .where(`pt."headOfInviter"->>'id' = :headId`, { headId: headMarketer.id }) // Access JSONB property correctly
+        .getMany();
+  
+      headMarketer["purchases"] = purchases;
+    }
+  
+    return { data: headMarketers, count: totalCount, hasNextPage };
+  }
+
   async headMarketers(
     paginationDto: PaginationDto<{ initData: string; }>,
   ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; claim: boolean; }> {
@@ -1513,6 +1553,72 @@ export class UsersService  {
     // purchases=purchases.filter(x=>marketerIds.includes(x.inviter?.id)==true)
 
     return { data, count, hasNextPage, claim: false };
+  }
+
+
+  public async newHeadMarketers(
+    paginationDto: PaginationDto<{initData:string}>, // No filter needed since we're fetching marketers for a specific head
+  ): Promise<{ data: UserEntity[]; count: number; hasNextPage: boolean; claim: boolean; }> {
+  let headId=paginationDto.filter.initData
+    const { page, limit, sortBy, sortOrder } = paginationDto;
+  
+    // Find head marketer and validate
+    const findHead = await this.userRepo.findOne({ where: { initData: headId } });
+    if (!findHead || !findHead.roles.find((x) => x == UserRoles.HEAD_OF_MARKETING)) {
+      throw new ForbiddenException();
+    }
+  
+    // Build pagination query
+    const queryOptions: FindManyOptions<UserEntity> = {
+      where: {
+        getMarketerBy: findHead.referralCode,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder },
+    };
+  
+    // Get paginated marketers and total count
+    const [data, count] = await this.userRepo.findAndCount(queryOptions);
+    const hasNextPage = page * limit < count;
+  
+    // Fetch purchases for each marketer in the current page
+    if (data.length > 0) {
+      for (let index = 0; index < data.length; index++) {
+        const marketer = data[index];
+        const purchases = await this.purchasedTgmRepo.createQueryBuilder("pt")
+          .where("pt.inviter->>'id' = :marketerId", { marketerId: marketer.id })
+          .leftJoinAndSelect("pt.user", "u")
+          .getMany();
+        marketer["purchases"] = purchases;
+      }
+    }
+  
+    // Check if there are any claimable purchases for the head marketer
+    const marketersOfThisHead = await this.userRepo.find({
+      where: {
+        getMarketerBy: findHead.referralCode,
+        roles: In([UserRoles.MARKETER]),
+      },
+    });
+  
+    const marketerIds: string[] = marketersOfThisHead.map((x) => x.id);
+  
+    let claim = false;
+    if (marketerIds?.length > 0) {
+      const purchases = await this.purchasedTgmRepo
+        .createQueryBuilder("pt")
+        .where("pt.inviter->>'id' IN (:...ids)", { ids: marketerIds })
+        .andWhere("pt.marketerCommission IS NOT NULL")
+        .getMany();
+  
+      const findClaimablePurchase = purchases.find(
+        (x) => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false,
+      );
+      claim = findClaimablePurchase ? true : false;
+    }
+  
+    return { data, count, hasNextPage, claim };
   }
 
   async marketerUsers(
@@ -1792,21 +1898,23 @@ export class UsersService  {
     };
 
 
+    let inviterType 
+
     if (user.invitedBy) {
       const inviter = await this.findInviterOrThrow(user.invitedBy);
       createPurchasedDto.inviter = inviter;
 
-      let inviterType = UserRoles.NORMAL;
+     inviterType = UserRoles.NORMAL;
 
-      if (!inviter.getMarketerBy && inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
-
+      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+        console.log("-------- im here ---------")
         createPurchasedDto.invitedByMarketer = false;
         createPurchasedDto.headOfInviter = inviter;
         createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
         percentOfRemainingForUser -= 20;
         createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
 
-      } else if (inviter.getMarketerBy && inviter.roles.find(x => x == UserRoles.MARKETER)) {
+      } else if (inviter.roles.find(x => x == UserRoles.MARKETER)) {
 
         const headOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
@@ -1837,6 +1945,18 @@ export class UsersService  {
         if (inviter.isVip) createPurchasedDto.invitedByVip = true;
         createPurchasedDto.inviterType = inviterType;
         createPurchasedDto.inviterCommission = this.commissionCalculater(packageReward, 5);
+      }
+    }else if(user.getMarketerBy)
+    {
+      const inviter = await this.findInviterOrThrow(user.getMarketerBy);
+      createPurchasedDto.inviter = inviter;
+
+      if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
+        createPurchasedDto.invitedByMarketer = false;
+        createPurchasedDto.headOfInviter = inviter;
+        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
+        percentOfRemainingForUser -= 20;
+        createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
       }
     }
 
