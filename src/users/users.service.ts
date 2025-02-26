@@ -1884,6 +1884,7 @@ export class UsersService {
         break;
       case 5:
         packageReward = 24000000;
+        user.isMilioner = true;
         break;
     }
 
