@@ -1599,13 +1599,13 @@ export class UsersService {
     const marketersOfThisHead = await this.userRepo.find({
       where: {
         getMarketerBy: findHead.referralCode,
-        roles: In([UserRoles.MARKETER]),
       },
     });
 
     const marketerIds: string[] = marketersOfThisHead.map((x) => x.id);
 
     let claim = false;
+
     if (marketerIds?.length > 0) {
       const purchases = await this.purchasedTgmRepo
         .createQueryBuilder("pt")
@@ -1616,6 +1616,7 @@ export class UsersService {
       const findClaimablePurchase = purchases.find(
         (x) => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false,
       );
+
       claim = findClaimablePurchase ? true : false;
     }
 
@@ -1793,12 +1794,14 @@ export class UsersService {
       .getMany();
     let finalCommission: number;
     let purchaseIds: string[] = [];
-
+    console.log("------- purchases ----------")
+    console.log(purchases)
     purchases.forEach(x => {
       finalCommission += Math.floor(Number(x.headOfMarketerCommission)),
         purchaseIds.push(x.id);
     });
-
+    console.log("-------- ids --------")
+    console.log(purchaseIds)
     await this.purchasedTgmRepo.update(purchaseIds, { headOfMarketerClaimedCommission: true });
     findHeadMarketer.tgmCount += finalCommission;
     return await this.userRepo.save(findHeadMarketer);
