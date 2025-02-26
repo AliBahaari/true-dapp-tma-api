@@ -1934,7 +1934,7 @@ export class UsersService {
         percentOfRemainingForUser -= 20;
         createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
 
-      } else if (inviter.roles.find(x => x == UserRoles.MARKETER)) {
+      } else if (inviter.roles.find(x => x == UserRoles.MARKETER) && !inviter.deletedAtOfMarketers) {
 
         const headOfMarketing = await this.userRepo.findOne({ where: { referralCode: inviter.getMarketerBy } });
         createPurchasedDto.invitedByMarketer = true;
@@ -1966,7 +1966,7 @@ export class UsersService {
         createPurchasedDto.inviterType = inviterType;
         createPurchasedDto.inviterCommission = this.commissionCalculater(packageReward, 5);
       }
-    } else if (user.getMarketerBy) {
+    } else if (user.getMarketerBy && !user.deletedAtOfMarketers) {
       const inviter = await this.findInviterOrThrow(user.getMarketerBy);
       createPurchasedDto.inviter = inviter;
 
