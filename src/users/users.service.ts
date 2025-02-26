@@ -559,18 +559,19 @@ export class UsersService {
       tgmCount += i.tgmCount;
     });
 
-    // Get the start of today in ISO format
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0); // Set to the start of the day (midnight)
-    const startOfTodayString = startOfToday.toISOString(); // Convert to ISO string
+    // Get the current time
+    const now = new Date();
 
-    // Find users who were online today
-    //   const todayUsers = await this.userRepo.query(`SELECT u."lastOnline"
-    // FROM users u
-    // WHERE u."lastOnline"::date = CURRENT_DATE;`);
+    // Calculate the timestamp for 24 hours ago
+    const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+    // Convert to ISO string
+    const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
+
+    // Find users who were online in the last 24 hours
     const todayUsers = await this.userRepo.find({
       where: {
-        lastOnline: MoreThanOrEqual(startOfTodayString),
+        lastOnline: MoreThanOrEqual(twentyFourHoursAgoString),
       },
     });
 
