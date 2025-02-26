@@ -29,6 +29,7 @@ import { UserEntity, UserRoles } from './entities/user.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 import * as util from 'util';
+import * as bigDecimal from 'js-big-decimal'
 var crypto = require('crypto');
 
 @Injectable()
@@ -1792,12 +1793,14 @@ export class UsersService {
       .andWhere('pt."headOfMarketerClaimedCommission" = :claimed', { claimed: false })
       .andWhere("pt.headOfMarketerCommission is not null")
       .getMany();
-    let finalCommission: number;
+    let finalCommission: number=0
     let purchaseIds: string[] = [];
-    console.log("------- purchases ----------")
-    console.log(purchases)
+
+    if(purchases?.length<=0)
+      throw new BadRequestException("There is no purchase")
+
     purchases.forEach(x => {
-      finalCommission += Math.floor(Number(x.headOfMarketerCommission)),
+      finalCommission = finalCommission+ Math.floor(Number(x.headOfMarketerCommission)),
         purchaseIds.push(x.id);
     });
     console.log("-------- ids --------")
