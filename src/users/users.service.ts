@@ -1621,6 +1621,19 @@ export class UsersService {
       claim = findClaimablePurchase ? true : false;
     }
 
+    const headPurchases=await this.purchasedTgmRepo.createQueryBuilder("pt")
+    .where('pt."headOfInviter"->>\'id\' = :headId', { headId: findHead.id })
+    .andWhere("pt.headOfMarketerCommission IS NOT NULL")
+    .getMany()
+
+    const findClaimablePurchase = headPurchases.find(
+      (x) => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false,
+    );
+
+    if(findClaimablePurchase)
+      claim=true
+    
+
     return { data, count, hasNextPage, claim };
   }
 
