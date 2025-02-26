@@ -1990,6 +1990,8 @@ export class UsersService {
   async createMarketer(user: UserEntity): Promise<UserEntity> {
     if (!user.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
       user.roles.push(UserRoles.HEAD_OF_MARKETING);
+      user.roles.splice(user.roles.findIndex(x => x == UserRoles.MARKETER), 1);
+      user.deletedAtOfMarketers=new Date()    
     }
     return user;
   }
