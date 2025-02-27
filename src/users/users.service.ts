@@ -404,6 +404,11 @@ export class UsersService {
         isInviterHeadOfMarketer = true;
         headOfMarketerAddress = whoInvitedUser.walletAddress;
       }
+      
+      if(isInviterHeadOfMarketer==false && userFindOne.getMarketerBy)
+        {
+          isInviterHeadOfMarketer=true
+        }
 
       const countOfReferral = await this.userRepo.count({
         where: {
