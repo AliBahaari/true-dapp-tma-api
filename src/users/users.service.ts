@@ -1632,7 +1632,7 @@ export class UsersService {
 
     if(findClaimablePurchase)
       claim=true
-    
+
 
     return { data, count, hasNextPage, claim };
   }
@@ -1973,8 +1973,8 @@ export class UsersService {
       if (inviter.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
         createPurchasedDto.invitedByMarketer = false;
         createPurchasedDto.headOfInviter = inviter;
-        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 20);
-        percentOfRemainingForUser -= 20;
+        createPurchasedDto.headOfMarketerCommission = this.commissionCalculater(packageReward, 10);
+        percentOfRemainingForUser -= 10;
         createPurchasedDto.inviterType = UserRoles.HEAD_OF_MARKETING;
       }
     }
@@ -1991,7 +1991,7 @@ export class UsersService {
     if (!user.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
       user.roles.push(UserRoles.HEAD_OF_MARKETING);
       user.roles.splice(user.roles.findIndex(x => x == UserRoles.MARKETER), 1);
-      user.deletedAtOfMarketers=new Date()    
+      user.deletedAtOfMarketers=new Date()
     }
     return user;
   }
