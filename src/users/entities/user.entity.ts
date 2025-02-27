@@ -17,7 +17,7 @@ export enum UserRoles {
   NORMAL = 3,
   HEAD_OF_MARKETING = 4,
   MARKETER = 5,
-  OWNER = 6,
+  OWNER = 6
 }
 
 @Entity({
@@ -102,6 +102,12 @@ export class UserEntity {
     default: false,
   })
   isVip: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isMilioner: boolean;
 
   @Column()
   referralRewardsCount: number;
