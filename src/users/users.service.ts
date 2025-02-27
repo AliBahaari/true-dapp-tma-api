@@ -407,8 +407,12 @@ export class UsersService {
       
       if(isInviterHeadOfMarketer==false && userFindOne.getMarketerBy)
         {
+          const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: whoInvitedUser.getMarketerBy } });
           isInviterHeadOfMarketer=true
+          headOfMarketerAddress=findHeadOfMarketer.walletAddress
         }
+
+        
 
       const countOfReferral = await this.userRepo.count({
         where: {
