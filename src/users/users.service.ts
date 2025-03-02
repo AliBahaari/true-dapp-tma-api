@@ -1882,6 +1882,8 @@ export class UsersService {
     try {
       this.validateBuyTypeAndAmount(buyTgmDto.type, buyTgmDto.amount);
       const user = await this.findUserOrThrow(buyTgmDto.initData);
+
+      if(process.env.NODE_ENV=="production")
       await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
 
       if (buyTgmDto.amount && !buyTgmDto.type)
