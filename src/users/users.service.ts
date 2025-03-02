@@ -570,20 +570,24 @@ export class UsersService {
     });
 
     // Get the current time
-    const now = new Date();
+    // const now = new Date();
 
-    // Calculate the timestamp for 24 hours ago
-    const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    // // Calculate the timestamp for 24 hours ago
+    // const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
 
-    // Convert to ISO string
-    const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
+    // // Convert to ISO string
+    // const twentyFourHoursAgoString = twentyFourHoursAgo.toISOString();
 
-    // Find users who were online in the last 24 hours
-    const todayUsers = await this.userRepo.find({
-      where: {
-        lastOnline: MoreThanOrEqual(twentyFourHoursAgoString),
-      },
-    });
+    // // Find users who were online in the last 24 hours
+    // const todayUsers = await this.userRepo.find({
+    //   where: {
+    //     lastOnline: MoreThanOrEqual(twentyFourHoursAgoString),
+    //   },
+    // });
+
+    const todayUsers=await this.userRepo.query(`SELECT *
+      FROM users u
+      WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL '24 hours';`)
 
 
     return {
