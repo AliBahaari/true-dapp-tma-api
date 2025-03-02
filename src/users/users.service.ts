@@ -1911,6 +1911,7 @@ export class UsersService {
         break;
       case 4:
         packageReward = 1000000;
+        user.isVip=true
         break;
       case 5:
         packageReward = 24000000;
