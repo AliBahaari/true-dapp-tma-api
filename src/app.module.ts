@@ -37,6 +37,8 @@ import { RequestLoggerMiddleware } from './common/middlewares/logger.middleware'
 console.log(join(__dirname, '..', 'public'));
 import { ClaimedRewardLogEntity } from './users/entities/claimed-reward-log.entity';
 import { CompleteTaskLogEntity } from './users/entities/complete-task-log.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './common/guards/auth.guard';
 console.log(join(__dirname, '..', 'public'))
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------");
@@ -76,7 +78,6 @@ console.log(process.env.PSQL_DB);
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/static',
     }),
-    UsersModule,
     StatsModule,
     LanguagesModule,
     CashAvalancheModule,
@@ -85,10 +86,14 @@ console.log(process.env.PSQL_DB);
     FileModule,
     EncryptionModule,
     TreasuryModule,
-    TonModule
+    TonModule,
+    UsersModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [{
+    provide: APP_GUARD,
+    useClass: AuthGuard,
+  }],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

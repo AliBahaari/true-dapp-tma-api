@@ -1,5 +1,6 @@
-import { HttpException, HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
@@ -13,7 +14,7 @@ import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { LongShotPacksEntity } from 'src/long-shot/entities/long-shot-packs.entity';
 import { LongShotTicketEntity } from 'src/long-shot/entities/long-shot-tickets.entity';
 import { TonService } from 'src/utils/ton/service/ton-service';
-import { Any, DeepPartial, FindManyOptions, In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { DeepPartial, FindManyOptions, In, MoreThan, Repository } from 'typeorm';
 import { BuyTgmDto } from './dto/buy-tgm.dto';
 import { CreateRedEnvelopeDto } from './dto/create-red-envelope.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,11 +28,8 @@ import { PurchasedTgmEntity } from './entities/purchased-tgm.entity';
 import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { UserEntity, UserRoles } from './entities/user.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
-import { fibonacciPosition } from './utils/fibonacciPosition';
-import * as util from 'util';
-import * as bigDecimal from 'js-big-decimal'
 import { AccessToken } from './interfaces/access-token.interface';
-import { JwtService } from '@nestjs/jwt';
+import { fibonacciPosition } from './utils/fibonacciPosition';
 var crypto = require('crypto');
 
 @Injectable()
@@ -55,7 +53,7 @@ export class UsersService {
     @InjectRepository(WalletLogEntity) private walletLogRepo: Repository<WalletLogEntity>,
     @InjectRepository(CompleteTaskLogEntity) private completeTaskLogRepo: Repository<CompleteTaskLogEntity>,
     @InjectRepository(ClaimedRewardLogEntity) private claimedRewardRepo: Repository<ClaimedRewardLogEntity>,
-    private readonly jwtService:JwtService
+    private readonly jwtService: JwtService
 
   ) { }
 
@@ -119,16 +117,15 @@ export class UsersService {
     }
   }
 
-  public  async  login(user:IUserToken):Promise<string>
-  {
-    const findUser=await this.userRepo.findOne({where:{id:user.id}})
-    const accessTokenPayload:AccessToken={
-        id:findUser.id,
-        roles:findUser.roles
-    }
+  public async login(user: IUserToken): Promise<string> {
+    const findUser = await this.userRepo.findOne({ where: { id: user.id } });
+    const accessTokenPayload: AccessToken = {
+      id: findUser.id,
+      roles: findUser.roles
+    };
 
-    const token=await this.jwtService.sign(accessTokenPayload,{expiresIn:"12h"})
-    return token
+    const token = await this.jwtService.sign(accessTokenPayload, { expiresIn: "12h" });
+    return token;
   }
 
   public async findOneUser(initData: string): Promise<UserEntity> {
@@ -419,15 +416,14 @@ export class UsersService {
         isInviterHeadOfMarketer = true;
         headOfMarketerAddress = whoInvitedUser.walletAddress;
       }
-      
-      if(isInviterHeadOfMarketer==false && userFindOne.getMarketerBy)
-        {
-          const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: userFindOne.getMarketerBy } });
-          isInviterHeadOfMarketer=true
-          headOfMarketerAddress=findHeadOfMarketer.walletAddress
-        }
 
-        
+      if (isInviterHeadOfMarketer == false && userFindOne.getMarketerBy) {
+        const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: userFindOne.getMarketerBy } });
+        isInviterHeadOfMarketer = true;
+        headOfMarketerAddress = findHeadOfMarketer.walletAddress;
+      }
+
+
 
       const countOfReferral = await this.userRepo.count({
         where: {
@@ -600,9 +596,9 @@ export class UsersService {
     //   },
     // });
 
-    const todayUsers=await this.userRepo.query(`SELECT *
+    const todayUsers = await this.userRepo.query(`SELECT *
       FROM users u
-      WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL '24 hours';`)
+      WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL '24 hours';`);
 
 
     return {
@@ -1649,17 +1645,17 @@ export class UsersService {
       claim = findClaimablePurchase ? true : false;
     }
 
-    const headPurchases=await this.purchasedTgmRepo.createQueryBuilder("pt")
-    .where('pt."headOfInviter"->>\'id\' = :headId', { headId: findHead.id })
-    .andWhere("pt.headOfMarketerCommission IS NOT NULL")
-    .getMany()
+    const headPurchases = await this.purchasedTgmRepo.createQueryBuilder("pt")
+      .where('pt."headOfInviter"->>\'id\' = :headId', { headId: findHead.id })
+      .andWhere("pt.headOfMarketerCommission IS NOT NULL")
+      .getMany();
 
     const findClaimablePurchase = headPurchases.find(
       (x) => x.headOfMarketerCommission && x.headOfMarketerClaimedCommission == false,
     );
 
-    if(findClaimablePurchase)
-      claim=true
+    if (findClaimablePurchase)
+      claim = true;
 
 
     return { data, count, hasNextPage, claim };
@@ -1834,18 +1830,18 @@ export class UsersService {
       .andWhere('pt."headOfMarketerClaimedCommission" = :claimed', { claimed: false })
       .andWhere("pt.headOfMarketerCommission is not null")
       .getMany();
-    let finalCommission: number=0
+    let finalCommission: number = 0;
     let purchaseIds: string[] = [];
 
-    if(purchases?.length<=0)
-      throw new BadRequestException("There is no purchase")
+    if (purchases?.length <= 0)
+      throw new BadRequestException("There is no purchase");
 
     purchases.forEach(x => {
-      finalCommission = finalCommission+ Math.floor(Number(x.headOfMarketerCommission)),
+      finalCommission = finalCommission + Math.floor(Number(x.headOfMarketerCommission)),
         purchaseIds.push(x.id);
     });
-    console.log("-------- ids --------")
-    console.log(purchaseIds)
+    console.log("-------- ids --------");
+    console.log(purchaseIds);
     await this.purchasedTgmRepo.update(purchaseIds, { headOfMarketerClaimedCommission: true });
     findHeadMarketer.tgmCount += finalCommission;
     return await this.userRepo.save(findHeadMarketer);
@@ -1902,8 +1898,8 @@ export class UsersService {
       this.validateBuyTypeAndAmount(buyTgmDto.type, buyTgmDto.amount);
       const user = await this.findUserOrThrow(buyTgmDto.initData);
 
-      if(process.env.NODE_ENV=="production")
-      await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
+      if (process.env.NODE_ENV == "production")
+        await this.validateTraansaction(buyTgmDto.txId, user.walletAddress);
 
       if (buyTgmDto.amount && !buyTgmDto.type)
         // BUY TGM WITHOUT TYPE
@@ -1930,7 +1926,7 @@ export class UsersService {
         break;
       case 4:
         packageReward = 1000000;
-        user.isVip=true
+        user.isVip = true;
         break;
       case 5:
         packageReward = 24000000;
@@ -2022,7 +2018,7 @@ export class UsersService {
     if (!user.roles.find(x => x == UserRoles.HEAD_OF_MARKETING)) {
       user.roles.push(UserRoles.HEAD_OF_MARKETING);
       user.roles.splice(user.roles.findIndex(x => x == UserRoles.MARKETER), 1);
-      user.deletedAtOfMarketers=new Date()
+      user.deletedAtOfMarketers = new Date();
     }
     return user;
   }
