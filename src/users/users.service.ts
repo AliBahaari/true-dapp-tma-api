@@ -30,6 +30,8 @@ import { WalletLogEntity } from './entities/wallet-log.entity';
 import { fibonacciPosition } from './utils/fibonacciPosition';
 import * as util from 'util';
 import * as bigDecimal from 'js-big-decimal'
+import { AccessToken } from './interfaces/access-token.interface';
+import { JwtService } from '@nestjs/jwt';
 var crypto = require('crypto');
 
 @Injectable()
@@ -52,7 +54,8 @@ export class UsersService {
     @InjectRepository(RedEnvelopeLogEntity) private redEnvelopeLogRepo: Repository<RedEnvelopeLogEntity>,
     @InjectRepository(WalletLogEntity) private walletLogRepo: Repository<WalletLogEntity>,
     @InjectRepository(CompleteTaskLogEntity) private completeTaskLogRepo: Repository<CompleteTaskLogEntity>,
-    @InjectRepository(ClaimedRewardLogEntity) private claimedRewardRepo: Repository<ClaimedRewardLogEntity>
+    @InjectRepository(ClaimedRewardLogEntity) private claimedRewardRepo: Repository<ClaimedRewardLogEntity>,
+    private readonly jwtService:JwtService
 
   ) { }
 
@@ -114,6 +117,18 @@ export class UsersService {
       await this.purchasedTgmRepo.save(this.purchasedTgmRepo.create(createPurchasedDto));
       console.log('user ' + i, 'DONE');
     }
+  }
+
+  public  async  login(user:IUserToken):Promise<string>
+  {
+    const findUser=await this.userRepo.findOne({where:{id:user.id}})
+    const accessTokenPayload:AccessToken={
+        id:findUser.id,
+        roles:findUser.roles
+    }
+
+    const token=await this.jwtService.sign(accessTokenPayload,{expiresIn:"12h"})
+    return token
   }
 
   public async findOneUser(initData: string): Promise<UserEntity> {
@@ -208,7 +223,7 @@ export class UsersService {
         referralCode,
         completedTasks: [],
         claimedRewards: [],
-        lastOnline: '',
+        lastOnline: new Date().toLocaleDateString(),
         privateCode,
         userHasInvitedLink: createUserDto.invitedBy ? true : false,
         isVip: false,

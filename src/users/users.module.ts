@@ -11,6 +11,7 @@ import { RedEnvelopeLogEntity } from './entities/red-envelope-log.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
 import { CompleteTaskLogEntity } from './entities/complete-task-log.entity';
 import { ClaimedRewardLogEntity } from './entities/claimed-reward-log.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -23,7 +24,11 @@ import { ClaimedRewardLogEntity } from './entities/claimed-reward-log.entity';
     WalletLogEntity,
     CompleteTaskLogEntity,
     ClaimedRewardLogEntity
-  ])],
+  ]),
+JwtModule.register({
+  global:true,
+  secret:process.env.JWT_SECRET
+})],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

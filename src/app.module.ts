@@ -93,8 +93,8 @@ console.log(process.env.PSQL_DB);
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(EncryptionMiddleware)
-      .forRoutes('*')
+      // .apply(EncryptionMiddleware)
+      // .forRoutes('*')
 
       .apply(AuthMiddleware)
       .exclude(
