@@ -208,7 +208,7 @@ export class UsersService {
         referralCode,
         completedTasks: [],
         claimedRewards: [],
-        lastOnline: '',
+        lastOnline:  new Date().toLocaleDateString(),
         privateCode,
         userHasInvitedLink: createUserDto.invitedBy ? true : false,
         isVip: false,
