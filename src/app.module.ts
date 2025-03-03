@@ -39,7 +39,8 @@ import { ClaimedRewardLogEntity } from './users/entities/claimed-reward-log.enti
 import { CompleteTaskLogEntity } from './users/entities/complete-task-log.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './common/guards/auth.guard';
-console.log(join(__dirname, '..', 'public'))
+import { RolesGuard } from './common/guards/role.guard';
+console.log(join(__dirname, '..', 'public'));
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------");
 console.log(process.env.PSQL_DB);
@@ -93,6 +94,9 @@ console.log(process.env.PSQL_DB);
   providers: [{
     provide: APP_GUARD,
     useClass: AuthGuard,
+  }, {
+    provide: APP_GUARD,
+    useClass: RolesGuard,
   }],
 })
 export class AppModule {
