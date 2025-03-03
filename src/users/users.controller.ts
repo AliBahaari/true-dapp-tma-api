@@ -18,10 +18,18 @@ import { AddMarketerDto } from './dto/add-marketer.dto';
 import { IUserToken } from 'src/common/interfaces/user-token.interface';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { UpdateMarketerDto } from './dto/update-marketer.dto';
+import { LoginUserDto } from './dto/login.dto';
+import { Public } from 'src/common/decorator/public-api.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Public()
+  @Post('login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return await this.usersService.login(loginUserDto);
+  }
 
   @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {

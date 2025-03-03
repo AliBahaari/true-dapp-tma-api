@@ -30,6 +30,7 @@ import { UserEntity, UserRoles } from './entities/user.entity';
 import { WalletLogEntity } from './entities/wallet-log.entity';
 import { AccessToken } from './interfaces/access-token.interface';
 import { fibonacciPosition } from './utils/fibonacciPosition';
+import { LoginUserDto } from './dto/login.dto';
 var crypto = require('crypto');
 
 @Injectable()
@@ -117,15 +118,15 @@ export class UsersService {
     }
   }
 
-  public async login(user: IUserToken): Promise<string> {
-    const findUser = await this.userRepo.findOne({ where: { id: user.id } });
+  public async login(user: LoginUserDto): Promise<{token: string}> {
+    const findUser = await this.userRepo.findOne({ where: { initData :user.initData  } });
     const accessTokenPayload: AccessToken = {
       id: findUser.id,
       roles: findUser.roles
     };
 
     const token = await this.jwtService.sign(accessTokenPayload, { expiresIn: "12h" });
-    return token;
+    return {token};
   }
 
   public async findOneUser(initData: string): Promise<UserEntity> {

@@ -40,6 +40,7 @@ import { CompleteTaskLogEntity } from './users/entities/complete-task-log.entity
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/role.guard';
+import { JwtService } from '@nestjs/jwt';
 console.log(join(__dirname, '..', 'public'));
 dotenv.config({ path: path.resolve(__dirname, `../.env.${process.env.NODE_ENV}`) });
 console.log("------- db -------");
@@ -91,7 +92,7 @@ console.log(process.env.PSQL_DB);
     UsersModule,
   ],
   controllers: [],
-  providers: [{
+  providers: [JwtService,{
     provide: APP_GUARD,
     useClass: AuthGuard,
   }, {
@@ -105,18 +106,18 @@ export class AppModule {
       // .apply(EncryptionMiddleware)
       // .forRoutes('*')
 
-      .apply(AuthMiddleware)
-      .exclude(
-        {
-          path: 'users/create',
-          method: RequestMethod.POST,
-        },
-        {
-          path: 'users/find/:initData',
-          method: RequestMethod.GET,
-        },
-      )
-      .forRoutes(UsersController, TreasuryController)
+      // .apply(AuthMiddleware)
+      // .exclude(
+      //   {
+      //     path: 'users/create',
+      //     method: RequestMethod.POST,
+      //   },
+      //   {
+      //     path: 'users/find/:initData',
+      //     method: RequestMethod.GET,
+      //   },
+      // )
+      // .forRoutes(UsersController, TreasuryController)
       .apply(RequestLoggerMiddleware)
       .forRoutes('*');
   }

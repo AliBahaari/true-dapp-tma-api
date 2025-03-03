@@ -12,6 +12,7 @@ import { WalletLogEntity } from './entities/wallet-log.entity';
 import { CompleteTaskLogEntity } from './entities/complete-task-log.entity';
 import { ClaimedRewardLogEntity } from './entities/claimed-reward-log.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -25,10 +26,14 @@ import { JwtModule } from '@nestjs/jwt';
     CompleteTaskLogEntity,
     ClaimedRewardLogEntity
   ]),
-JwtModule.register({
-  global:true,
-  secret:process.env.JWT_SECRET
-})],
+  JwtModule.registerAsync({
+    imports: [ConfigModule],
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => ({
+      global: true,
+      secret: configService.get<string>('JWT_SECRET'),
+    }),
+  }),],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],
