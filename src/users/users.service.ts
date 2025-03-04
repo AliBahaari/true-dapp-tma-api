@@ -587,7 +587,7 @@ export class UsersService {
 
     const todayUsers=await this.userRepo.query(`SELECT *
 FROM users u
-WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL ' hours';`)
+WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL '48 hours';`)
 
 
     return {
