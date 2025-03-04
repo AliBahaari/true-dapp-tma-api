@@ -22,17 +22,19 @@ export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(@ConnectedSocket() client: Socket) {
 
+    const socketIndex = this.onlineSockets.findIndex(socket => socket.id === client.id);
+    if (socketIndex === -1) {
     // Add the connected socket to the onlineSockets array
     const timeout = setTimeout(() => {
       this.removeSocket(client.id);
       this.emitOnlineUserCount(); // Emit updated count after expiration
     }, 3600000); // 1 hour in milliseconds
-
-    this.onlineSockets.push({
-      id: client.id,
-      expiredAt: new Date(Date.now() + 3600000), // 1 hour from now
-      timeout: timeout,
-    });
+      this.onlineSockets.push({
+        id: client.id,
+        expiredAt: new Date(Date.now() + 3600000), // 1 hour from now
+        timeout: timeout,
+      });
+    }
 
     // Emit the updated online users count
     this.emitOnlineUserCount();
