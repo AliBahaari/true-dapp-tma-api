@@ -208,7 +208,7 @@ export class UsersService {
         referralCode,
         completedTasks: [],
         claimedRewards: [],
-        lastOnline:  new Date().toLocaleDateString(),
+        lastOnline:  new Date().toISOString(),
         privateCode,
         userHasInvitedLink: createUserDto.invitedBy ? true : false,
         isVip: false,
@@ -236,7 +236,7 @@ export class UsersService {
         referralCode,
         completedTasks: [],
         claimedRewards: [],
-        lastOnline: '',
+        lastOnline: new Date().toISOString(),
         privateCode,
         estimatedTgmPrice: '0',
         isVip: false,
@@ -355,7 +355,7 @@ export class UsersService {
         ).toString();
       });
 
-      userFindOne.lastOnline = new Date().toLocaleDateString();
+      userFindOne.lastOnline = new Date().toISOString();
       await this.userRepo.save(userFindOne);
       userFindOne['rank'] =
         usersFindAll.findIndex((x) => x.initData == userFindOne.initData) + 1;
@@ -404,7 +404,7 @@ export class UsersService {
         isInviterHeadOfMarketer = true;
         headOfMarketerAddress = whoInvitedUser.walletAddress;
       }
-      
+
       if(isInviterHeadOfMarketer==false && userFindOne.getMarketerBy)
         {
           const findHeadOfMarketer = await this.userRepo.findOne({ where: { referralCode: userFindOne.getMarketerBy } });
@@ -412,7 +412,7 @@ export class UsersService {
           headOfMarketerAddress=findHeadOfMarketer.walletAddress
         }
 
-        
+
 
       const countOfReferral = await this.userRepo.count({
         where: {
@@ -587,7 +587,7 @@ export class UsersService {
 
     const todayUsers=await this.userRepo.query(`SELECT *
 FROM users u
-WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL '24 hours';`)
+WHERE u."lastOnline"::timestamp >= NOW() - INTERVAL ' hours';`)
 
 
     return {
